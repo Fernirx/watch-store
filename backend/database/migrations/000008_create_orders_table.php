@@ -12,21 +12,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('order_number')->unique();
-
-            // Totals
             $table->decimal('subtotal', 15, 2);
             $table->decimal('total', 15, 2);
-
-            // Status
             $table->enum('status', ['PENDING', 'PAID', 'PROCESSING', 'COMPLETED', 'CANCELLED'])->default('PENDING');
-
-            // Customer info
-            $table->string('customer_name');
-            $table->string('customer_email');
-            $table->string('customer_phone')->nullable();
-
+            $table->string('payment_method')->nullable();
+            $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->decimal('shipping_fee', 15, 2)->default(0);
+            $table->text('shipping_address')->nullable();
+            $table->string('shipping_phone')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
-
             $table->index(['user_id', 'status']);
             $table->index('order_number');
         });

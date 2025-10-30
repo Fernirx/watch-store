@@ -11,17 +11,14 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
-
             $table->decimal('amount', 15, 2);
             $table->enum('status', ['PENDING', 'SUCCESS', 'FAILED'])->default('PENDING');
-
-            // MoMo payment gateway response
             $table->string('transaction_id')->nullable();
-            $table->text('momo_response')->nullable();
-
+            $table->string('payment_method')->default('vnpay');
+            $table->string('response_code')->nullable();
+            $table->text('response_message')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
-
             $table->index('order_id');
             $table->index('transaction_id');
         });
