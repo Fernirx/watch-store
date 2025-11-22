@@ -11,6 +11,7 @@ class BrandSeeder extends Seeder
     {
         $brands = [
             [
+                'id' => 1,
                 'name' => 'Rolex',
                 'description' => 'Swiss luxury watchmaker known for precision and prestige',
                 'country' => 'Switzerland',
@@ -19,6 +20,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 2,
                 'name' => 'Omega',
                 'description' => 'Swiss luxury watchmaker with a rich heritage in precision timekeeping',
                 'country' => 'Switzerland',
@@ -27,6 +29,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 3,
                 'name' => 'Seiko',
                 'description' => 'Japanese watchmaker renowned for innovation and quality',
                 'country' => 'Japan',
@@ -35,6 +38,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 4,
                 'name' => 'Casio',
                 'description' => 'Japanese electronics company famous for G-Shock watches',
                 'country' => 'Japan',
@@ -43,6 +47,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 5,
                 'name' => 'Apple',
                 'description' => 'Technology company producing the Apple Watch smartwatch',
                 'country' => 'United States',
@@ -51,6 +56,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 6,
                 'name' => 'Tag Heuer',
                 'description' => 'Swiss luxury watchmaker specializing in sports watches',
                 'country' => 'Switzerland',
@@ -59,6 +65,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 7,
                 'name' => 'Citizen',
                 'description' => 'Japanese watchmaker known for Eco-Drive technology',
                 'country' => 'Japan',
@@ -67,6 +74,7 @@ class BrandSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'id' => 8,
                 'name' => 'Tissot',
                 'description' => 'Swiss watchmaker offering quality timepieces at accessible prices',
                 'country' => 'Switzerland',
