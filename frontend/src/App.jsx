@@ -1,35 +1,126 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import Layout from './components/layout/Layout';
+import AdminLayout from './components/layout/AdminLayout';
+import ProtectedRoute from './components/common/ProtectedRoute';
+
+// Auth Pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import VerifyOtp from './pages/auth/VerifyOtp';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import GoogleCallback from './pages/auth/GoogleCallback';
+
+// Product Pages
+import HomePage from './pages/products/HomePage';
+import ProductList from './pages/products/ProductList';
+import ProductDetail from './pages/products/ProductDetail';
+
+// Cart & Checkout
+import Cart from './pages/cart/Cart';
+import Checkout from './pages/cart/Checkout';
+
+// Orders
+import OrderList from './pages/orders/OrderList';
+import OrderDetail from './pages/orders/OrderDetail';
+
+// Payment Pages
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentFailed from './pages/payment/PaymentFailed';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminProducts from './pages/admin/Products';
+import AdminProductForm from './pages/admin/ProductForm';
+import AdminCategories from './pages/admin/Categories';
+import AdminBrands from './pages/admin/Brands';
+import AdminOrders from './pages/admin/Orders';
+import AdminOrderDetail from './pages/admin/OrderDetail';
+
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <AuthProvider>
+        <CartProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
+
+            {/* Payment Result Pages */}
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/failed" element={<PaymentFailed />} />
+
+            {/* Main Layout Routes */}
+            <Route element={<Layout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductList />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+
+              {/* Protected Routes */}
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrderList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetail />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/products/create" element={<AdminProductForm />} />
+              <Route path="/admin/products/edit/:id" element={<AdminProductForm />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/brands" element={<AdminBrands />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+              <Route path="/admin/users" element={<div>Users Management (Coming Soon)</div>} />
+            </Route>
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </Router>
+  );
 }
 
-export default App
+export default App;

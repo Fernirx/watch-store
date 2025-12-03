@@ -1,0 +1,153 @@
+.payment-result-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.payment-result-card {
+  background: white;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.result-icon {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-result-card.success .result-icon {
+  background: #d4edda;
+  color: #155724;
+}
+
+.payment-result-card.failed .result-icon {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.result-icon svg {
+  width: 60px;
+  height: 60px;
+}
+
+.payment-result-card h1 {
+  font-size: 32px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.payment-result-card.success h1 {
+  color: #28a745;
+}
+
+.payment-result-card.failed h1 {
+  color: #dc3545;
+}
+
+.result-message {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.order-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 30px 0;
+}
+
+.order-info p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.order-info strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.order-info .note {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #856404;
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.result-actions .btn {
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.result-actions .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.result-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.result-actions .btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.result-actions .btn-secondary:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .payment-result-card {
+    padding: 40px 30px;
+  }
+
+  .payment-result-card h1 {
+    font-size: 26px;
+  }
+
+  .result-message {
+    font-size: 16px;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .result-actions .btn {
+    width: 100%;
+  }
+}
