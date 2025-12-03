@@ -19,7 +19,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => null,
                 'sku' => 'ROLEX-SUB-001',
                 'stock_quantity' => 5,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Stainless Steel',
                 'movement_type' => 'Automatic',
@@ -39,7 +44,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => null,
                 'sku' => 'ROLEX-DJ-001',
                 'stock_quantity' => 8,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Steel and Gold',
                 'strap_material' => 'Jubilee Bracelet',
                 'movement_type' => 'Automatic',
@@ -59,7 +69,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 6500.00,
                 'sku' => 'OMEGA-SPEED-001',
                 'stock_quantity' => 12,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Stainless Steel',
                 'movement_type' => 'Manual',
@@ -79,7 +94,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 799.00,
                 'sku' => 'SEIKO-PRO-001',
                 'stock_quantity' => 20,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Rubber',
                 'movement_type' => 'Automatic',
@@ -99,7 +119,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 99.00,
                 'sku' => 'CASIO-GA-001',
                 'stock_quantity' => 50,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Resin',
                 'strap_material' => 'Resin',
                 'movement_type' => 'Quartz',
@@ -119,7 +144,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 399.00,
                 'sku' => 'APPLE-S9-001',
                 'stock_quantity' => 30,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Aluminum',
                 'strap_material' => 'Sport Band',
                 'movement_type' => 'Digital',
@@ -139,7 +169,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => null,
                 'sku' => 'TAG-CAR-001',
                 'stock_quantity' => 7,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Leather',
                 'movement_type' => 'Automatic',
@@ -159,7 +194,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 249.00,
                 'sku' => 'CITIZEN-ECO-001',
                 'stock_quantity' => 25,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Leather',
                 'movement_type' => 'Eco-Drive',
@@ -179,7 +219,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => 699.00,
                 'sku' => 'TISSOT-PRX-001',
                 'stock_quantity' => 15,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Stainless Steel',
                 'movement_type' => 'Automatic',
@@ -199,7 +244,12 @@ class ProductSeeder extends Seeder
                 'sale_price' => null,
                 'sku' => 'SEIKO-PRES-001',
                 'stock_quantity' => 18,
-                'images' => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                'images' => [
+                    [
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
+                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                    ]
+                ],
                 'case_material' => 'Stainless Steel',
                 'strap_material' => 'Leather',
                 'movement_type' => 'Automatic',
