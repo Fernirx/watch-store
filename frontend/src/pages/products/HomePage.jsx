@@ -38,16 +38,6 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-content">
-          <h1>Đồng Hồ Cao Cấp</h1>
-          <p>Khám phá bộ sưu tập đồng hồ sang trọng và đẳng cấp</p>
-          <Link to="/products" className="btn-primary">
-            Xem Sản Phẩm
-          </Link>
-        </div>
-      </section>
 
       {/* Categories Section */}
       <section className="categories-section">
@@ -75,7 +65,7 @@ const HomePage = () => {
               <Link to={`/products/${product.id}`}>
                 <div className="product-image">
                   <img
-                    src={product.images?.[0]?.image_url || '/placeholder.jpg'}
+                    src={product.image_url || '/placeholder.jpg'}
                     alt={product.name}
                   />
                   {product.sale_price && (

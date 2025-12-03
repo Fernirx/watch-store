@@ -349,7 +349,13 @@ a {
   margin-bottom: 2rem;
 }
 
-.categories-section, .featured-section, .brands-section {
+.categories-section {
+  padding: 3rem 0;
+  background: rgb(75, 204, 172);
+}
+
+.featured-section,
+.brands-section {
   padding: 3rem 0;
 }
 
