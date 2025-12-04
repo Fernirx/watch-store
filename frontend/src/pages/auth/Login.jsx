@@ -151,9 +151,21 @@ const Login = () => {
               className={errors.password ? 'input-error' : ''}
               autoComplete="off"
             />
+
             {errors.password && <span className="field-error">{errors.password[0]}</span>}
           </div>
-
+          <div>
+            Hiện mật khẩu <span> </span>
+            <input
+              type="checkbox"
+              onChange={(e) => {
+                const passwordInput = document.querySelector('input[name="password"]');
+                if (passwordInput) {
+                  passwordInput.type = e.target.checked ? 'text' : 'password';
+                }
+              }}
+            />
+          </div>
           <div className="form-actions">
             <Link to="/forgot-password" className="forgot-link">
               Quên mật khẩu?

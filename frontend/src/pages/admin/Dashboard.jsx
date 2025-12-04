@@ -52,7 +52,7 @@ const Dashboard = () => {
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1>📊 Dashboard</h1>
+          <h1> Dashboard</h1>
           <div className="admin-breadcrumb">
             <span>Tổng quan hệ thống</span>
           </div>
@@ -68,7 +68,7 @@ const Dashboard = () => {
               <p>{stats.totalProducts}</p>
             </div>
             <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)' }}>
-              📦
+              <i style={{ width: '24px', height: '24px' }} className="fa fa-cube"></i>
             </div>
           </div>
           <div className="stat-card-footer">
@@ -85,7 +85,7 @@ const Dashboard = () => {
               <p>{stats.totalCategories}</p>
             </div>
             <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%)' }}>
-              🏷️
+              <i style={{ width: '24px', height: '24px' }} className="fa fa-tags"></i>
             </div>
           </div>
           <div className="stat-card-footer">
@@ -102,7 +102,7 @@ const Dashboard = () => {
               <p>{stats.totalBrands}</p>
             </div>
             <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)' }}>
-              ⭐
+              <i style={{ width: '24px', height: '24px' }} className="fa fa-star"></i>
             </div>
           </div>
           <div className="stat-card-footer">
@@ -119,7 +119,7 @@ const Dashboard = () => {
               <p>{stats.totalOrders}</p>
             </div>
             <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)' }}>
-              🛒
+              <i style={{ width: '24px', height: '24px' }} className="fa fa-shopping-cart"></i>
             </div>
           </div>
           <div className="stat-card-footer">
@@ -133,20 +133,20 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1e293b', marginBottom: '1.5rem' }}>
-          ⚡ Thao tác nhanh
+          Thao tác nhanh
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <Link to="/admin/products/create" className="btn btn-primary btn-lg" style={{ justifyContent: 'center' }}>
-            ➕ Thêm sản phẩm
+            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm sản phẩm
           </Link>
           <Link to="/admin/categories" className="btn btn-success btn-lg" style={{ justifyContent: 'center' }}>
-            ➕ Thêm danh mục
+            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm danh mục
           </Link>
           <Link to="/admin/brands" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
-            ➕ Thêm thương hiệu
+            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm thương hiệu
           </Link>
           <Link to="/admin/orders" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center' }}>
-            📋 Xem đơn hàng
+            <i className="fa fa-list" style={{ marginRight: '0.5rem' }}></i>   Xem đơn hàng
           </Link>
         </div>
       </div>

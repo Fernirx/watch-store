@@ -90,8 +90,7 @@ const Categories = () => {
     } catch (error) {
       console.error('Error saving category:', error);
       alert(
-        `Không thể ${editingId ? 'cập nhật' : 'tạo'} danh mục: ${
-          error.response?.data?.message || error.message
+        `Không thể ${editingId ? 'cập nhật' : 'tạo'} danh mục: ${error.response?.data?.message || error.message
         }`
       );
     }

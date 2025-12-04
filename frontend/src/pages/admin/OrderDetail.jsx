@@ -155,7 +155,7 @@ const AdminOrderDetail = () => {
         <div className="order-summary">
           <div className="summary-row">
             <span>Tạm tính:</span>
-            <span>{order.subtotal_price.toLocaleString('vi-VN')} ₫</span>
+            <span>{order.subtotal.toLocaleString('vi-VN')} ₫</span>
           </div>
           <div className="summary-row">
             <span>Phí vận chuyển:</span>
@@ -163,7 +163,7 @@ const AdminOrderDetail = () => {
           </div>
           <div className="summary-row total">
             <span>Tổng cộng:</span>
-            <span>{order.total_price.toLocaleString('vi-VN')} ₫</span>
+            <span>{order.total.toLocaleString('vi-VN')} ₫</span>
           </div>
         </div>
       </div>

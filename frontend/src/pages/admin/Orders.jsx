@@ -15,6 +15,7 @@ const Orders = () => {
       setLoading(true);
       const response = await axios.get('/orders');
       setOrders(response.data.data || []);
+      console.log();
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -106,7 +107,7 @@ const Orders = () => {
                   <td style={{ fontWeight: '600' }}>{order.user?.name || 'Khách'}</td>
                   <td>{order.shipping_phone}</td>
                   <td style={{ fontWeight: '600', color: '#1e293b' }}>
-                    {order.total_price.toLocaleString('vi-VN')}₫
+                    {order.total.toLocaleString('vi-VN')}₫
                   </td>
                   <td>{getStatusBadge(order.status)}</td>
                   <td>{getPaymentStatusBadge(order.payment_status)}</td>
@@ -118,7 +119,7 @@ const Orders = () => {
                       to={`/admin/orders/${order.id}`}
                       className="btn btn-secondary btn-sm"
                     >
-                      👁️ Chi tiết
+                      Chi tiết
                     </Link>
                   </td>
                 </tr>

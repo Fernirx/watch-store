@@ -90,8 +90,7 @@ const Brands = () => {
     } catch (error) {
       console.error('Error saving brand:', error);
       alert(
-        `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${
-          error.response?.data?.message || error.message
+        `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${error.response?.data?.message || error.message
         }`
       );
     }
@@ -144,7 +143,7 @@ const Brands = () => {
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1>⭐ Quản Lý Thương Hiệu</h1>
+          <h1> Quản Lý Thương Hiệu</h1>
           <div className="admin-breadcrumb">
             <a href="/admin">Dashboard</a>
             <span>/</span>
@@ -158,7 +157,7 @@ const Brands = () => {
           }}
           className="btn btn-primary"
         >
-          ➕ Thêm Thương Hiệu Mới
+          Thêm Thương Hiệu Mới
         </button>
       </div>
 
@@ -167,7 +166,7 @@ const Brands = () => {
         <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && resetForm()}>
           <div className="modal">
             <div className="modal-header">
-              <h2>{editingId ? '✏️ Sửa Thương Hiệu' : '➕ Thêm Thương Hiệu Mới'}</h2>
+              <h2>{editingId ? ' Sửa Thương Hiệu' : ' Thêm Thương Hiệu Mới'}</h2>
               <button onClick={resetForm} className="modal-close">
                 ✕
               </button>
@@ -236,7 +235,7 @@ const Brands = () => {
                   ✕ Hủy
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingId ? '💾 Cập nhật' : '✓ Tạo mới'}
+                  {editingId ? ' Cập nhật' : '✓ Tạo mới'}
                 </button>
               </div>
             </form>
@@ -258,7 +257,7 @@ const Brands = () => {
               }}
               className="btn btn-primary"
             >
-              ➕ Thêm Thương Hiệu
+              Thêm Thương Hiệu
             </button>
           </div>
         ) : (
@@ -306,14 +305,14 @@ const Brands = () => {
                     className="btn btn-secondary btn-sm"
                     style={{ flex: 1 }}
                   >
-                    ✏️ Sửa
+                    Sửa
                   </button>
                   <button
                     onClick={() => handleDelete(brand.id)}
                     className="btn btn-danger btn-sm"
                     style={{ flex: 1 }}
                   >
-                    🗑️ Xóa
+                    Xóa
                   </button>
                 </div>
               </div>
