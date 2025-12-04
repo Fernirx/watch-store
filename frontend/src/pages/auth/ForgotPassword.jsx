@@ -22,10 +22,31 @@ const ForgotPassword = () => {
     });
   };
 
+  const validateEmailForm = () => {
+    const newErrors = {};
+
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = ['Email là bắt buộc'];
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = ['Email không hợp lệ'];
+    }
+
+    return newErrors;
+  };
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setErrors({});
+
+    // Validate form trước khi gửi OTP
+    const validationErrors = validateEmailForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,13 +72,44 @@ const ForgotPassword = () => {
     }
   };
 
+  const validateResetForm = () => {
+    const newErrors = {};
+
+    // Validate OTP
+    if (!formData.otp.trim()) {
+      newErrors.otp = ['Mã OTP là bắt buộc'];
+    } else if (!/^\d{6}$/.test(formData.otp)) {
+      newErrors.otp = ['Mã OTP phải là 6 chữ số'];
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = ['Mật khẩu mới là bắt buộc'];
+    } else if (formData.password.length < 8) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải chứa chữ hoa, chữ thường và số'];
+    }
+
+    // Validate password confirmation
+    if (!formData.password_confirmation) {
+      newErrors.password_confirmation = 'Xác nhận mật khẩu là bắt buộc';
+    } else if (formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = 'Mật khẩu xác nhận không khớp';
+    }
+
+    return newErrors;
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setErrors({});
 
-    if (formData.password !== formData.password_confirmation) {
-      setErrors({ password_confirmation: 'Mật khẩu xác nhận không khớp' });
+    // Validate form trước khi reset password
+    const validationErrors = validateResetForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 

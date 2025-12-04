@@ -51,9 +51,48 @@ const Checkout = () => {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate địa chỉ
+    if (!formData.shipping_address.trim()) {
+      newErrors.shipping_address = 'Địa chỉ giao hàng là bắt buộc';
+    } else if (formData.shipping_address.trim().length < 10) {
+      newErrors.shipping_address = 'Địa chỉ phải có ít nhất 10 ký tự';
+    }
+
+    // Validate số điện thoại (format Việt Nam)
+    if (!formData.shipping_phone.trim()) {
+      newErrors.shipping_phone = 'Số điện thoại là bắt buộc';
+    } else {
+      // Remove spaces and dashes
+      const phone = formData.shipping_phone.replace(/[\s-]/g, '');
+
+      // Validate Vietnamese phone number (10-11 digits, starts with 0)
+      if (!/^0\d{9,10}$/.test(phone)) {
+        newErrors.shipping_phone = 'Số điện thoại không hợp lệ (VD: 0912345678)';
+      }
+    }
+
+    // Validate payment method
+    if (!formData.payment_method) {
+      newErrors.payment_method = 'Vui lòng chọn phương thức thanh toán';
+    }
+
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setError(Object.values(validationErrors).join(', '));
+      return;
+    }
+
     setLoading(true);
 
     try {

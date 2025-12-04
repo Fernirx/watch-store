@@ -30,12 +30,40 @@ const Login = () => {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = ['Email là bắt buộc'];
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = ['Email không hợp lệ'];
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = ['Mật khẩu là bắt buộc'];
+    } else if (formData.password.length < 6) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 6 ký tự'];
+    }
+
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     setErrors({});
     setSuccessMessage('');
+
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {

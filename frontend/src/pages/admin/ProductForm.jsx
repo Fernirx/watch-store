@@ -92,8 +92,60 @@ const ProductForm = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = [];
+
+    // Validate tên sản phẩm
+    if (!formData.name.trim()) {
+      errors.push('Tên sản phẩm là bắt buộc');
+    } else if (formData.name.trim().length < 3) {
+      errors.push('Tên sản phẩm phải có ít nhất 3 ký tự');
+    }
+
+    // Validate giá
+    if (!formData.price || formData.price <= 0) {
+      errors.push('Giá gốc phải lớn hơn 0');
+    }
+
+    // Validate giá khuyến mãi
+    if (formData.sale_price) {
+      const salePrice = parseFloat(formData.sale_price);
+      const price = parseFloat(formData.price);
+
+      if (salePrice <= 0) {
+        errors.push('Giá khuyến mãi phải lớn hơn 0');
+      } else if (salePrice >= price) {
+        errors.push('Giá khuyến mãi phải nhỏ hơn giá gốc');
+      }
+    }
+
+    // Validate số lượng tồn kho
+    if (!formData.stock_quantity || formData.stock_quantity < 0) {
+      errors.push('Số lượng tồn kho phải >= 0');
+    }
+
+    // Validate danh mục
+    if (!formData.category_id) {
+      errors.push('Vui lòng chọn danh mục');
+    }
+
+    // Validate thương hiệu
+    if (!formData.brand_id) {
+      errors.push('Vui lòng chọn thương hiệu');
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      return;
+    }
 
     try {
       setLoading(true);

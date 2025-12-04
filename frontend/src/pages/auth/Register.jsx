@@ -22,14 +22,53 @@ const Register = () => {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate name
+    if (!formData.name.trim()) {
+      newErrors.name = ['Họ tên là bắt buộc'];
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = ['Họ tên phải có ít nhất 2 ký tự'];
+    } else if (formData.name.trim().length > 100) {
+      newErrors.name = ['Họ tên không được vượt quá 100 ký tự'];
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = ['Email là bắt buộc'];
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = ['Email không hợp lệ'];
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = ['Mật khẩu là bắt buộc'];
+    } else if (formData.password.length < 8) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải chứa chữ hoa, chữ thường và số'];
+    }
+
+    // Validate password confirmation
+    if (!formData.password_confirmation) {
+      newErrors.password_confirmation = 'Xác nhận mật khẩu là bắt buộc';
+    } else if (formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = 'Mật khẩu xác nhận không khớp';
+    }
+
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setErrors({});
 
-    // Kiểm tra mật khẩu khớp
-    if (formData.password !== formData.password_confirmation) {
-      setErrors({ password_confirmation: 'Mật khẩu xác nhận không khớp' });
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 

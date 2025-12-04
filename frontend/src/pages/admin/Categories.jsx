@@ -43,8 +43,30 @@ const Categories = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = [];
+
+    // Validate tên danh mục
+    if (!formData.name.trim()) {
+      errors.push('Tên danh mục là bắt buộc');
+    } else if (formData.name.trim().length < 2) {
+      errors.push('Tên danh mục phải có ít nhất 2 ký tự');
+    } else if (formData.name.trim().length > 100) {
+      errors.push('Tên danh mục không được vượt quá 100 ký tự');
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      return;
+    }
 
     try {
       const submitData = new FormData();

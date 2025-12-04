@@ -43,8 +43,30 @@ const Brands = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = [];
+
+    // Validate tên thương hiệu
+    if (!formData.name.trim()) {
+      errors.push('Tên thương hiệu là bắt buộc');
+    } else if (formData.name.trim().length < 2) {
+      errors.push('Tên thương hiệu phải có ít nhất 2 ký tự');
+    } else if (formData.name.trim().length > 100) {
+      errors.push('Tên thương hiệu không được vượt quá 100 ký tự');
+    }
+
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form trước khi submit
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      return;
+    }
 
     try {
       const submitData = new FormData();
