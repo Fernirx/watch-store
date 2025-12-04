@@ -40,7 +40,7 @@ class VNPayController extends Controller
                 'order_id' => $order->id,
                 'payment_method' => 'vnpay',
                 'amount' => $order->total,
-                'status' => 'pending',
+                'status' => 'PENDING',
             ]);
 
             // Tạo URL thanh toán VNPay (Tiếng Việt không dấu theo yêu cầu VNPay)
@@ -104,7 +104,7 @@ class VNPayController extends Controller
                 if ($payment) {
                     $payment->update([
                         'transaction_id' => $vnpTransactionNo,
-                        'status' => $vnpResponseCode === '00' ? 'completed' : 'failed',
+                        'status' => $vnpResponseCode === '00' ? 'SUCCESS' : 'FAILED',
                         'response_code' => $vnpResponseCode,
                         'response_message' => $this->vnpayService->getResponseMessage($vnpResponseCode),
                     ]);
@@ -183,7 +183,7 @@ class VNPayController extends Controller
                 if ($payment) {
                     $payment->update([
                         'transaction_id' => $vnpTransactionNo,
-                        'status' => $vnpResponseCode === '00' ? 'completed' : 'failed',
+                        'status' => $vnpResponseCode === '00' ? 'SUCCESS' : 'FAILED',
                         'response_code' => $vnpResponseCode,
                         'response_message' => $this->vnpayService->getResponseMessage($vnpResponseCode),
                     ]);
