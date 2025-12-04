@@ -115,7 +115,7 @@ const HomePage = () => {
               className="brand-card"
             >
               {brand.logo_url ? (
-                <img src={brand.logo_url} alt={brand.name} />
+                <img style={{ width: '100px', maxHeight: '50px', objectFit: 'contain' }} src={brand.logo_url} alt={brand.name} />
               ) : (
                 <h3>{brand.name}</h3>
               )}

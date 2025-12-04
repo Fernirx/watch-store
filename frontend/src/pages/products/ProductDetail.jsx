@@ -80,7 +80,7 @@ const ProductDetail = () => {
           <div className="product-images">
             <div className="main-image">
               <img
-                src={images[selectedImage]?.image_url || '/placeholder.jpg'}
+                src={product.image_url || '/placeholder.jpg'}
                 alt={product.name}
               />
             </div>
