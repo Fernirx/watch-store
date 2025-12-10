@@ -74,10 +74,46 @@ const ProductList = () => {
     setSearchParams(params);
   };
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    const params = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    setSearchParams(params);
+  };
+
+  const clearSearch = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete('search');
+    setSearchParams(params);
+  };
+
   return (
     <div className="product-list-page">
       <div className="container">
         <h1>Sản Phẩm</h1>
+
+        {/* Search Bar */}
+        <div className="search-bar">
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="Tìm kiếm sản phẩm theo tên..."
+              value={searchQuery || ''}
+              onChange={handleSearchChange}
+              className="search-input"
+            />
+            {searchQuery && (
+              <button onClick={clearSearch} className="clear-search-btn">
+                ✕
+              </button>
+            )}
+            <span className="search-icon">🔍</span>
+          </div>
+        </div>
 
         <div className="products-layout">
           {/* Sidebar Filters */}
