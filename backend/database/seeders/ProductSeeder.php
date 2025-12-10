@@ -21,8 +21,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 5,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -46,8 +46,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 8,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Steel and Gold',
@@ -71,8 +71,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 12,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -96,8 +96,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 20,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -121,8 +121,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 50,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Resin',
@@ -146,8 +146,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 30,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Aluminum',
@@ -171,8 +171,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 7,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -196,8 +196,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 25,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -221,8 +221,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 15,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',
@@ -246,8 +246,8 @@ class ProductSeeder extends Seeder
                 'stock_quantity' => 18,
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764784557/watch-store/products/y1d50eklzviy2btvg9ze.png",
-                        "public_id" => "watch-store/products/y1d50eklzviy2btvg9ze"
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
+                        "public_id" => "watches_plug_opt-350x350_hr80tv"
                     ]
                 ],
                 'case_material' => 'Stainless Steel',

@@ -10,4 +10,11 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    host: '0.0.0.0', // Allow external connections (for Docker)
+    port: 5173,
+    watch: {
+      usePolling: true, // Required for Docker on Windows/Mac
+    },
+  },
 })
