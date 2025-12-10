@@ -74,4 +74,17 @@ class Product extends Model
         }
         return null;
     }
+
+    // Relationship với Favorites
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    // Relationship để lấy danh sách users đã yêu thích sản phẩm này
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+            ->withTimestamps();
+    }
 }

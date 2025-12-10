@@ -44,4 +44,17 @@ class User extends Authenticatable
         'role' => 'USER',
         'is_active' => true,
     ];
+
+    // Relationship với Favorites
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    // Relationship để lấy danh sách sản phẩm yêu thích
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class, 'favorites')
+            ->withTimestamps();
+    }
 }
