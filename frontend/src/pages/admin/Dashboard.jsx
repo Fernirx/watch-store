@@ -8,6 +8,7 @@ const Dashboard = () => {
     totalCategories: 0,
     totalBrands: 0,
     totalOrders: 0,
+    totalUsers: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -18,11 +19,12 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const [products, categories, brands, orders] = await Promise.all([
+      const [products, categories, brands, orders, users] = await Promise.all([
         axios.get('/products?per_page=1'),
         axios.get('/categories'),
         axios.get('/brands'),
         axios.get('/orders'),
+        axios.get('/users?per_page=1'),
       ]);
 
       setStats({
@@ -30,6 +32,7 @@ const Dashboard = () => {
         totalCategories: categories.data.data?.length || 0,
         totalBrands: brands.data.data?.length || 0,
         totalOrders: orders.data.data?.length || 0,
+        totalUsers: users.data.data?.total || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -128,6 +131,23 @@ const Dashboard = () => {
             </Link>
           </div>
         </div>
+
+        <div className="stat-card">
+          <div className="stat-card-header">
+            <div className="stat-card-content">
+              <h3>Người dùng</h3>
+              <p>{stats.totalUsers}</p>
+            </div>
+            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)' }}>
+              <i style={{ width: '24px', height: '24px' }} className="fa fa-users"></i>
+            </div>
+          </div>
+          <div className="stat-card-footer">
+            <Link to="/admin/users" style={{ color: '#8b5cf6', textDecoration: 'none' }}>
+              Quản lý người dùng →
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -147,6 +167,9 @@ const Dashboard = () => {
           </Link>
           <Link to="/admin/orders" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center' }}>
             <i className="fa fa-list" style={{ marginRight: '0.5rem' }}></i>   Xem đơn hàng
+          </Link>
+          <Link to="/admin/users" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center', background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: 'white' }}>
+            <i className="fa fa-user-plus" style={{ marginRight: '0.5rem' }}></i> Thêm người dùng
           </Link>
         </div>
       </div>

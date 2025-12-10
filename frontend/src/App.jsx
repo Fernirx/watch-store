@@ -37,6 +37,7 @@ import AdminCategories from './pages/admin/Categories';
 import AdminBrands from './pages/admin/Brands';
 import AdminOrders from './pages/admin/Orders';
 import AdminOrderDetail from './pages/admin/OrderDetail';
+import AdminUsers from './pages/admin/Users';
 
 import './App.css';
 
@@ -114,7 +115,7 @@ function App() {
               <Route path="/admin/brands" element={<AdminBrands />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
-              <Route path="/admin/users" element={<div>Users Management (Coming Soon)</div>} />
+              <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
           </Routes>
         </CartProvider>
