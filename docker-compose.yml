@@ -28,7 +28,7 @@ services:
     volumes:
       - ./backend:/var/www/html
     ports:
-      - "8000:8000"
+      - "8700:8000"
     env_file:
       - ./backend/.env
     depends_on:
@@ -50,27 +50,11 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "5173:5173"
+      - "8701:5173"
     env_file:
       - ./frontend/.env
     depends_on:
       - backend
-    networks:
-      - watch-store-network
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: watch-store-phpmyadmin
-    restart: unless-stopped
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_USER: watch_user
-      PMA_PASSWORD: watch_password
-    ports:
-      - "8080:80"
-    depends_on:
-      - mysql
     networks:
       - watch-store-network
 
