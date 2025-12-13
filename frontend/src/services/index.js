@@ -5,3 +5,5 @@ export { default as categoryService } from './categoryService';
 export { default as brandService } from './brandService';
 export { default as cartService } from './cartService';
 export { default as orderService } from './orderService';
+export { default as profileService } from './profileService';
+export { default as addressService } from './addressService';

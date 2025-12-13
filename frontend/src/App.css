@@ -95,6 +95,7 @@ a {
 .btn-login,
 .btn-register,
 .btn-logout,
+.btn-profile,
 .btn-add-to-cart,
 .btn-buy-now,
 .btn-checkout,
@@ -164,6 +165,15 @@ a {
 .btn-register {
   background: transparent;
   color: #3498db;
+}
+
+.btn-profile {
+  background: #2ecc71;
+  color: white;
+}
+
+.btn-profile:hover {
+  background: #27ae60;
 }
 
 .btn-logout,
@@ -900,6 +910,48 @@ a {
 
 .checkout-form h2 {
   margin-bottom: 1.5rem;
+}
+
+.saved-address-notice,
+.no-address-notice {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.saved-address-notice {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.saved-address-notice p {
+  color: #155724;
+  margin: 0;
+}
+
+.no-address-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.no-address-notice p {
+  color: #856404;
+  margin: 0;
+}
+
+.edit-address-link,
+.add-address-link {
+  color: #007bff;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.edit-address-link:hover,
+.add-address-link:hover {
+  color: #0056b3;
 }
 
 .order-summary {

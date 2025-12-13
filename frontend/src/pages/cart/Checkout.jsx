@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
 import paymentService from '../../services/paymentService';
+import { addressService } from '../../services';
 
 const Checkout = () => {
   const { cart, subtotal, fetchCart } = useCart();
@@ -18,6 +19,8 @@ const Checkout = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [savedAddress, setSavedAddress] = useState(null);
+  const [recipientName, setRecipientName] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,6 +29,7 @@ const Checkout = () => {
     }
 
     fetchCart();
+    fetchSavedAddress();
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -34,15 +38,41 @@ const Checkout = () => {
     }
   }, [cart, navigate]);
 
-  useEffect(() => {
-    // Pre-fill với thông tin user
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        shipping_phone: user.phone || '',
-      }));
+  const fetchSavedAddress = async () => {
+    try {
+      const response = await addressService.getDefaultAddress();
+      if (response.success && response.data) {
+        const addr = response.data;
+        setSavedAddress(addr);
+        setRecipientName(addr.recipient_name || '');
+
+        // Auto-fill shipping info từ địa chỉ đã lưu
+        const fullAddress = `${addr.street}, ${addr.ward}, ${addr.city}${addr.postal_code ? ', ' + addr.postal_code : ''}`;
+        setFormData(prev => ({
+          ...prev,
+          shipping_address: fullAddress,
+          shipping_phone: addr.phone || '',
+        }));
+      } else if (user) {
+        // Nếu không có địa chỉ đã lưu, dùng thông tin user
+        setFormData(prev => ({
+          ...prev,
+          shipping_phone: user.phone || '',
+        }));
+        setRecipientName(user.name || '');
+      }
+    } catch (error) {
+      console.error('Failed to fetch saved address:', error);
+      // Fallback to user info
+      if (user) {
+        setFormData(prev => ({
+          ...prev,
+          shipping_phone: user.phone || '',
+        }));
+        setRecipientName(user.name || '');
+      }
     }
-  }, [user]);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -156,7 +186,36 @@ const Checkout = () => {
           <div className="checkout-form">
             <h2>Thông Tin Giao Hàng</h2>
 
+            {savedAddress && (
+              <div className="saved-address-notice">
+                <p>✓ Sử dụng địa chỉ đã lưu: <strong>{recipientName}</strong></p>
+                <Link to="/profile" className="edit-address-link">
+                  Chỉnh sửa địa chỉ
+                </Link>
+              </div>
+            )}
+
+            {!savedAddress && (
+              <div className="no-address-notice">
+                <p>Bạn chưa có địa chỉ đã lưu.</p>
+                <Link to="/profile" className="add-address-link">
+                  Thêm địa chỉ vào hồ sơ
+                </Link>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Tên người nhận *</label>
+                <input
+                  type="text"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  required
+                  placeholder="Nhập tên người nhận hàng"
+                />
+              </div>
+              
               <div className="form-group">
                 <label>Địa chỉ giao hàng *</label>
                 <textarea

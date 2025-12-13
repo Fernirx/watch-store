@@ -57,4 +57,16 @@ class User extends Authenticatable
         return $this->belongsToMany(Product::class, 'favorites')
             ->withTimestamps();
     }
+
+    // Relationship với Addresses
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    // Lấy địa chỉ mặc định
+    public function defaultAddress()
+    {
+        return $this->hasOne(Address::class)->where('is_default', true);
+    }
 }

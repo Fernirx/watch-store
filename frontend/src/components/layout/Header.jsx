@@ -41,6 +41,9 @@ const Header = () => {
             {isAuthenticated ? (
               <div className="user-menu">
                 <span className="user-name">{user?.name}</span>
+                <Link to="/profile" className="btn-profile">
+                  Tài Khoản
+                </Link>
                 <button onClick={handleLogout} className="btn-logout">
                   Đăng Xuất
                 </button>
