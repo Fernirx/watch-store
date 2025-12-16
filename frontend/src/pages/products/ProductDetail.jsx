@@ -69,7 +69,9 @@ const ProductDetail = () => {
     return <div className="error-page">{error}</div>;
   }
 
-  const currentPrice = product.sale_price || product.price;
+  const currentPrice = product.original_price && product.price < product.original_price
+    ? product.price
+    : product.price;
   const images = product.images || [];
 
   return (
@@ -80,7 +82,7 @@ const ProductDetail = () => {
           <div className="product-images">
             <div className="main-image">
               <img
-                src={product.image_url || '/placeholder.jpg'}
+                src={product.primary_image || product.image_url || '/placeholder.jpg'}
                 alt={product.name}
               />
             </div>
@@ -89,7 +91,7 @@ const ProductDetail = () => {
                 {images.map((image, index) => (
                   <img
                     key={index}
-                    src={image.image_url}
+                    src={image.url || image}
                     alt={`${product.name} ${index + 1}`}
                     className={selectedImage === index ? 'active' : ''}
                     onClick={() => setSelectedImage(index)}
@@ -101,21 +103,29 @@ const ProductDetail = () => {
 
           {/* Product Info */}
           <div className="product-details">
+            {/* Badges */}
+            <div className="product-badges">
+              {product.is_new && <span className="badge badge-new">MỚI</span>}
+              {product.is_on_sale && <span className="badge badge-sale">GIẢM GIÁ</span>}
+              {product.is_featured && <span className="badge badge-featured">NỔI BẬT</span>}
+            </div>
+
             <h1>{product.name}</h1>
-            <p className="brand">Thương hiệu: {product.brand?.name}</p>
-            <p className="category">Danh mục: {product.category?.name}</p>
+            {product.code && <p className="product-code">Mã SP: {product.code}</p>}
+            <p className="brand">Thương hiệu: <strong>{product.brand?.name}</strong></p>
+            <p className="category">Danh mục: <strong>{product.category?.name}</strong></p>
 
             <div className="price-section">
-              {product.sale_price ? (
+              {product.original_price && product.price < product.original_price ? (
                 <>
                   <span className="sale-price">
-                    {parseFloat(product.sale_price).toLocaleString('vi-VN')}đ
-                  </span>
-                  <span className="original-price">
                     {parseFloat(product.price).toLocaleString('vi-VN')}đ
                   </span>
+                  <span className="original-price">
+                    {parseFloat(product.original_price).toLocaleString('vi-VN')}đ
+                  </span>
                   <span className="discount-percent">
-                    -{Math.round(((product.price - product.sale_price) / product.price) * 100)}%
+                    -{product.discount_percentage}%
                   </span>
                 </>
               ) : (
@@ -133,12 +143,162 @@ const ProductDetail = () => {
               )}
             </div>
 
+            {/* Product Highlights */}
+            <div className="product-highlights">
+              {product.warranty_period && (
+                <div className="highlight-item">
+                  <i className="icon-warranty"></i>
+                  <span>Bảo hành: {product.warranty_period}</span>
+                </div>
+              )}
+              {product.origin_country && (
+                <div className="highlight-item">
+                  <i className="icon-origin"></i>
+                  <span>Xuất xứ: {product.origin_country}</span>
+                </div>
+              )}
+              {product.water_resistance && (
+                <div className="highlight-item">
+                  <i className="icon-water"></i>
+                  <span>Chống nước: {product.water_resistance}</span>
+                </div>
+              )}
+            </div>
+
             {product.description && (
               <div className="description">
                 <h3>Mô tả sản phẩm</h3>
                 <p>{product.description}</p>
               </div>
             )}
+
+            {/* Technical Specifications */}
+            <div className="technical-specs">
+              <h3>Thông số kỹ thuật</h3>
+              <div className="specs-grid">
+                {/* Movement Section */}
+                {product.movement_type && (
+                  <div className="spec-section">
+                    <h4>Bộ Máy</h4>
+                    <div className="spec-item">
+                      <span className="spec-label">Loại:</span>
+                      <span className="spec-value">{product.movement_type}</span>
+                    </div>
+                    {product.movement_name && (
+                      <div className="spec-item">
+                        <span className="spec-label">Model:</span>
+                        <span className="spec-value">{product.movement_name}</span>
+                      </div>
+                    )}
+                    {product.power_reserve && (
+                      <div className="spec-item">
+                        <span className="spec-label">Trữ cót:</span>
+                        <span className="spec-value">{product.power_reserve}</span>
+                      </div>
+                    )}
+                    {product.battery_type && (
+                      <div className="spec-item">
+                        <span className="spec-label">Loại pin:</span>
+                        <span className="spec-value">{product.battery_type}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Materials Section */}
+                {(product.case_material || product.strap_material || product.glass_material) && (
+                  <div className="spec-section">
+                    <h4>Chất Liệu</h4>
+                    {product.case_material && (
+                      <div className="spec-item">
+                        <span className="spec-label">Vỏ:</span>
+                        <span className="spec-value">{product.case_material}</span>
+                      </div>
+                    )}
+                    {product.strap_material && (
+                      <div className="spec-item">
+                        <span className="spec-label">Dây:</span>
+                        <span className="spec-value">{product.strap_material}</span>
+                      </div>
+                    )}
+                    {product.glass_material && (
+                      <div className="spec-item">
+                        <span className="spec-label">Kính:</span>
+                        <span className="spec-value">{product.glass_material}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Colors Section */}
+                {(product.dial_color || product.case_color || product.strap_color) && (
+                  <div className="spec-section">
+                    <h4>Màu Sắc</h4>
+                    {product.dial_color && (
+                      <div className="spec-item">
+                        <span className="spec-label">Mặt số:</span>
+                        <span className="spec-value">{product.dial_color}</span>
+                      </div>
+                    )}
+                    {product.case_color && (
+                      <div className="spec-item">
+                        <span className="spec-label">Vỏ:</span>
+                        <span className="spec-value">{product.case_color}</span>
+                      </div>
+                    )}
+                    {product.strap_color && (
+                      <div className="spec-item">
+                        <span className="spec-label">Dây:</span>
+                        <span className="spec-value">{product.strap_color}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dimensions Section */}
+                {(product.case_size || product.case_thickness || product.weight) && (
+                  <div className="spec-section">
+                    <h4>Kích Thước</h4>
+                    {product.case_size && (
+                      <div className="spec-item">
+                        <span className="spec-label">Đường kính:</span>
+                        <span className="spec-value">{product.case_size} mm</span>
+                      </div>
+                    )}
+                    {product.case_thickness && (
+                      <div className="spec-item">
+                        <span className="spec-label">Độ dày:</span>
+                        <span className="spec-value">{product.case_thickness} mm</span>
+                      </div>
+                    )}
+                    {product.weight && (
+                      <div className="spec-item">
+                        <span className="spec-label">Trọng lượng:</span>
+                        <span className="spec-value">{product.weight} g</span>
+                      </div>
+                    )}
+                    {product.gender && (
+                      <div className="spec-item">
+                        <span className="spec-label">Giới tính:</span>
+                        <span className="spec-value">{product.gender}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Features Section */}
+                {product.features && product.features.length > 0 && (
+                  <div className="spec-section full-width">
+                    <h4>Tính Năng Đặc Biệt</h4>
+                    <div className="features-list">
+                      {product.features.map((feature, index) => (
+                        <span key={index} className="feature-tag">{feature}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {product.stock_quantity > 0 ? (
               <div className="purchase-section">

@@ -13,10 +13,13 @@ const ProductList = () => {
   const selectedBrand = searchParams.get('brand');
   const searchQuery = searchParams.get('search');
   const stockFilter = searchParams.get('stock');
+  const movementFilter = searchParams.get('movement');
+  const genderFilter = searchParams.get('gender');
+  const priceRange = searchParams.get('price_range');
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory, selectedBrand, searchQuery, stockFilter]);
+  }, [selectedCategory, selectedBrand, searchQuery, stockFilter, movementFilter, genderFilter, priceRange]);
 
   const fetchData = async () => {
     try {
@@ -25,7 +28,16 @@ const ProductList = () => {
       if (selectedCategory) params.category_id = selectedCategory;
       if (selectedBrand) params.brand_id = selectedBrand;
       if (searchQuery) params.search = searchQuery;
-      if (stockFilter === 'in_stock') params.min_stock = 1;
+      if (stockFilter === 'in_stock') params.in_stock = true;
+      if (movementFilter) params.movement_type = movementFilter;
+      if (genderFilter) params.gender = genderFilter;
+
+      // Price range handling
+      if (priceRange) {
+        const [min, max] = priceRange.split('-');
+        if (min) params.min_price = min;
+        if (max && max !== 'up') params.max_price = max;
+      }
 
       const [productsData, categoriesData, brandsData] = await Promise.all([
         productService.getProducts(params),
@@ -88,6 +100,36 @@ const ProductList = () => {
   const clearSearch = () => {
     const params = new URLSearchParams(searchParams);
     params.delete('search');
+    setSearchParams(params);
+  };
+
+  const handleMovementFilter = (movement) => {
+    const params = new URLSearchParams(searchParams);
+    if (movement) {
+      params.set('movement', movement);
+    } else {
+      params.delete('movement');
+    }
+    setSearchParams(params);
+  };
+
+  const handleGenderFilter = (gender) => {
+    const params = new URLSearchParams(searchParams);
+    if (gender) {
+      params.set('gender', gender);
+    } else {
+      params.delete('gender');
+    }
+    setSearchParams(params);
+  };
+
+  const handlePriceFilter = (range) => {
+    const params = new URLSearchParams(searchParams);
+    if (range) {
+      params.set('price_range', range);
+    } else {
+      params.delete('price_range');
+    }
     setSearchParams(params);
   };
 
@@ -183,6 +225,100 @@ const ProductList = () => {
                     onClick={() => handleStockFilter('in_stock')}
                   >
                     Còn hàng
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div className="filter-section">
+              <h3>Loại Bộ Máy</h3>
+              <ul className="filter-list">
+                <li>
+                  <button
+                    className={!movementFilter ? 'active' : ''}
+                    onClick={() => handleMovementFilter(null)}
+                  >
+                    Tất cả
+                  </button>
+                </li>
+                {['Quartz', 'Automatic', 'Manual', 'Solar'].map((type) => (
+                  <li key={type}>
+                    <button
+                      className={movementFilter === type ? 'active' : ''}
+                      onClick={() => handleMovementFilter(type)}
+                    >
+                      {type}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="filter-section">
+              <h3>Giới Tính</h3>
+              <ul className="filter-list">
+                <li>
+                  <button
+                    className={!genderFilter ? 'active' : ''}
+                    onClick={() => handleGenderFilter(null)}
+                  >
+                    Tất cả
+                  </button>
+                </li>
+                {['Nam', 'Nữ', 'Unisex'].map((gender) => (
+                  <li key={gender}>
+                    <button
+                      className={genderFilter === gender ? 'active' : ''}
+                      onClick={() => handleGenderFilter(gender)}
+                    >
+                      {gender}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="filter-section">
+              <h3>Khoảng Giá</h3>
+              <ul className="filter-list">
+                <li>
+                  <button
+                    className={!priceRange ? 'active' : ''}
+                    onClick={() => handlePriceFilter(null)}
+                  >
+                    Tất cả
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={priceRange === '0-5000000' ? 'active' : ''}
+                    onClick={() => handlePriceFilter('0-5000000')}
+                  >
+                    Dưới 5 triệu
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={priceRange === '5000000-10000000' ? 'active' : ''}
+                    onClick={() => handlePriceFilter('5000000-10000000')}
+                  >
+                    5 - 10 triệu
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={priceRange === '10000000-20000000' ? 'active' : ''}
+                    onClick={() => handlePriceFilter('10000000-20000000')}
+                  >
+                    10 - 20 triệu
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={priceRange === '20000000-up' ? 'active' : ''}
+                    onClick={() => handlePriceFilter('20000000-up')}
+                  >
+                    Trên 20 triệu
                   </button>
                 </li>
               </ul>
