@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
+import { useWishlist } from '../../contexts/WishlistContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './ProductList.css';
 
 const ProductList = () => {
@@ -9,6 +11,9 @@ const ProductList = () => {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
 
   const selectedCategory = searchParams.get('category');
   const selectedBrand = searchParams.get('brand');
@@ -132,6 +137,32 @@ const ProductList = () => {
       params.delete('price_range');
     }
     setSearchParams(params);
+  };
+
+  const handleWishlistToggle = async (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const inWishlist = isInWishlist(product.id);
+      if (inWishlist) {
+        const wishlistItem = wishlist?.wishlist?.items.find(
+          item => item.product_id === product.id
+        );
+        if (wishlistItem) {
+          await removeWishlistItem(wishlistItem.id);
+        }
+      } else {
+        await addToWishlist(product.id);
+      }
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   return (
@@ -338,6 +369,15 @@ const ProductList = () => {
                   <div key={product.id} className="product-card">
                     <Link to={`/products/${product.id}`}>
                       <div className="product-image">
+                        <button
+                          className={`wishlist-heart ${isInWishlist(product.id) ? 'active' : ''}`}
+                          onClick={(e) => handleWishlistToggle(e, product)}
+                          title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                          </svg>
+                        </button>
                         <img
                           src={product.image_url || '/placeholder.jpg'}
                           alt={product.name}

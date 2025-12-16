@@ -58,6 +58,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    // Relationship với Wishlist
+    public function wishlist()
+    {
+        return $this->hasOne(Wishlist::class);
+    }
+
     // Relationship với Addresses
     public function addresses()
     {

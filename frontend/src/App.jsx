@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { WishlistProvider } from './contexts/WishlistContext';
 import Layout from './components/layout/Layout';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -20,6 +21,9 @@ import ProductDetail from './pages/products/ProductDetail';
 // Cart & Checkout
 import Cart from './pages/cart/Cart';
 import Checkout from './pages/cart/Checkout';
+
+// Wishlist
+import Wishlist from './pages/wishlist/Wishlist';
 
 // Orders
 import OrderList from './pages/orders/OrderList';
@@ -49,7 +53,8 @@ function App() {
     <Router>
       <AuthProvider>
         <CartProvider>
-          <Routes>
+          <WishlistProvider>
+            <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -73,6 +78,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Cart />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <ProtectedRoute>
+                    <Wishlist />
                   </ProtectedRoute>
                 }
               />
@@ -128,7 +141,8 @@ function App() {
               <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
               <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
-          </Routes>
+            </Routes>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </Router>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -13,13 +14,21 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    if (product) {
+      setIsWishlisted(isInWishlist(product.id));
+    }
+  }, [product, wishlist]);
 
   const fetchProduct = async () => {
     try {
@@ -59,6 +68,30 @@ const ProductDetail = () => {
       navigate('/cart');
     } catch (error) {
       alert('Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isWishlisted) {
+        const wishlistItem = wishlist?.wishlist?.items.find(
+          item => item.product_id === product.id
+        );
+        if (wishlistItem) {
+          await removeWishlistItem(wishlistItem.id);
+          setIsWishlisted(false);
+        }
+      } else {
+        await addToWishlist(product.id);
+        setIsWishlisted(true);
+      }
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -110,6 +143,18 @@ const ProductDetail = () => {
               {product.is_on_sale && <span className="badge badge-sale">GIẢM GIÁ</span>}
               {product.is_featured && <span className="badge badge-featured">NỔI BẬT</span>}
             </div>
+
+            {/* Wishlist Button */}
+            <button
+              onClick={handleWishlistToggle}
+              className={`btn-wishlist ${isWishlisted ? 'active' : ''}`}
+              title={isWishlisted ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill={isWishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              {isWishlisted ? 'Đã Yêu Thích' : 'Yêu Thích'}
+            </button>
 
             <h1>{product.name}</h1>
             {product.code && <p className="product-code">Mã SP: {product.code}</p>}

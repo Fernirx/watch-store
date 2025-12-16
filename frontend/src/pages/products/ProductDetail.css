@@ -10,6 +10,38 @@
   color: #2c3e50;
 }
 
+/* Wishlist Button */
+.btn-wishlist {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px solid #e74c3c;
+  background-color: white;
+  color: #e74c3c;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 16px;
+}
+
+.btn-wishlist:hover {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-wishlist.active {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-wishlist svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Product Detail Layout */
 .product-detail {
   display: grid;
