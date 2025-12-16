@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
 import { formatPriceInput, parsePrice } from '../../utils/formatPrice';
+import './ProductForm.css';
 
 const ProductForm = () => {
   const { id } = useParams();

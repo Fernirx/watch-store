@@ -2,55 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Http\Controllers\Controller;
-use App\Services\CloudinaryService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    protected $cloudinaryService;
+    protected UserService $userService;
 
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(UserService $userService)
     {
-        $this->cloudinaryService = $cloudinaryService;
+        $this->userService = $userService;
     }
 
-    public function index(Request $request)
+    /**
+     * Lấy danh sách users
+     */
+    public function index(Request $request): JsonResponse
     {
         try {
-            $query = User::query();
+            $filters = [
+                'role' => $request->get('role'),
+                'is_active' => $request->get('is_active'),
+                'search' => $request->get('search'),
+                'sort_by' => $request->get('sort_by', 'created_at'),
+                'sort_order' => $request->get('sort_order', 'desc'),
+                'per_page' => $request->get('per_page', 15),
+            ];
 
-            // Filter by role
-            if ($request->filled('role')) {
-                $query->where('role', $request->role);
-            }
-
-            // Filter by active status
-            if ($request->filled('is_active')) {
-                $query->where('is_active', $request->is_active);
-            }
-
-            // Search by name or email
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            }
-
-            // Sorting
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            $query->orderBy($sortBy, $sortOrder);
-
-            // Pagination
-            $perPage = $request->get('per_page', 15);
-            $users = $query->paginate($perPage);
+            $users = $this->userService->getUsers($filters);
 
             return response()->json([
                 'success' => true,
@@ -65,10 +47,21 @@ class UserController extends Controller
         }
     }
 
-    public function show(string $id)
+    /**
+     * Lấy chi tiết user
+     */
+    public function show(string $id): JsonResponse
     {
         try {
-            $user = User::findOrFail($id);
+            $user = $this->userService->getUserById((int)$id);
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found',
+                ], 404);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $user,
@@ -81,7 +74,10 @@ class UserController extends Controller
         }
     }
 
-    public function store(Request $request)
+    /**
+     * Tạo user mới
+     */
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -94,24 +90,9 @@ class UserController extends Controller
                 'avatar' => 'nullable|image|max:2048',
             ]);
 
-            // Set default is_active if not provided
-            if (!isset($validated['is_active'])) {
-                $validated['is_active'] = true;
-            }
+            $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;
 
-            // Hash password
-            $validated['password'] = Hash::make($validated['password']);
-
-            // Upload avatar if provided
-            if ($request->hasFile('avatar')) {
-                $uploadResult = $this->cloudinaryService->upload($request->file('avatar'), 'watch-store/avatars');
-                $validated['avatar_url'] = $uploadResult['url'];
-            }
-
-            $user = User::create($validated);
-
-            // Remove password from response
-            $user->makeHidden('password');
+            $user = $this->userService->createUser($validated, $avatarFile);
 
             return response()->json([
                 'success' => true,
@@ -133,11 +114,12 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, string $id)
+    /**
+     * Cập nhật user
+     */
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
-            $user = User::findOrFail($id);
-
             $validated = $request->validate([
                 'name' => 'string|max:100',
                 'email' => ['email', 'max:100', Rule::unique('users', 'email')->ignore($id)],
@@ -148,28 +130,9 @@ class UserController extends Controller
                 'avatar' => 'nullable|image|max:2048',
             ]);
 
-            // Hash password if provided
-            if (isset($validated['password']) && !empty($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
-            } else {
-                // Remove password from validated if empty
-                unset($validated['password']);
-            }
+            $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;
 
-            // Upload avatar if provided
-            if ($request->hasFile('avatar')) {
-                // Delete old avatar if exists
-                if ($user->avatar_url) {
-                    // Extract public_id from URL and delete
-                    // Note: You may need to store public_id in database for better handling
-                }
-
-                $uploadResult = $this->cloudinaryService->upload($request->file('avatar'), 'watch-store/avatars');
-                $validated['avatar_url'] = $uploadResult['url'];
-            }
-
-            $user->update($validated);
-            $user->makeHidden('password');
+            $user = $this->userService->updateUser((int)$id, $validated, $avatarFile);
 
             return response()->json([
                 'success' => true,
@@ -191,20 +154,13 @@ class UserController extends Controller
         }
     }
 
-    public function destroy(string $id)
+    /**
+     * Xóa user
+     */
+    public function destroy(string $id): JsonResponse
     {
         try {
-            $user = User::findOrFail($id);
-
-            // Prevent deleting yourself
-            if ($user->id === auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot delete your own account',
-                ], 403);
-            }
-
-            $user->delete();
+            $this->userService->deleteUser((int)$id, auth()->id());
 
             return response()->json([
                 'success' => true,
@@ -213,28 +169,19 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete user',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], $e->getMessage() === 'You cannot delete your own account' ? 403 : 500);
         }
     }
 
-    public function toggleStatus(string $id)
+    /**
+     * Toggle trạng thái user
+     */
+    public function toggleStatus(string $id): JsonResponse
     {
         try {
-            $user = User::findOrFail($id);
-
-            // Prevent deactivating yourself
-            if ($user->id === auth()->id()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You cannot deactivate your own account',
-                ], 403);
-            }
-
-            $user->is_active = !$user->is_active;
-            $user->save();
-            $user->makeHidden('password');
+            $user = $this->userService->toggleUserStatus((int)$id, auth()->id());
 
             return response()->json([
                 'success' => true,
@@ -244,9 +191,9 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update user status',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], $e->getMessage() === 'You cannot deactivate your own account' ? 403 : 500);
         }
     }
 }

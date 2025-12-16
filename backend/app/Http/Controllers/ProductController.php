@@ -2,133 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Http\Controllers\Controller;
+use App\Services\ProductService;
 use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    protected $cloudinaryService;
-    public function __construct(CloudinaryService $cloudinaryService)
+    protected ProductService $productService;
+    protected CloudinaryService $cloudinaryService;
+
+    public function __construct(ProductService $productService, CloudinaryService $cloudinaryService)
     {
+        $this->productService = $productService;
         $this->cloudinaryService = $cloudinaryService;
     }
-    public function index(Request $request)
+
+    /**
+     * Lấy danh sách sản phẩm
+     */
+    public function index(Request $request): JsonResponse
     {
         try {
-            $query = Product::with(['category', 'brand']);
+            $filters = $request->all();
 
-            // Admin có thể xem tất cả, user chỉ xem active
-            if (!$request->user() || $request->user()->role !== 'ADMIN') {
-                $query->where('is_active', true);
-            }
+            // Check if user is admin
+            $filters['admin_mode'] = $request->user() && $request->user()->role === 'ADMIN';
 
-            // Filter by category
-            if ($request->has('category_id')) {
-                $query->where('category_id', $request->category_id);
-            }
-
-            // Filter by brand
-            if ($request->has('brand_id')) {
-                $query->where('brand_id', $request->brand_id);
-            }
-
-            // Price range filter
-            if ($request->has('min_price')) {
-                $query->where('price', '>=', $request->min_price);
-            }
-            if ($request->has('max_price')) {
-                $query->where('price', '<=', $request->max_price);
-            }
-
-            // Gender filter
-            if ($request->has('gender')) {
-                $query->where('gender', $request->gender);
-            }
-
-            // Movement type filter
-            if ($request->has('movement_type')) {
-                $query->where('movement_type', $request->movement_type);
-            }
-
-            // Material filters
-            if ($request->has('case_material')) {
-                $query->where('case_material', 'like', '%' . $request->case_material . '%');
-            }
-            if ($request->has('strap_material')) {
-                $query->where('strap_material', 'like', '%' . $request->strap_material . '%');
-            }
-            if ($request->has('glass_material')) {
-                $query->where('glass_material', 'like', '%' . $request->glass_material . '%');
-            }
-
-            // Color filters
-            if ($request->has('dial_color')) {
-                $query->where('dial_color', $request->dial_color);
-            }
-
-            // Water resistance filter
-            if ($request->has('water_resistance')) {
-                $query->where('water_resistance', $request->water_resistance);
-            }
-
-            // Case size range
-            if ($request->has('min_case_size')) {
-                $query->where('case_size', '>=', $request->min_case_size);
-            }
-            if ($request->has('max_case_size')) {
-                $query->where('case_size', '<=', $request->max_case_size);
-            }
-
-            // Badge filters
-            if ($request->has('is_featured')) {
-                $query->where('is_featured', $request->is_featured);
-            }
-            if ($request->has('is_new')) {
-                $query->where('is_new', $request->is_new);
-            }
-            if ($request->has('is_on_sale')) {
-                $query->where('is_on_sale', $request->is_on_sale);
-            }
-
-            // Search by name or code
-            if ($request->has('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%')
-                      ->orWhere('code', 'like', '%' . $search . '%')
-                      ->orWhere('description', 'like', '%' . $search . '%');
-                });
-            }
-
-            // Stock filters
-            if ($request->has('min_stock')) {
-                $query->where('stock_quantity', '>=', $request->min_stock);
-            }
-            if ($request->has('in_stock')) {
-                $query->where('stock_quantity', '>', 0);
-            }
-            if ($request->has('low_stock')) {
-                $query->whereColumn('stock_quantity', '<=', 'min_stock_level');
-            }
-
-            // Sorting
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-
-            // Allow sorting by popular fields
-            $allowedSorts = ['created_at', 'price', 'name', 'sold_count', 'view_count', 'stock_quantity'];
-            if (in_array($sortBy, $allowedSorts)) {
-                $query->orderBy($sortBy, $sortOrder);
-            } else {
-                $query->orderBy('created_at', 'desc');
-            }
-
-            // Pagination
-            $perPage = $request->get('per_page', 12);
-            $products = $query->paginate($perPage);
+            $products = $this->productService->getProducts($filters);
 
             return response()->json([
                 'success' => true,
@@ -137,13 +38,44 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch products',
+                'message' => 'Không thể lấy danh sách sản phẩm',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function store(Request $request)
+    /**
+     * Lấy chi tiết sản phẩm
+     */
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy sản phẩm',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $product,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể lấy thông tin sản phẩm',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Tạo sản phẩm mới
+     */
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -172,12 +104,12 @@ class ProductController extends Controller
                 'origin_country' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:Nam,Nữ,Unisex',
 
-                // Movement (Bộ máy)
+                // Movement
                 'movement_type' => 'nullable|in:Quartz,Automatic,Manual,Solar',
                 'movement_name' => 'nullable|string|max:100',
                 'power_reserve' => 'nullable|string|max:50',
 
-                // Materials (Chất liệu)
+                // Materials
                 'case_material' => 'nullable|string|max:100',
                 'strap_material' => 'nullable|string|max:100',
                 'glass_material' => 'nullable|string|max:100',
@@ -213,71 +145,43 @@ class ProductController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
 
-            // Auto-generate code if not provided
-            if (!isset($validated['code'])) {
-                $validated['code'] = 'WATCH-' . time() . '-' . rand(1000, 9999);
-            }
-
-            // Auto-generate slug from name if not provided
-            if (!isset($validated['slug']) && isset($validated['name'])) {
-                $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
-            }
-
             // Handle image upload
             if ($request->hasFile('image')) {
                 $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
                 $validated['images'] = [$uploadedImage];
-            }
-            elseif ($request->hasFile('images')) {
+            } elseif ($request->hasFile('images')) {
                 $uploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
                 $validated['images'] = $uploadedImages;
             }
 
-            $product = Product::create($validated);
+            $product = $this->productService->createProduct($validated);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Product created successfully',
+                'message' => 'Tạo sản phẩm thành công',
                 'data' => $product->load(['category', 'brand']),
             ], 201);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Dữ liệu không hợp lệ',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create product',
+                'message' => 'Không thể tạo sản phẩm',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function show(string $id)
+    /**
+     * Cập nhật sản phẩm
+     */
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
-            $product = Product::with(['category', 'brand'])->findOrFail($id);
-
-            // Increment view count
-            $product->increment('view_count');
-
-            return response()->json([
-                'success' => true,
-                'data' => $product,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found',
-            ], 404);
-        }
-    }
-
-    public function update(Request $request, string $id) {
-        try {
-            $product = Product::findOrFail($id);
             $validated = $request->validate([
                 // Foreign Keys
                 'category_id' => 'nullable|exists:categories,id',
@@ -304,12 +208,12 @@ class ProductController extends Controller
                 'origin_country' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:Nam,Nữ,Unisex',
 
-                // Movement (Bộ máy)
+                // Movement
                 'movement_type' => 'nullable|in:Quartz,Automatic,Manual,Solar',
                 'movement_name' => 'nullable|string|max:100',
                 'power_reserve' => 'nullable|string|max:50',
 
-                // Materials (Chất liệu)
+                // Materials
                 'case_material' => 'nullable|string|max:100',
                 'strap_material' => 'nullable|string|max:100',
                 'glass_material' => 'nullable|string|max:100',
@@ -345,61 +249,75 @@ class ProductController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
 
-            // Auto-generate slug from name if name is updated but slug is not provided
-            if (isset($validated['name']) && !isset($validated['slug'])) {
-                $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
-            }
-
             // Handle image upload
             if ($request->hasFile('image')) {
-                // Delete old images from Cloudinary
-                if ($product->images && is_array($product->images)) {
+                $product = $this->productService->getProductById((int)$id);
+
+                // Delete old images
+                if ($product && $product->images && is_array($product->images)) {
                     foreach ($product->images as $image) {
                         if (isset($image['public_id'])) {
                             $this->cloudinaryService->delete($image['public_id']);
                         }
                     }
                 }
+
                 $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
                 $validated['images'] = [$uploadedImage];
-            }
-            elseif ($request->hasFile('images')) {
-                if ($product->images && is_array($product->images)) {
+            } elseif ($request->hasFile('images')) {
+                $product = $this->productService->getProductById((int)$id);
+
+                // Delete old images
+                if ($product && $product->images && is_array($product->images)) {
                     foreach ($product->images as $image) {
                         if (isset($image['public_id'])) {
                             $this->cloudinaryService->delete($image['public_id']);
                         }
                     }
                 }
+
                 $uploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
                 $validated['images'] = $uploadedImages;
             }
 
-            $product->update($validated);
+            $product = $this->productService->updateProduct((int)$id, $validated);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Product updated successfully',
-                'data' => $product->load(['category', 'brand']),
+                'message' => 'Cập nhật sản phẩm thành công',
+                'data' => $product,
             ], 200);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Dữ liệu không hợp lệ',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update product',
+                'message' => 'Không thể cập nhật sản phẩm',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function destroy(string $id) {
+    /**
+     * Xóa sản phẩm
+     */
+    public function destroy(string $id): JsonResponse
+    {
         try {
-            $product = Product::findOrFail($id);
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy sản phẩm',
+                ], 404);
+            }
+
+            // Delete images from Cloudinary
             if ($product->images && is_array($product->images)) {
                 foreach ($product->images as $image) {
                     if (isset($image['public_id'])) {
@@ -407,15 +325,83 @@ class ProductController extends Controller
                     }
                 }
             }
-            $product->delete();
+
+            $this->productService->deleteProduct((int)$id);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Product deleted successfully',
+                'message' => 'Xóa sản phẩm thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete product',
+                'message' => 'Không thể xóa sản phẩm',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy sản phẩm nổi bật
+     */
+    public function featured(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 8);
+            $products = $this->productService->getFeaturedProducts($limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $products,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể lấy sản phẩm nổi bật',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy sản phẩm mới
+     */
+    public function newProducts(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 8);
+            $products = $this->productService->getNewProducts($limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $products,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể lấy sản phẩm mới',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy sản phẩm đang sale
+     */
+    public function onSale(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 8);
+            $products = $this->productService->getOnSaleProducts($limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => $products,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể lấy sản phẩm đang sale',
                 'error' => $e->getMessage(),
             ], 500);
         }

@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Mail\OTPMail;
-use App\Models\Otp;
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    protected AuthService $authService;
 
-    public function login(Request $request)
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
+    /**
+     * Đăng nhập
+     */
+    public function login(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -23,25 +28,12 @@ class AuthController extends Controller
                 'password' => 'required',
             ]);
 
-            $user = User::where('email', $validated['email'])->first();
+            $data = $this->authService->login($validated['email'], $validated['password']);
 
-            if (!$user || !Hash::check($validated['password'], $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid credentials',
-                ], 401);
-            }
-
-            $user->tokens()->delete();
-            $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
-                'data' => [
-                    'user' => $user,
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ],
+                'data' => $data,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -58,7 +50,10 @@ class AuthController extends Controller
         }
     }
 
-    public function register(Request $request)
+    /**
+     * Đăng ký
+     */
+    public function register(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -66,21 +61,13 @@ class AuthController extends Controller
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8|confirmed',
             ]);
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-            ]);
-            $token = $user->createToken('auth_token')->plainTextToken;
+
+            $data = $this->authService->register($validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'User registered successfully',
-                'data' => [
-                    'user' => $user,
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ],
+                'data' => $data,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
@@ -97,10 +84,13 @@ class AuthController extends Controller
         }
     }
 
-    public function logout(Request $request)
+    /**
+     * Đăng xuất
+     */
+    public function logout(Request $request): JsonResponse
     {
         try {
-            $request->user()->currentAccessToken()->delete();
+            $this->authService->logout($request->user());
 
             return response()->json([
                 'success' => true,
@@ -115,7 +105,10 @@ class AuthController extends Controller
         }
     }
 
-    public function me(Request $request)
+    /**
+     * Lấy thông tin user hiện tại
+     */
+    public function me(Request $request): JsonResponse
     {
         try {
             return response()->json([
@@ -133,20 +126,18 @@ class AuthController extends Controller
         }
     }
 
-    public function refresh(Request $request)
+    /**
+     * Refresh token
+     */
+    public function refresh(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $request->user()->currentAccessToken()->delete();
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $data = $this->authService->refreshToken($request->user());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Token refreshed successfully',
-                'data' => [
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ],
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -157,7 +148,10 @@ class AuthController extends Controller
         }
     }
 
-    public function sendRegisterOtp(Request $request)
+    /**
+     * Gửi OTP đăng ký
+     */
+    public function sendRegisterOtp(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -165,21 +159,8 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:8|confirmed',
             ]);
-            Otp::where('email', $validated['email'])
-                ->where('type', 'REGISTER')
-                ->where('is_used', false)
-                ->delete();
 
-            $otpRecord = Otp::create([
-                'email' => $validated['email'],
-                'name' => $validated['name'],
-                'password' => Hash::make($validated['password']),
-                'otp' => Otp::generateOtp(),
-                'type' => 'REGISTER',
-                'expires_at' => now()->addMinutes(5),
-            ]);
-
-            Mail::to($validated['email'])->send(new OtpMail($otpRecord->otp, 'REGISTER'));
+            $this->authService->sendRegisterOtp($validated);
 
             return response()->json([
                 'success' => true,
@@ -200,7 +181,10 @@ class AuthController extends Controller
         }
     }
 
-    public function verifyRegisterOtp(Request $request)
+    /**
+     * Xác thực OTP đăng ký
+     */
+    public function verifyRegisterOtp(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -208,39 +192,12 @@ class AuthController extends Controller
                 'otp' => 'required|string|size:6',
             ]);
 
-            $otpRecord = Otp::where('email', $validated['email'])
-                ->where('otp', $validated['otp'])
-                ->where('type', 'REGISTER')
-                ->where('is_used', false)
-                ->where('expires_at', '>', now())
-                ->first();
-
-            if (!$otpRecord) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid or expired OTP',
-                ], 400);
-            }
-
-            $user = User::create([
-                'name' => $otpRecord->name,
-                'email' => $otpRecord->email,
-                'password' => $otpRecord->password, // Already hashed
-                'email_verified_at' => now(),
-            ]);
-
-            $otpRecord->update(['is_used' => true]);
-
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Registration successful',
-                'data' => [
-                    'user' => $user,
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ],
+                'data' => $data,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
@@ -251,22 +208,23 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registration failed',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
 
-    public function sendForgotPasswordOtp(Request $request)
+    /**
+     * Gửi OTP quên mật khẩu
+     */
+    public function sendForgotPasswordOtp(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
                 'email' => 'required|email|exists:users,email',
             ]);
 
-            $otpRecord = Otp::createOtp($validated['email'], 'FORGOT_PASSWORD');
-
-            Mail::to($validated['email'])->send(new OtpMail($otpRecord->otp, 'FORGOT_PASSWORD'));
+            $this->authService->sendForgotPasswordOtp($validated['email']);
 
             return response()->json([
                 'success' => true,
@@ -287,7 +245,10 @@ class AuthController extends Controller
         }
     }
 
-    public function resetPassword(Request $request)
+    /**
+     * Reset mật khẩu
+     */
+    public function resetPassword(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -296,18 +257,11 @@ class AuthController extends Controller
                 'password' => 'required|string|min:8|confirmed',
             ]);
 
-            if (!Otp::verifyOtp($validated['email'], $validated['otp'], 'FORGOT_PASSWORD')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid or expired OTP',
-                ], 400);
-            }
-
-            $user = User::where('email', $validated['email'])->first();
-            $user->update([
-                'password' => Hash::make($validated['password']),
-            ]);
-            $user->tokens()->delete();
+            $this->authService->resetPassword(
+                $validated['email'],
+                $validated['otp'],
+                $validated['password']
+            );
 
             return response()->json([
                 'success' => true,
@@ -322,12 +276,15 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Password reset failed',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
 
+    /**
+     * Redirect to Google OAuth
+     */
     public function googleRedirect()
     {
         try {
@@ -341,46 +298,17 @@ class AuthController extends Controller
         }
     }
 
-    public function googleCallback()
+    /**
+     * Google OAuth callback
+     */
+    public function googleCallback(): \Illuminate\Http\RedirectResponse
     {
         try {
-            $guzzleClient = new \GuzzleHttp\Client([
-                'verify' => false,
-            ]);
-
-            $googleUser = Socialite::driver('google')
-                ->setHttpClient($guzzleClient)
-                ->stateless()
-                ->user();
-            $user = User::where('email', $googleUser->getEmail())->first();
-
-            if (!$user) {
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'avatar_url' => $googleUser->getAvatar(),
-                    'provider' => 'GOOGLE',
-                    'provider_id' => $googleUser->getId(),
-                    'email_verified_at' => now(),
-                ]);
-            } else {
-                if (!$user->provider_id) {
-                    $user->update([
-                        'provider' => 'GOOGLE',
-                        'provider_id' => $googleUser->getId(),
-                        'avatar_url' => $googleUser->getAvatar(),
-                        'email_verified_at' => now(),
-                    ]);
-                }
-            }
-
-            $user->tokens()->delete();
-
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $result = $this->authService->handleGoogleCallback();
 
             $frontendUrl = config('app.frontend_url');
             return redirect()->away(
-                $frontendUrl . '/auth/google/callback?token=' . $token . '&user=' . urlencode(json_encode($user))
+                $frontendUrl . '/auth/google/callback?token=' . $result['token'] . '&user=' . urlencode(json_encode($result['user']))
             );
         } catch (\Exception $e) {
             return response()->json([

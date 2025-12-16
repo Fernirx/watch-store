@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CloudinaryService;
+use App\Services\ProfileService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
-    protected $cloudinaryService;
+    protected ProfileService $profileService;
 
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(ProfileService $profileService)
     {
-        $this->cloudinaryService = $cloudinaryService;
+        $this->profileService = $profileService;
     }
 
     /**
      * Lấy thông tin profile của user hiện tại
      */
-    public function show(Request $request)
+    public function show(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $user->load('defaultAddress');
+            $user = $this->profileService->getProfile($request->user()->id);
 
             return response()->json([
                 'success' => true,
@@ -40,7 +40,7 @@ class ProfileController extends Controller
     /**
      * Cập nhật thông tin profile
      */
-    public function update(Request $request)
+    public function update(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
@@ -51,14 +51,14 @@ class ProfileController extends Controller
                 'email' => 'sometimes|required|email|max:100|unique:users,email,' . $user->id,
             ]);
 
-            $user->update($validated);
+            $updatedUser = $this->profileService->updateProfile($user->id, $validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Profile updated successfully',
-                'data' => $user->fresh(),
+                'data' => $updatedUser,
             ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -76,43 +76,24 @@ class ProfileController extends Controller
     /**
      * Upload avatar
      */
-    public function uploadAvatar(Request $request)
+    public function uploadAvatar(Request $request): JsonResponse
     {
         try {
             $request->validate([
                 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            $user = $request->user();
-
-            // Upload ảnh mới lên Cloudinary
-            $uploadedFile = $this->cloudinaryService->upload(
-                $request->file('avatar'),
-                'watch-store/avatars'
+            $result = $this->profileService->uploadAvatar(
+                $request->user()->id,
+                $request->file('avatar')
             );
-
-            // Xóa ảnh cũ nếu có (extract public_id từ URL)
-            if ($user->avatar_url) {
-                // Extract public_id từ Cloudinary URL
-                // VD: https://res.cloudinary.com/xxx/image/upload/v123/watch-store/avatars/abc.jpg
-                // public_id = watch-store/avatars/abc
-                preg_match('/\/v\d+\/(.+)\.\w+$/', $user->avatar_url, $matches);
-                if (isset($matches[1])) {
-                    $this->cloudinaryService->delete($matches[1]);
-                }
-            }
-
-            // Cập nhật avatar_url trong database
-            $user->update(['avatar_url' => $uploadedFile['url']]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Avatar uploaded successfully',
-                'data' => [
-                    'avatar_url' => $uploadedFile['url'],
-                ],
+                'data' => $result,
             ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -130,21 +111,10 @@ class ProfileController extends Controller
     /**
      * Xóa avatar
      */
-    public function deleteAvatar(Request $request)
+    public function deleteAvatar(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-
-            if ($user->avatar_url) {
-                // Extract public_id và xóa từ Cloudinary
-                preg_match('/\/v\d+\/(.+)\.\w+$/', $user->avatar_url, $matches);
-                if (isset($matches[1])) {
-                    $this->cloudinaryService->delete($matches[1]);
-                }
-
-                // Xóa avatar_url trong database
-                $user->update(['avatar_url' => null]);
-            }
+            $this->profileService->deleteAvatar($request->user()->id);
 
             return response()->json([
                 'success' => true,
@@ -162,34 +132,25 @@ class ProfileController extends Controller
     /**
      * Đổi mật khẩu
      */
-    public function changePassword(Request $request)
+    public function changePassword(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-
             $validated = $request->validate([
                 'current_password' => 'required|string',
                 'new_password' => 'required|string|min:8|confirmed',
             ]);
 
-            // Kiểm tra mật khẩu hiện tại
-            if (!Hash::check($validated['current_password'], $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Current password is incorrect',
-                ], 400);
-            }
-
-            // Cập nhật mật khẩu mới
-            $user->update([
-                'password' => Hash::make($validated['new_password']),
-            ]);
+            $this->profileService->changePassword(
+                $request->user()->id,
+                $validated['current_password'],
+                $validated['new_password']
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Password changed successfully',
             ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -198,9 +159,9 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to change password',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
 }

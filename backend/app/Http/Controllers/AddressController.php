@@ -2,23 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Address;
+use App\Services\AddressService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 class AddressController extends Controller
 {
+    protected AddressService $addressService;
+
+    public function __construct(AddressService $addressService)
+    {
+        $this->addressService = $addressService;
+    }
+
     /**
      * Lấy địa chỉ của user hiện tại
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $addresses = Address::where('user_id', $user->id)
-                ->orderBy('is_default', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $addresses = $this->addressService->getUserAddresses($request->user()->id);
 
             return response()->json([
                 'success' => true,
@@ -36,13 +40,10 @@ class AddressController extends Controller
     /**
      * Lấy địa chỉ mặc định
      */
-    public function getDefault(Request $request)
+    public function getDefault(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $address = Address::where('user_id', $user->id)
-                ->where('is_default', true)
-                ->first();
+            $address = $this->addressService->getDefaultAddress($request->user()->id);
 
             return response()->json([
                 'success' => true,
@@ -60,7 +61,7 @@ class AddressController extends Controller
     /**
      * Tạo địa chỉ mới
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -74,41 +75,20 @@ class AddressController extends Controller
                 'is_default' => 'nullable|boolean',
             ]);
 
-            $user = $request->user();
-            $validated['user_id'] = $user->id;
-
-            DB::beginTransaction();
-
-            // Nếu set is_default = true, bỏ default của các địa chỉ khác
-            if (isset($validated['is_default']) && $validated['is_default']) {
-                Address::where('user_id', $user->id)
-                    ->update(['is_default' => false]);
-            } else {
-                // Nếu là địa chỉ đầu tiên, tự động set default
-                $existingCount = Address::where('user_id', $user->id)->count();
-                if ($existingCount === 0) {
-                    $validated['is_default'] = true;
-                }
-            }
-
-            $address = Address::create($validated);
-
-            DB::commit();
+            $address = $this->addressService->createAddress($request->user()->id, $validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Address created successfully',
                 'data' => $address,
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create address',
@@ -120,14 +100,9 @@ class AddressController extends Controller
     /**
      * Cập nhật địa chỉ
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         try {
-            $user = $request->user();
-            $address = Address::where('id', $id)
-                ->where('user_id', $user->id)
-                ->firstOrFail();
-
             $validated = $request->validate([
                 'recipient_name' => 'sometimes|required|string|max:200',
                 'phone' => 'sometimes|required|string|max:15',
@@ -139,39 +114,29 @@ class AddressController extends Controller
                 'is_default' => 'nullable|boolean',
             ]);
 
-            DB::beginTransaction();
-
-            // Nếu set is_default = true, bỏ default của các địa chỉ khác
-            if (isset($validated['is_default']) && $validated['is_default']) {
-                Address::where('user_id', $user->id)
-                    ->where('id', '!=', $id)
-                    ->update(['is_default' => false]);
-            }
-
-            $address->update($validated);
-
-            DB::commit();
+            $address = $this->addressService->updateAddress(
+                $request->user()->id,
+                (int)$id,
+                $validated
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Address updated successfully',
-                'data' => $address->fresh(),
+                'data' => $address,
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Address not found',
             ], 404);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update address',
@@ -183,39 +148,25 @@ class AddressController extends Controller
     /**
      * Set địa chỉ mặc định
      */
-    public function setDefault(Request $request, $id)
+    public function setDefault(Request $request, $id): JsonResponse
     {
         try {
-            $user = $request->user();
-            $address = Address::where('id', $id)
-                ->where('user_id', $user->id)
-                ->firstOrFail();
-
-            DB::beginTransaction();
-
-            // Bỏ default của các địa chỉ khác
-            Address::where('user_id', $user->id)
-                ->where('id', '!=', $id)
-                ->update(['is_default' => false]);
-
-            // Set địa chỉ này làm default
-            $address->update(['is_default' => true]);
-
-            DB::commit();
+            $address = $this->addressService->setDefaultAddress(
+                $request->user()->id,
+                (int)$id
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Default address updated successfully',
-                'data' => $address->fresh(),
+                'data' => $address,
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Address not found',
             ], 404);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update default address',
@@ -227,41 +178,21 @@ class AddressController extends Controller
     /**
      * Xóa địa chỉ
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, $id): JsonResponse
     {
         try {
-            $user = $request->user();
-            $address = Address::where('id', $id)
-                ->where('user_id', $user->id)
-                ->firstOrFail();
-
-            DB::beginTransaction();
-
-            $wasDefault = $address->is_default;
-            $address->delete();
-
-            // Nếu xóa địa chỉ default, set địa chỉ khác làm default
-            if ($wasDefault) {
-                $nextAddress = Address::where('user_id', $user->id)->first();
-                if ($nextAddress) {
-                    $nextAddress->update(['is_default' => true]);
-                }
-            }
-
-            DB::commit();
+            $this->addressService->deleteAddress($request->user()->id, (int)$id);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Address deleted successfully',
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Address not found',
             ], 404);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete address',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import productService from '../../services/productService';
+import './ProductList.css';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);

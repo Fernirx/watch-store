@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import './ProductDetail.css';
 
 const ProductDetail = () => {
   const { id } = useParams();

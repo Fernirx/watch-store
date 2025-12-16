@@ -2,33 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
-    public function index(Request $request)
+    protected CartService $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
+    /**
+     * Lấy giỏ hàng
+     */
+    public function index(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $cart = Cart::with(['items.product.category', 'items.product.brand'])
-                ->firstOrCreate(['user_id' => $user->id]);
-            $subtotal = $cart->items->sum(function ($item) {
-                $price = $item->product->sale_price ?? $item->product->price;
-                return $price * $item->quantity;
-            });
+            $data = $this->cartService->getCart($request->user()->id);
+
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'cart' => $cart,
-                    'subtotal' => $subtotal,
-                    'items_count' => $cart->items->sum('quantity'),
-                ],
+                'data' => $data,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -39,45 +37,23 @@ class CartController extends Controller
         }
     }
 
-    public function store(Request $request)
+    /**
+     * Thêm sản phẩm vào giỏ hàng
+     */
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer|min:1',
             ]);
-            $user = $request->user();
-            $product = Product::findOrFail($validated['product_id']);
-            if ($product->stock_quantity < $validated['quantity']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient stock',
-                ], 400);
-            }
-            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-            $cartItem = CartItem::where('cart_id', $cart->id)
-                ->where('product_id', $validated['product_id'])
-                ->first();
-            if ($cartItem) {
-                $newQuantity = $cartItem->quantity + $validated['quantity'];
-                if ($product->stock_quantity < $newQuantity) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Insufficient stock',
-                    ], 400);
-                }
-                $cartItem->quantity = $newQuantity;
-                $cartItem->save();
-            } else {
-                $price = $product->sale_price ?? $product->price;
-                $cartItem = CartItem::create([
-                    'cart_id' => $cart->id,
-                    'product_id' => $validated['product_id'],
-                    'quantity' => $validated['quantity'],
-                    'price' => $price,
-                ]);
-            }
-            $cartItem->load('product');
+
+            $cartItem = $this->cartService->addToCart(
+                $request->user()->id,
+                $validated['product_id'],
+                $validated['quantity']
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Item added to cart',
@@ -92,32 +68,28 @@ class CartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add item to cart',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
 
-    public function update(Request $request, string $id)
+    /**
+     * Cập nhật số lượng sản phẩm trong giỏ
+     */
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $validated = $request->validate([
                 'quantity' => 'required|integer|min:1',
             ]);
-            $user = $request->user();
-            $cart = Cart::where('user_id', $user->id)->firstOrFail();
-            $cartItem = CartItem::where('cart_id', $cart->id)
-                ->where('id', $id)
-                ->firstOrFail();
-            if ($cartItem->product->stock_quantity < $validated['quantity']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient stock',
-                ], 400);
-            }
-            $cartItem->quantity = $validated['quantity'];
-            $cartItem->save();
-            $cartItem->load('product');
+
+            $cartItem = $this->cartService->updateCartItem(
+                $request->user()->id,
+                (int)$id,
+                $validated['quantity']
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Cart item updated',
@@ -132,19 +104,20 @@ class CartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update cart item',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 400);
         }
     }
-    public function destroy(string $id) {
+
+    /**
+     * Xóa sản phẩm khỏi giỏ hàng
+     */
+    public function destroy(string $id): JsonResponse
+    {
         try {
-            $user = request()->user();
-            $cart = Cart::where('user_id', $user->id)->firstOrFail();
-            $cartItem = CartItem::where('cart_id', $cart->id)
-                ->where('id', $id)
-                ->firstOrFail();
-            $cartItem->delete();
+            $this->cartService->removeFromCart(request()->user()->id, (int)$id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Item removed from cart',
@@ -158,15 +131,14 @@ class CartController extends Controller
         }
     }
 
-    public function clear(Request $request)
+    /**
+     * Xóa toàn bộ giỏ hàng
+     */
+    public function clear(Request $request): JsonResponse
     {
         try {
-            $user = $request->user();
-            $cart = Cart::where('user_id', $user->id)->first();
+            $this->cartService->clearCart($request->user()->id);
 
-            if ($cart) {
-                $cart->items()->delete();
-            }
             return response()->json([
                 'success' => true,
                 'message' => 'Cart cleared',

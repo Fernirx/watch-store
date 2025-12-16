@@ -2,25 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Brand;
-use App\Http\Controllers\Controller;
-use App\Services\CloudinaryService;
+use App\Services\BrandService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
 class BrandController extends Controller
 {
-    protected $cloudinaryService;
+    protected BrandService $brandService;
 
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(BrandService $brandService)
     {
-        $this->cloudinaryService = $cloudinaryService;
+        $this->brandService = $brandService;
     }
 
-    public function index()
+    /**
+     * Lấy danh sách brand
+     */
+    public function index(): JsonResponse
     {
         try {
-            $brands = Brand::where('is_active', true)->get();
+            $brands = $this->brandService->getBrands();
 
             return response()->json([
                 'success' => true,
@@ -35,7 +37,37 @@ class BrandController extends Controller
         }
     }
 
-    public function store(Request $request)
+    /**
+     * Lấy chi tiết brand
+     */
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $brand = $this->brandService->getBrandById((int)$id);
+
+            if (!$brand) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Brand not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $brand,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Brand not found',
+            ], 404);
+        }
+    }
+
+    /**
+     * Tạo brand mới
+     */
+    public function store(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
@@ -46,12 +78,11 @@ class BrandController extends Controller
                 'website' => 'nullable|url|max:255',
                 'is_active' => 'boolean',
             ]);
-            if ($request->hasFile('logo')) {
-                $uploadResult = $this->cloudinaryService->upload($request->file('logo'), 'watch-store/brands');
-                $validated['logo_url'] = $uploadResult['url'];
-                $validated['logo_public_id'] = $uploadResult['public_id'];
-            }
-            $brand = Brand::create($validated);
+
+            $logoFile = $request->hasFile('logo') ? $request->file('logo') : null;
+
+            $brand = $this->brandService->createBrand($validated, $logoFile);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Brand created successfully',
@@ -72,26 +103,12 @@ class BrandController extends Controller
         }
     }
 
-    public function show(string $id)
+    /**
+     * Cập nhật brand
+     */
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
-            $brand = Brand::findOrFail($id);
-            return response()->json([
-                'success' => true,
-                'data' => $brand,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Brand not found',
-            ], 404);
-        }
-    }
-
-    public function update(Request $request, string $id)
-    {
-        try {
-            $brand = Brand::findOrFail($id);
             $validated = $request->validate([
                 'name' => 'string|max:100',
                 'description' => 'nullable|string',
@@ -100,15 +117,11 @@ class BrandController extends Controller
                 'website' => 'nullable|url|max:255',
                 'is_active' => 'boolean',
             ]);
-            if ($request->hasFile('logo')) {
-                if ($brand->logo_public_id) {
-                    $this->cloudinaryService->delete($brand->logo_public_id);
-                }
-                $uploadResult = $this->cloudinaryService->upload($request->file('logo'), 'watch-store/brands');
-                $validated['logo_url'] = $uploadResult['url'];
-                $validated['logo_public_id'] = $uploadResult['public_id'];
-            }
-            $brand->update($validated);
+
+            $logoFile = $request->hasFile('logo') ? $request->file('logo') : null;
+
+            $brand = $this->brandService->updateBrand((int)$id, $validated, $logoFile);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Brand updated successfully',
@@ -129,14 +142,14 @@ class BrandController extends Controller
         }
     }
 
-    public function destroy(string $id)
+    /**
+     * Xóa brand
+     */
+    public function destroy(string $id): JsonResponse
     {
         try {
-            $brand = Brand::findOrFail($id);
-            if ($brand->logo_public_id) {
-                $this->cloudinaryService->delete($brand->logo_public_id);
-            }
-            $brand->delete();
+            $this->brandService->deleteBrand((int)$id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Brand deleted successfully',
