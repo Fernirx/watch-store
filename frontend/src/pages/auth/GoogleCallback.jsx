@@ -9,14 +9,16 @@ const GoogleCallback = () => {
 
   useEffect(() => {
     const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refresh_token');
     const userStr = searchParams.get('user');
 
-    if (token && userStr) {
+    if (token && refreshToken && userStr) {
       try {
         const user = JSON.parse(decodeURIComponent(userStr));
 
-        // Lưu token và user vào localStorage
+        // Lưu tokens và user vào localStorage
         localStorage.setItem('token', token);
+        localStorage.setItem('refresh_token', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
 
         // Cập nhật Auth context

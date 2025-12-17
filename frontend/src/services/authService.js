@@ -6,6 +6,7 @@ const authService = {
     const response = await axios.post('/login', { email, password });
     if (response.data.success) {
       localStorage.setItem('token', response.data.data.access_token);
+      localStorage.setItem('refresh_token', response.data.data.refresh_token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));
     }
     return response.data;
@@ -27,6 +28,7 @@ const authService = {
     const response = await axios.post('/register/verify', { email, otp });
     if (response.data.success) {
       localStorage.setItem('token', response.data.data.access_token);
+      localStorage.setItem('refresh_token', response.data.data.refresh_token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));
     }
     return response.data;
@@ -62,6 +64,7 @@ const authService = {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
     }
   },
@@ -74,9 +77,18 @@ const authService = {
 
   // Refresh token
   refreshToken: async () => {
-    const response = await axios.post('/refresh');
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await axios.post('/refresh', {
+      refresh_token: refreshToken,
+    });
+
     if (response.data.success) {
       localStorage.setItem('token', response.data.data.access_token);
+      localStorage.setItem('refresh_token', response.data.data.refresh_token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));
     }
     return response.data;
@@ -96,7 +108,7 @@ const authService = {
   // Kiểm tra có phải admin không
   isAdmin: () => {
     const user = authService.getUser();
-    return user?.role === 'admin';
+    return user?.role === 'ADMIN';
   },
 };
 

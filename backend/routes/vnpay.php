@@ -4,7 +4,7 @@ use App\Http\Controllers\VNPayController;
 use Illuminate\Support\Facades\Route;
 
 // Route tạo payment URL (yêu cầu auth)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     Route::post('/vnpay/create-payment', [VNPayController::class, 'createPayment']);
 });
 

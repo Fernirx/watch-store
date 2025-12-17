@@ -4,17 +4,19 @@ namespace App\Services;
 
 use App\Mail\OTPMail;
 use App\Models\Otp;
+use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthService
 {
     /**
      * Đăng nhập với email và password
      */
-    public function login(string $email, string $password): array
+    public function login(string $email, string $password, $request = null): array
     {
         $user = User::where('email', $email)->first();
 
@@ -22,14 +24,18 @@ class AuthService
             throw new \Exception('Invalid credentials');
         }
 
-        // Xóa token cũ và tạo token mới
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Tạo access token (JWT)
+        $accessToken = auth('api')->login($user);
+
+        // Tạo refresh token
+        $refreshToken = $this->createRefreshToken($user, $request);
 
         return [
             'user' => $user,
-            'access_token' => $token,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken->token,
             'token_type' => 'Bearer',
+            'expires_in' => config('jwt.ttl') * 60, // Convert minutes to seconds
         ];
     }
 
@@ -44,12 +50,15 @@ class AuthService
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $accessToken = auth('api')->login($user);
+        $refreshToken = $this->createRefreshToken($user);
 
         return [
             'user' => $user,
-            'access_token' => $token,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken->token,
             'token_type' => 'Bearer',
+            'expires_in' => config('jwt.ttl') * 60,
         ];
     }
 
@@ -58,21 +67,71 @@ class AuthService
      */
     public function logout(User $user): void
     {
-        $user->currentAccessToken()->delete();
+        // Xóa tất cả refresh tokens của user
+        RefreshToken::where('user_id', $user->id)->delete();
+
+        // Invalidate JWT token (add to blacklist)
+        auth('api')->logout();
     }
 
     /**
-     * Refresh token
+     * Refresh access token bằng refresh token
      */
-    public function refreshToken(User $user): array
+    public function refreshToken(string $refreshTokenString, $request = null): array
     {
-        $user->currentAccessToken()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $refreshToken = RefreshToken::where('token', $refreshTokenString)->first();
+
+        if (!$refreshToken || $refreshToken->isExpired()) {
+            throw new \Exception('Invalid or expired refresh token');
+        }
+
+        $user = $refreshToken->user;
+
+        // Xóa refresh token cũ
+        $refreshToken->delete();
+
+        // Tạo access token mới
+        $accessToken = auth('api')->login($user);
+
+        // Tạo refresh token mới
+        $newRefreshToken = $this->createRefreshToken($user, $request);
 
         return [
-            'access_token' => $token,
+            'user' => $user,
+            'access_token' => $accessToken,
+            'refresh_token' => $newRefreshToken->token,
             'token_type' => 'Bearer',
+            'expires_in' => config('jwt.ttl') * 60,
         ];
+    }
+
+    /**
+     * Tạo refresh token mới
+     */
+    private function createRefreshToken(User $user, $request = null): RefreshToken
+    {
+        // Xóa các refresh token cũ đã hết hạn
+        RefreshToken::where('user_id', $user->id)
+            ->where('expires_at', '<', now())
+            ->delete();
+
+        // Giới hạn số lượng refresh token (tối đa 5 thiết bị)
+        $existingTokens = RefreshToken::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($existingTokens->count() >= 5) {
+            // Xóa token cũ nhất
+            $existingTokens->last()->delete();
+        }
+
+        return RefreshToken::create([
+            'user_id' => $user->id,
+            'token' => RefreshToken::generateToken(),
+            'expires_at' => now()->addDays(30), // 30 ngày
+            'ip_address' => $request ? $request->ip() : null,
+            'user_agent' => $request ? $request->userAgent() : null,
+        ]);
     }
 
     /**
@@ -103,7 +162,7 @@ class AuthService
     /**
      * Xác thực OTP đăng ký
      */
-    public function verifyRegisterOtp(string $email, string $otp): array
+    public function verifyRegisterOtp(string $email, string $otp, $request = null): array
     {
         $otpRecord = Otp::where('email', $email)
             ->where('otp', $otp)
@@ -127,13 +186,16 @@ class AuthService
         // Đánh dấu OTP đã sử dụng
         $otpRecord->update(['is_used' => true]);
 
-        // Tạo token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Tạo tokens
+        $accessToken = auth('api')->login($user);
+        $refreshToken = $this->createRefreshToken($user, $request);
 
         return [
             'user' => $user,
-            'access_token' => $token,
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken->token,
             'token_type' => 'Bearer',
+            'expires_in' => config('jwt.ttl') * 60,
         ];
     }
 
@@ -160,14 +222,14 @@ class AuthService
             'password' => Hash::make($newPassword),
         ]);
 
-        // Xóa tất cả token cũ
-        $user->tokens()->delete();
+        // Xóa tất cả refresh tokens (logout all devices)
+        RefreshToken::where('user_id', $user->id)->delete();
     }
 
     /**
      * Đăng nhập bằng Google
      */
-    public function handleGoogleCallback(): array
+    public function handleGoogleCallback($request = null): array
     {
         $guzzleClient = new \GuzzleHttp\Client([
             'verify' => false,
@@ -202,13 +264,22 @@ class AuthService
             }
         }
 
-        // Xóa token cũ và tạo token mới
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Tạo tokens
+        $accessToken = auth('api')->login($user);
+        $refreshToken = $this->createRefreshToken($user, $request);
 
         return [
             'user' => $user,
-            'token' => $token,
+            'token' => $accessToken,
+            'refresh_token' => $refreshToken->token,
         ];
+    }
+
+    /**
+     * Get current user from JWT token
+     */
+    public function getCurrentUser(): User
+    {
+        return auth('api')->user();
     }
 }

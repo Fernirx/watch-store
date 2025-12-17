@@ -3,7 +3,7 @@
 use App\Http\Controllers\CartController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->group(function () {
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/items', [CartController::class, 'store']);
     Route::put('/cart/items/{id}', [CartController::class, 'update']);

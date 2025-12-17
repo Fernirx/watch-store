@@ -28,7 +28,7 @@ class AuthController extends Controller
                 'password' => 'required',
             ]);
 
-            $data = $this->authService->login($validated['email'], $validated['password']);
+            $data = $this->authService->login($validated['email'], $validated['password'], $request);
 
             return response()->json([
                 'success' => true,
@@ -132,19 +132,29 @@ class AuthController extends Controller
     public function refresh(Request $request): JsonResponse
     {
         try {
-            $data = $this->authService->refreshToken($request->user());
+            $validated = $request->validate([
+                'refresh_token' => 'required|string',
+            ]);
+
+            $data = $this->authService->refreshToken($validated['refresh_token'], $request);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Token refreshed successfully',
                 'data' => $data,
             ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Token refresh failed',
                 'error' => $e->getMessage(),
-            ], 500);
+            ], 401);
         }
     }
 
@@ -192,7 +202,7 @@ class AuthController extends Controller
                 'otp' => 'required|string|size:6',
             ]);
 
-            $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp']);
+            $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp'], $request);
 
             return response()->json([
                 'success' => true,
@@ -301,14 +311,14 @@ class AuthController extends Controller
     /**
      * Google OAuth callback
      */
-    public function googleCallback(): \Illuminate\Http\RedirectResponse
+    public function googleCallback(Request $request): \Illuminate\Http\RedirectResponse
     {
         try {
-            $result = $this->authService->handleGoogleCallback();
+            $result = $this->authService->handleGoogleCallback($request);
 
             $frontendUrl = config('app.frontend_url');
             return redirect()->away(
-                $frontendUrl . '/auth/google/callback?token=' . $result['token'] . '&user=' . urlencode(json_encode($result['user']))
+                $frontendUrl . '/auth/google/callback?token=' . $result['token'] . '&refresh_token=' . $result['refresh_token'] . '&user=' . urlencode(json_encode($result['user']))
             );
         } catch (\Exception $e) {
             return response()->json([
