@@ -44,11 +44,6 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     try {
       await addToCart(product.id, quantity);
       alert('Đã thêm sản phẩm vào giỏ hàng!');
@@ -58,11 +53,6 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     try {
       await addToCart(product.id, quantity);
       navigate('/cart');

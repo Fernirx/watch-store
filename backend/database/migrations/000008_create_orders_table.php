@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->string('guest_token', 64)->nullable();
+            $table->foreign('guest_token')->references('guest_token')->on('guest_sessions')->onDelete('set null');
             $table->string('order_number')->unique();
             $table->decimal('subtotal', 15, 2);
             $table->decimal('total', 15, 2);
@@ -23,6 +25,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->index(['user_id', 'status']);
+            $table->index('guest_token');
             $table->index('order_number');
         });
     }

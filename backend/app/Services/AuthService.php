@@ -24,6 +24,12 @@ class AuthService
             throw new \Exception('Invalid credentials');
         }
 
+        // Merge guest cart if guest_token provided
+        if ($request && $request->has('guest_token')) {
+            $cartService = app(CartService::class);
+            $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+        }
+
         // Tạo access token (JWT)
         $accessToken = auth('api')->login($user);
 
@@ -185,6 +191,12 @@ class AuthService
 
         // Đánh dấu OTP đã sử dụng
         $otpRecord->update(['is_used' => true]);
+
+        // Merge guest cart if guest_token provided
+        if ($request && $request->has('guest_token')) {
+            $cartService = app(CartService::class);
+            $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+        }
 
         // Tạo tokens
         $accessToken = auth('api')->login($user);

@@ -10,11 +10,9 @@ export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   const fetchCart = async () => {
-    if (!isAuthenticated) return;
-
     try {
       setLoading(true);
-      const response = await cartService.getCart();
+      const response = await cartService.getCart(isAuthenticated);
       setCart(response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -25,33 +23,30 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCart();
-    } else {
-      setCart(null);
-    }
+    // Fetch cart for both authenticated and guest users
+    fetchCart();
   }, [isAuthenticated]);
 
   const addToCart = async (product_id, quantity = 1) => {
-    const data = await cartService.addToCart(product_id, quantity);
+    const data = await cartService.addToCart(product_id, quantity, isAuthenticated);
     await fetchCart();
     return data;
   };
 
   const updateCartItem = async (id, quantity) => {
-    const data = await cartService.updateCartItem(id, quantity);
+    const data = await cartService.updateCartItem(id, quantity, isAuthenticated);
     await fetchCart();
     return data;
   };
 
   const removeCartItem = async (id) => {
-    const data = await cartService.removeCartItem(id);
+    const data = await cartService.removeCartItem(id, isAuthenticated);
     await fetchCart();
     return data;
   };
 
   const clearCart = async () => {
-    const data = await cartService.clearCart();
+    const data = await cartService.clearCart(isAuthenticated);
     await fetchCart();
     return data;
   };

@@ -39,11 +39,22 @@ class OrderService
     }
 
     /**
-     * Tạo đơn hàng mới từ giỏ hàng
+     * Tạo đơn hàng mới từ giỏ hàng (hỗ trợ cả user và guest)
      */
-    public function createOrder(int $userId, array $data): Order
+    public function createOrder(?int $userId, array $data, ?string $guestToken = null): Order
     {
-        $cart = Cart::with('items.product')->where('user_id', $userId)->first();
+        // Tìm cart theo user_id hoặc guest_token
+        $cartQuery = Cart::with('items.product');
+
+        if ($userId) {
+            $cartQuery->where('user_id', $userId);
+        } elseif ($guestToken) {
+            $cartQuery->where('guest_token', $guestToken);
+        } else {
+            throw new \Exception('Either user_id or guest_token is required');
+        }
+
+        $cart = $cartQuery->first();
 
         if (!$cart || $cart->items->isEmpty()) {
             throw new \Exception('Cart is empty');
@@ -69,6 +80,7 @@ class OrderService
             // Tạo đơn hàng
             $order = Order::create([
                 'user_id' => $userId,
+                'guest_token' => $guestToken,
                 'order_number' => 'ORD-' . strtoupper(uniqid()),
                 'status' => 'PENDING',
                 'subtotal' => $subtotal,

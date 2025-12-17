@@ -1,13 +1,21 @@
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import './Payment.css';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { fetchCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  // Get order info from URL params (VNPay callback) or location state (guest checkout)
   const orderId = searchParams.get('order_id');
+  const orderNumber = location.state?.orderNumber;
+  const isGuest = location.state?.isGuest || false;
+  const message = location.state?.message;
 
   useEffect(() => {
     // Làm mới giỏ hàng sau khi thanh toán thành công
@@ -24,6 +32,10 @@ const PaymentSuccess = () => {
 
   const handleContinueShopping = () => {
     navigate('/products');
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
   };
 
   return (
@@ -45,21 +57,35 @@ const PaymentSuccess = () => {
             </svg>
           </div>
 
-          <h1>Thanh Toán Thành Công!</h1>
+          <h1>{message || 'Thanh Toán Thành Công!'}</h1>
           <p className="result-message">
-            Đơn hàng của bạn đã được thanh toán thành công qua VNPay.
+            {isGuest
+              ? 'Đơn hàng của bạn đã được đặt thành công. Chúng tôi sẽ liên hệ với bạn sớm nhất.'
+              : 'Đơn hàng của bạn đã được thanh toán thành công qua VNPay.'}
           </p>
 
-          {orderId && (
+          {(orderId || orderNumber) && (
             <div className="order-info">
-              <p>Mã đơn hàng: <strong>#{orderId}</strong></p>
+              <p>Mã đơn hàng: <strong>{orderNumber || `#${orderId}`}</strong></p>
+              {isGuest && (
+                <p className="guest-notice">
+                  Vui lòng lưu lại mã đơn hàng này để theo dõi đơn hàng của bạn.
+                </p>
+              )}
             </div>
           )}
 
           <div className="result-actions">
-            <button className="btn btn-primary" onClick={handleViewOrder}>
-              Xem Chi Tiết Đơn Hàng
-            </button>
+            {isAuthenticated && !isGuest && (
+              <button className="btn btn-primary" onClick={handleViewOrder}>
+                Xem Chi Tiết Đơn Hàng
+              </button>
+            )}
+            {isGuest && (
+              <button className="btn btn-primary" onClick={handleLogin}>
+                Đăng Nhập để Theo Dõi Đơn Hàng
+              </button>
+            )}
             <button className="btn btn-secondary" onClick={handleContinueShopping}>
               Tiếp Tục Mua Sắm
             </button>

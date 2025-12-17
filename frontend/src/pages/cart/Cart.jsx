@@ -9,10 +9,6 @@ const Cart = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     fetchCart();
   }, [isAuthenticated]);
 

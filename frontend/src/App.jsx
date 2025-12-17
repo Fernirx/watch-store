@@ -72,28 +72,16 @@ function App() {
               <Route path="/products" element={<ProductList />} />
               <Route path="/products/:id" element={<ProductDetail />} />
 
+              {/* Public Routes - Guest can access */}
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+
               {/* Protected Routes */}
-              <Route
-                path="/cart"
-                element={
-                  <ProtectedRoute>
-                    <Cart />
-                  </ProtectedRoute>
-                }
-              />
               <Route
                 path="/wishlist"
                 element={
                   <ProtectedRoute>
                     <Wishlist />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
                   </ProtectedRoute>
                 }
               />

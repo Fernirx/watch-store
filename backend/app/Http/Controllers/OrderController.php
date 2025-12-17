@@ -71,7 +71,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Tạo đơn hàng mới
+     * Tạo đơn hàng mới (hỗ trợ cả user và guest)
      */
     public function store(Request $request): JsonResponse
     {
@@ -81,9 +81,21 @@ class OrderController extends Controller
                 'shipping_phone' => 'required|string',
                 'payment_method' => 'required|in:cod,bank_transfer,vnpay',
                 'notes' => 'nullable|string',
+                'guest_token' => 'nullable|string|size:64', // Cho guest checkout
             ]);
 
-            $order = $this->orderService->createOrder($request->user()->id, $validated);
+            // Lấy user_id nếu đã đăng nhập, nếu không lấy guest_token
+            $userId = $request->user() ? $request->user()->id : null;
+            $guestToken = $request->input('guest_token') ?? $request->header('X-Guest-Token');
+
+            if (!$userId && !$guestToken) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Either user authentication or guest_token is required',
+                ], 401);
+            }
+
+            $order = $this->orderService->createOrder($userId, $validated, $guestToken);
 
             return response()->json([
                 'success' => true,

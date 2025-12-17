@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
 import paymentService from '../../services/paymentService';
 import { addressService } from '../../services';
+import guestService from '../../services/guestService';
 
 const Checkout = () => {
   const { cart, subtotal, fetchCart } = useCart();
@@ -23,13 +24,12 @@ const Checkout = () => {
   const [recipientName, setRecipientName] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     fetchCart();
-    fetchSavedAddress();
+
+    // Chỉ fetch saved address nếu đã đăng nhập
+    if (isAuthenticated) {
+      fetchSavedAddress();
+    }
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -126,7 +126,16 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      const response = await orderService.createOrder(formData);
+      // Thêm guest_token nếu chưa đăng nhập
+      const orderData = { ...formData };
+      if (!isAuthenticated) {
+        const guestToken = guestService.getGuestToken();
+        if (guestToken) {
+          orderData.guest_token = guestToken;
+        }
+      }
+
+      const response = await orderService.createOrder(orderData);
       const orderId = response.data.id;
 
       // Nếu chọn VNPay, tạo payment URL và redirect
@@ -146,10 +155,22 @@ const Checkout = () => {
           return;
         }
       } else {
-        // Với các phương thức khác, chuyển đến trang chi tiết đơn hàng
-        navigate(`/orders/${orderId}`, {
-          state: { message: 'Đặt hàng thành công!' },
-        });
+        // Với các phương thức khác
+        if (isAuthenticated) {
+          // User đã đăng nhập: chuyển đến trang chi tiết đơn hàng
+          navigate(`/orders/${orderId}`, {
+            state: { message: 'Đặt hàng thành công!' },
+          });
+        } else {
+          // Guest user: chuyển đến trang payment success với order info
+          navigate('/payment/success', {
+            state: {
+              message: 'Đặt hàng thành công!',
+              orderNumber: response.data.order_number,
+              isGuest: true
+            },
+          });
+        }
       }
     } catch (err) {
       console.error('Order creation error:', err.response?.data);
@@ -186,7 +207,13 @@ const Checkout = () => {
           <div className="checkout-form">
             <h2>Thông Tin Giao Hàng</h2>
 
-            {savedAddress && (
+            {!isAuthenticated && (
+              <div className="guest-checkout-notice">
+                <p>Bạn đang thanh toán với tư cách khách. <Link to="/login">Đăng nhập</Link> để sử dụng địa chỉ đã lưu.</p>
+              </div>
+            )}
+
+            {isAuthenticated && savedAddress && (
               <div className="saved-address-notice">
                 <p>✓ Sử dụng địa chỉ đã lưu: <strong>{recipientName}</strong></p>
                 <Link to="/profile" className="edit-address-link">
@@ -195,7 +222,7 @@ const Checkout = () => {
               </div>
             )}
 
-            {!savedAddress && (
+            {isAuthenticated && !savedAddress && (
               <div className="no-address-notice">
                 <p>Bạn chưa có địa chỉ đã lưu.</p>
                 <Link to="/profile" className="add-address-link">

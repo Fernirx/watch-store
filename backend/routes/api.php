@@ -10,4 +10,5 @@ require __DIR__ . '/wishlist.php';
 require __DIR__ . '/order.php';
 require __DIR__ . '/vnpay.php';
 require __DIR__ . '/profile.php';
+require __DIR__ . '/guest.php';
 ?>
