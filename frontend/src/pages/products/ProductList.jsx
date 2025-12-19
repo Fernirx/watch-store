@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
+import ProductCard from '../../components/ProductCard';
 import './ProductList.css';
 
 const ProductList = () => {
@@ -165,27 +166,74 @@ const ProductList = () => {
     }
   };
 
+  const selectedCategoryData = selectedCategory 
+    ? categories.find(cat => cat.id == selectedCategory)
+    : null;
+
   return (
     <div className="product-list-page">
       <div className="container">
-        <h1>Sản Phẩm</h1>
+        
+        {/* Category Banner */}
+        {selectedCategoryData && (
+          <div 
+            className="category-banner"
+            style={{
+              backgroundImage: `linear-gradient(135deg, rgba(102, 126, 234, 0.75) 0%, rgba(118, 75, 162, 0.75) 100%), 
+              url('https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1200&q=80')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            <div className="category-banner-content">
+              <h2>{selectedCategoryData.name}</h2>
+              <p>{selectedCategoryData.description}</p>
+            </div>
+          </div>
+        )}
 
-        {/* Search Bar */}
-        <div className="search-bar">
-          <div className="search-input-wrapper">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm theo tên..."
-              value={searchQuery || ''}
-              onChange={handleSearchChange}
-              className="search-input"
-            />
-            {searchQuery && (
-              <button onClick={clearSearch} className="clear-search-btn">
-                ✕
-              </button>
-            )}
-            <span className="search-icon">🔍</span>
+        {/* All Products Banner */}
+        {!selectedCategoryData && (
+          <div 
+            className="category-banner all-products-banner"
+            style={{
+              backgroundImage: `linear-gradient(135deg, rgba(91, 97, 102, 0.65) 0%, rgba(83, 88, 93, 0.65) 100%)
+              , url('https://imgs.search.brave.com/PJDXZdkjaftltc-nJigZ72VduNNwIBTWYOCZtwqPH_Y/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzE1LzU3LzY2Lzgw/LzM2MF9GXzE1NTc2/NjgwNDRfbEZ3ekdW/TXp4TU9TeXo0ZVF5/SG1KdHNuWDByOWVH/d2QuanBn')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            <div className="category-banner-content">
+              <h2>Đồng Hồ Chính Hãng</h2>
+              <p>Khám phá bộ sưu tập đồng hồ đa dạng từ các thương hiệu hàng đầu thế giới, với chất lượng tuyệt vời và thiết kế hiện đại</p>
+            </div>
+          </div>
+        )}
+        <div className="product-list-header">
+          <h1>Sản Phẩm</h1>
+
+          {/* Search Bar */}
+          <div className="search-bar">
+            <div className="search-input-wrapper">
+              <input
+                type="text"
+                placeholder="Tìm kiếm sản phẩm theo tên..."
+                value={searchQuery || ''}
+                onChange={handleSearchChange}
+                className="search-input"
+              />
+              {searchQuery && (
+                <button onClick={clearSearch} className="clear-search-btn">
+                  ✕
+                </button>
+              )}
+              <span className="search-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -194,166 +242,90 @@ const ProductList = () => {
           <aside className="filters-sidebar">
             <div className="filter-section">
               <h3>Danh Mục</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!selectedCategory ? 'active' : ''}
-                    onClick={() => handleCategoryFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
+              <select
+                className="filter-select"
+                value={selectedCategory || ''}
+                onChange={(e) => handleCategoryFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
                 {categories.map((category) => (
-                  <li key={category.id}>
-                    <button
-                      className={selectedCategory == category.id ? 'active' : ''}
-                      onClick={() => handleCategoryFilter(category.id)}
-                    >
-                      {category.name}
-                    </button>
-                  </li>
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
                 ))}
-              </ul>
+              </select>
             </div>
 
             <div className="filter-section">
               <h3>Thương Hiệu</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!selectedBrand ? 'active' : ''}
-                    onClick={() => handleBrandFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
+              <select
+                className="filter-select"
+                value={selectedBrand || ''}
+                onChange={(e) => handleBrandFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
                 {brands.map((brand) => (
-                  <li key={brand.id}>
-                    <button
-                      className={selectedBrand == brand.id ? 'active' : ''}
-                      onClick={() => handleBrandFilter(brand.id)}
-                    >
-                      {brand.name}
-                    </button>
-                  </li>
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
                 ))}
-              </ul>
+              </select>
             </div>
 
             <div className="filter-section">
               <h3>Tình Trạng</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!stockFilter ? 'active' : ''}
-                    onClick={() => handleStockFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={stockFilter === 'in_stock' ? 'active' : ''}
-                    onClick={() => handleStockFilter('in_stock')}
-                  >
-                    Còn hàng
-                  </button>
-                </li>
-              </ul>
+              <select
+                className="filter-select"
+                value={stockFilter || ''}
+                onChange={(e) => handleStockFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
+                <option value="in_stock">Còn hàng</option>
+              </select>
             </div>
 
             <div className="filter-section">
               <h3>Loại Bộ Máy</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!movementFilter ? 'active' : ''}
-                    onClick={() => handleMovementFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
-                {['Quartz', 'Automatic', 'Manual', 'Solar'].map((type) => (
-                  <li key={type}>
-                    <button
-                      className={movementFilter === type ? 'active' : ''}
-                      onClick={() => handleMovementFilter(type)}
-                    >
-                      {type}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <select
+                className="filter-select"
+                value={movementFilter || ''}
+                onChange={(e) => handleMovementFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
+                <option value="Quartz">Quartz</option>
+                <option value="Automatic">Automatic</option>
+                <option value="Manual">Manual</option>
+                <option value="Solar">Solar</option>
+              </select>
             </div>
 
             <div className="filter-section">
               <h3>Giới Tính</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!genderFilter ? 'active' : ''}
-                    onClick={() => handleGenderFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
-                {['Nam', 'Nữ', 'Unisex'].map((gender) => (
-                  <li key={gender}>
-                    <button
-                      className={genderFilter === gender ? 'active' : ''}
-                      onClick={() => handleGenderFilter(gender)}
-                    >
-                      {gender}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <select
+                className="filter-select"
+                value={genderFilter || ''}
+                onChange={(e) => handleGenderFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Unisex">Unisex</option>
+              </select>
             </div>
 
             <div className="filter-section">
               <h3>Khoảng Giá</h3>
-              <ul className="filter-list">
-                <li>
-                  <button
-                    className={!priceRange ? 'active' : ''}
-                    onClick={() => handlePriceFilter(null)}
-                  >
-                    Tất cả
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={priceRange === '0-5000000' ? 'active' : ''}
-                    onClick={() => handlePriceFilter('0-5000000')}
-                  >
-                    Dưới 5 triệu
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={priceRange === '5000000-10000000' ? 'active' : ''}
-                    onClick={() => handlePriceFilter('5000000-10000000')}
-                  >
-                    5 - 10 triệu
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={priceRange === '10000000-20000000' ? 'active' : ''}
-                    onClick={() => handlePriceFilter('10000000-20000000')}
-                  >
-                    10 - 20 triệu
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={priceRange === '20000000-up' ? 'active' : ''}
-                    onClick={() => handlePriceFilter('20000000-up')}
-                  >
-                    Trên 20 triệu
-                  </button>
-                </li>
-              </ul>
+              <select
+                className="filter-select"
+                value={priceRange || ''}
+                onChange={(e) => handlePriceFilter(e.target.value || null)}
+              >
+                <option value="">Tất cả</option>
+                <option value="0-5000000">Dưới 5 triệu</option>
+                <option value="5000000-10000000">5 - 10 triệu</option>
+                <option value="10000000-20000000">10 - 20 triệu</option>
+                <option value="20000000-up">Trên 20 triệu</option>
+              </select>
             </div>
           </aside>
 
@@ -366,54 +338,12 @@ const ProductList = () => {
             ) : (
               <div className="products-grid">
                 {products.map((product) => (
-                  <div key={product.id} className="product-card">
-                    <Link to={`/products/${product.id}`}>
-                      <div className="product-image">
-                        <button
-                          className={`wishlist-heart ${isInWishlist(product.id) ? 'active' : ''}`}
-                          onClick={(e) => handleWishlistToggle(e, product)}
-                          title={isInWishlist(product.id) ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
-                        >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                          </svg>
-                        </button>
-                        <img
-                          src={product.image_url || '/placeholder.jpg'}
-                          alt={product.name}
-                        />
-                        {product.sale_price && (
-                          <span className="sale-badge">Sale</span>
-                        )}
-                        {product.stock_quantity === 0 && (
-                          <span className="out-of-stock-badge">Hết hàng</span>
-                        )}
-                        {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-                          <span className="low-stock-badge">Còn {product.stock_quantity}</span>
-                        )}
-                      </div>
-                      <div className="product-info">
-                        <h3>{product.name}</h3>
-                        <p className="brand">{product.brand?.name}</p>
-                        <div className="price">
-                          {product.sale_price ? (
-                            <>
-                              <span className="sale-price">
-                                {parseFloat(product.sale_price).toLocaleString('vi-VN')}đ
-                              </span>
-                              <span className="original-price">
-                                {parseFloat(product.price).toLocaleString('vi-VN')}đ
-                              </span>
-                            </>
-                          ) : (
-                            <span className="current-price">
-                              {parseFloat(product.price).toLocaleString('vi-VN')}đ
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isInWishlist={isInWishlist}
+                    onWishlistToggle={handleWishlistToggle}
+                  />
                 ))}
               </div>
             )}

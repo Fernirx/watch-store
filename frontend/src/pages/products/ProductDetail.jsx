@@ -201,141 +201,6 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {product.description && (
-              <div className="description">
-                <h3>Mô tả sản phẩm</h3>
-                <p>{product.description}</p>
-              </div>
-            )}
-
-            {/* Technical Specifications */}
-            <div className="technical-specs">
-              <h3>Thông số kỹ thuật</h3>
-              <div className="specs-grid">
-                {/* Movement Section */}
-                {product.movement_type && (
-                  <div className="spec-section">
-                    <h4>Bộ Máy</h4>
-                    <div className="spec-item">
-                      <span className="spec-label">Loại:</span>
-                      <span className="spec-value">{product.movement_type}</span>
-                    </div>
-                    {product.movement_name && (
-                      <div className="spec-item">
-                        <span className="spec-label">Model:</span>
-                        <span className="spec-value">{product.movement_name}</span>
-                      </div>
-                    )}
-                    {product.power_reserve && (
-                      <div className="spec-item">
-                        <span className="spec-label">Trữ cót:</span>
-                        <span className="spec-value">{product.power_reserve}</span>
-                      </div>
-                    )}
-                    {product.battery_type && (
-                      <div className="spec-item">
-                        <span className="spec-label">Loại pin:</span>
-                        <span className="spec-value">{product.battery_type}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Materials Section */}
-                {(product.case_material || product.strap_material || product.glass_material) && (
-                  <div className="spec-section">
-                    <h4>Chất Liệu</h4>
-                    {product.case_material && (
-                      <div className="spec-item">
-                        <span className="spec-label">Vỏ:</span>
-                        <span className="spec-value">{product.case_material}</span>
-                      </div>
-                    )}
-                    {product.strap_material && (
-                      <div className="spec-item">
-                        <span className="spec-label">Dây:</span>
-                        <span className="spec-value">{product.strap_material}</span>
-                      </div>
-                    )}
-                    {product.glass_material && (
-                      <div className="spec-item">
-                        <span className="spec-label">Kính:</span>
-                        <span className="spec-value">{product.glass_material}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Colors Section */}
-                {(product.dial_color || product.case_color || product.strap_color) && (
-                  <div className="spec-section">
-                    <h4>Màu Sắc</h4>
-                    {product.dial_color && (
-                      <div className="spec-item">
-                        <span className="spec-label">Mặt số:</span>
-                        <span className="spec-value">{product.dial_color}</span>
-                      </div>
-                    )}
-                    {product.case_color && (
-                      <div className="spec-item">
-                        <span className="spec-label">Vỏ:</span>
-                        <span className="spec-value">{product.case_color}</span>
-                      </div>
-                    )}
-                    {product.strap_color && (
-                      <div className="spec-item">
-                        <span className="spec-label">Dây:</span>
-                        <span className="spec-value">{product.strap_color}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Dimensions Section */}
-                {(product.case_size || product.case_thickness || product.weight) && (
-                  <div className="spec-section">
-                    <h4>Kích Thước</h4>
-                    {product.case_size && (
-                      <div className="spec-item">
-                        <span className="spec-label">Đường kính:</span>
-                        <span className="spec-value">{product.case_size} mm</span>
-                      </div>
-                    )}
-                    {product.case_thickness && (
-                      <div className="spec-item">
-                        <span className="spec-label">Độ dày:</span>
-                        <span className="spec-value">{product.case_thickness} mm</span>
-                      </div>
-                    )}
-                    {product.weight && (
-                      <div className="spec-item">
-                        <span className="spec-label">Trọng lượng:</span>
-                        <span className="spec-value">{product.weight} g</span>
-                      </div>
-                    )}
-                    {product.gender && (
-                      <div className="spec-item">
-                        <span className="spec-label">Giới tính:</span>
-                        <span className="spec-value">{product.gender}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Features Section */}
-                {product.features && product.features.length > 0 && (
-                  <div className="spec-section full-width">
-                    <h4>Tính Năng Đặc Biệt</h4>
-                    <div className="features-list">
-                      {product.features.map((feature, index) => (
-                        <span key={index} className="feature-tag">{feature}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {product.stock_quantity > 0 ? (
               <div className="purchase-section">
                 <div className="quantity-selector">
@@ -380,6 +245,145 @@ const ProductDetail = () => {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Full Width Description and Specifications */}
+        <div className="product-full-info">
+          {product.description && (
+            <div className="description-full">
+              <h3>Mô tả sản phẩm</h3>
+              <p>{product.description}</p>
+            </div>
+          )}
+
+          {/* Technical Specifications Table */}
+          <div className="technical-specs-full">
+            <h3>Thông số kỹ thuật</h3>
+            <table className="specs-table">
+              <tbody>
+                {/* Movement Section */}
+                {product.movement_type && (
+                  <>
+                    <tr className="spec-category-row">
+                      <td colSpan="2"><strong>Bộ Máy</strong></td>
+                    </tr>
+                    <tr>
+                      <td className="spec-label">Loại</td>
+                      <td className="spec-value">{product.movement_type}</td>
+                    </tr>
+                    {product.movement_name && (
+                      <tr>
+                        <td className="spec-label">Model</td>
+                        <td className="spec-value">{product.movement_name}</td>
+                      </tr>
+                    )}
+                    {product.power_reserve && (
+                      <tr>
+                        <td className="spec-label">Trữ cót</td>
+                        <td className="spec-value">{product.power_reserve}</td>
+                      </tr>
+                    )}
+                    {product.battery_type && (
+                      <tr>
+                        <td className="spec-label">Loại pin</td>
+                        <td className="spec-value">{product.battery_type}</td>
+                      </tr>
+                    )}
+                  </>
+                )}
+
+                {/* Materials Section */}
+                {(product.case_material || product.strap_material || product.glass_material) && (
+                  <>
+                    <tr className="spec-category-row">
+                      <td colSpan="2"><strong>Chất Liệu</strong></td>
+                    </tr>
+                    {product.case_material && (
+                      <tr>
+                        <td className="spec-label">Vỏ</td>
+                        <td className="spec-value">{product.case_material}</td>
+                      </tr>
+                    )}
+                    {product.strap_material && (
+                      <tr>
+                        <td className="spec-label">Dây</td>
+                        <td className="spec-value">{product.strap_material}</td>
+                      </tr>
+                    )}
+                    {product.glass_material && (
+                      <tr>
+                        <td className="spec-label">Kính</td>
+                        <td className="spec-value">{product.glass_material}</td>
+                      </tr>
+                    )}
+                  </>
+                )}
+
+                {/* Colors Section */}
+                {(product.dial_color || product.case_color || product.strap_color) && (
+                  <>
+                    <tr className="spec-category-row">
+                      <td colSpan="2"><strong>Màu Sắc</strong></td>
+                    </tr>
+                    {product.dial_color && (
+                      <tr>
+                        <td className="spec-label">Mặt số</td>
+                        <td className="spec-value">{product.dial_color}</td>
+                      </tr>
+                    )}
+                    {product.case_color && (
+                      <tr>
+                        <td className="spec-label">Vỏ</td>
+                        <td className="spec-value">{product.case_color}</td>
+                      </tr>
+                    )}
+                    {product.strap_color && (
+                      <tr>
+                        <td className="spec-label">Dây</td>
+                        <td className="spec-value">{product.strap_color}</td>
+                      </tr>
+                    )}
+                  </>
+                )}
+
+                {/* Dimensions Section */}
+                {(product.case_size || product.case_thickness || product.weight || product.gender) && (
+                  <>
+                    <tr className="spec-category-row">
+                      <td colSpan="2"><strong>Kích Thước & Thông Tin</strong></td>
+                    </tr>
+                    {product.case_size && (
+                      <tr>
+                        <td className="spec-label">Đường kính</td>
+                        <td className="spec-value">{product.case_size} mm</td>
+                      </tr>
+                    )}
+                    {product.case_thickness && (
+                      <tr>
+                        <td className="spec-label">Độ dày</td>
+                        <td className="spec-value">{product.case_thickness} mm</td>
+                      </tr>
+                    )}
+                    {product.weight && (
+                      <tr>
+                        <td className="spec-label">Trọng lượng</td>
+                        <td className="spec-value">{product.weight} g</td>
+                      </tr>
+                    )}
+                    {product.gender && (
+                      <tr>
+                        <td className="spec-label">Giới tính</td>
+                        <td className="spec-value">{product.gender}</td>
+                      </tr>
+                    )}
+                  </>
+                )}
+
+                {/* Features Section */}
+               
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import productService from '../../services/productService';
+import { useWishlist } from '../../contexts/WishlistContext';
+import { useAuth } from '../../contexts/AuthContext';
+import ProductCard from '../../components/ProductCard';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -29,6 +35,32 @@ const HomePage = () => {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleWishlistToggle = async (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const inWishlist = isInWishlist(product.id);
+      if (inWishlist) {
+        const wishlistItem = wishlist?.wishlist?.items.find(
+          item => item.product_id === product.id
+        );
+        if (wishlistItem) {
+          await removeWishlistItem(wishlistItem.id);
+        }
+      } else {
+        await addToWishlist(product.id);
+      }
+    } catch (error) {
+      alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -60,45 +92,12 @@ const HomePage = () => {
         <h2>Sản Phẩm Nổi Bật</h2>
         <div className="products-grid">
           {products.map((product) => (
-            <div key={product.id} className="product-card">
-              <Link to={`/products/${product.id}`}>
-                <div className="product-image">
-                  <img
-                    src={product.image_url || '/placeholder.jpg'}
-                    alt={product.name}
-                  />
-                  {product.sale_price && (
-                    <span className="sale-badge">Sale</span>
-                  )}
-                  {product.stock_quantity === 0 && (
-                    <span className="out-of-stock-badge">Hết hàng</span>
-                  )}
-                  {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-                    <span className="low-stock-badge">Còn {product.stock_quantity}</span>
-                  )}
-                </div>
-                <div className="product-info">
-                  <h3>{product.name}</h3>
-                  <p className="brand">{product.brand?.name}</p>
-                  <div className="price">
-                    {product.sale_price ? (
-                      <>
-                        <span className="sale-price">
-                          {parseFloat(product.sale_price).toLocaleString('vi-VN')}đ
-                        </span>
-                        <span className="original-price">
-                          {parseFloat(product.price).toLocaleString('vi-VN')}đ
-                        </span>
-                      </>
-                    ) : (
-                      <span className="current-price">
-                        {parseFloat(product.price).toLocaleString('vi-VN')}đ
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            </div>
+            <ProductCard
+              key={product.id}
+              product={product}
+              isInWishlist={isInWishlist}
+              onWishlistToggle={handleWishlistToggle}
+            />
           ))}
         </div>
       </section>
