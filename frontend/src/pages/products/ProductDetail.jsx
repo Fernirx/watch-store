@@ -183,19 +183,16 @@ const ProductDetail = () => {
             <div className="product-highlights">
               {product.warranty_period && (
                 <div className="highlight-item">
-                  <i className="icon-warranty"></i>
                   <span>Bảo hành: {product.warranty_period}</span>
                 </div>
               )}
               {product.origin_country && (
                 <div className="highlight-item">
-                  <i className="icon-origin"></i>
                   <span>Xuất xứ: {product.origin_country}</span>
                 </div>
               )}
               {product.water_resistance && (
                 <div className="highlight-item">
-                  <i className="icon-water"></i>
                   <span>Chống nước: {product.water_resistance}</span>
                 </div>
               )}
@@ -230,6 +227,11 @@ const ProductDetail = () => {
 
                 <div className="action-buttons">
                   <button onClick={handleAddToCart} className="btn-add-to-cart">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="9" cy="21" r="1" />
+                      <circle cx="20" cy="21" r="1" />
+                      <path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.99-1.72L23 6H6" />
+                    </svg>
                     Thêm Vào Giỏ
                   </button>
                   <button onClick={handleBuyNow} className="btn-buy-now">
