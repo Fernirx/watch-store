@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Update ProductCard CSS",
+			"type": "shell",
+			"command": "true"
+		},
+		{
+			"label": "Apply ProductCard CSS tweaks",
+			"type": "shell",
+			"command": "true"
+		}
+	]
+}

@@ -118,6 +118,37 @@
   font-weight: 500;
 }
 
+/* Reset Filters Button */
+.clear-filters-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  border-color: #e74c3c;
+  color: #e74c3c;
+  background: #fff5f5;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.12);
+}
+
+.clear-filters-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.15);
+}
+
+.clear-filters-btn:active {
+  transform: translateY(1px);
+}
+
 /* Products Grid */
 .products-content {
   min-height: 400px;

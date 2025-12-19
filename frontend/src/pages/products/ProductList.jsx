@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProductCard from '../../components/ProductCard';
+import SearchBar from '../../components/SearchBar';
 import './ProductList.css';
 
 const ProductList = () => {
@@ -213,28 +214,20 @@ const ProductList = () => {
           <h1>Sản Phẩm</h1>
 
           {/* Search Bar */}
-          <div className="search-bar">
-            <div className="search-input-wrapper">
-              <input
-                type="text"
-                placeholder="Tìm kiếm sản phẩm theo tên..."
-                value={searchQuery || ''}
-                onChange={handleSearchChange}
-                className="search-input"
-              />
-              {searchQuery && (
-                <button onClick={clearSearch} className="clear-search-btn">
-                  ✕
-                </button>
-              )}
-              <span className="search-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </span>
-            </div>
-          </div>
+          <SearchBar
+            value={searchQuery || ''}
+            onChange={(v) => {
+              const params = new URLSearchParams(searchParams);
+              if (v.trim()) {
+                params.set('search', v);
+              } else {
+                params.delete('search');
+              }
+              setSearchParams(params);
+            }}
+            onClear={clearSearch}
+            placeholder="Tìm kiếm sản phẩm theo tên..."
+          />
         </div>
 
         <div className="products-layout">
@@ -327,6 +320,14 @@ const ProductList = () => {
                 <option value="20000000-up">Trên 20 triệu</option>
               </select>
             </div>
+              <button
+                className="clear-filters-btn"
+                onClick={() => {
+                  setSearchParams({});
+                }}
+              >
+                Reset Bộ Lọc
+              </button>
           </aside>
 
           {/* Products Grid */}

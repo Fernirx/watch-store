@@ -23,7 +23,6 @@ const ProductDetail = () => {
   useEffect(() => {
     fetchProduct();
   }, [id]);
-
   useEffect(() => {
     if (product) {
       setIsWishlisted(isInWishlist(product.id));
