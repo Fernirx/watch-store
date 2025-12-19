@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
@@ -8,15 +9,31 @@ const Header = () => {
   const { cartItemsCount } = useCart();
   const { wishlistItemsCount } = useWishlist();
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  const toggleProfileMenu = () => setIsProfileOpen((prev) => !prev);
 
   const handleLogout = async () => {
+    setIsProfileOpen(false);
     await logout();
     navigate('/login');
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="header">
-      <div className="container">
+      <div className="header-container">
         <div className="header-content">
           <Link to="/" className="logo">
             <h1>Hưng Phú Store</h1>
@@ -50,14 +67,57 @@ const Header = () => {
             </Link>
 
             {isAuthenticated ? (
-              <div className="user-menu">
-                <span className="user-name">{user?.name}</span>
-                <Link to="/profile" className="btn-profile">
-                  Tài Khoản
-                </Link>
-                <button onClick={handleLogout} className="btn-logout">
-                  Đăng Xuất
+              <div className="user-menu" ref={profileMenuRef}>
+                
+                <button
+                  type="button"
+                  className="profile-trigger"
+                  onClick={toggleProfileMenu}
+                  aria-expanded={isProfileOpen}
+                  aria-haspopup="true"
+                >
+                  <div className="profile-avatar" aria-hidden>
+                    {(user?.name?.charAt(0) || 'U').toUpperCase()}
+                  </div>
+                  <svg
+                    className="profile-caret"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </button>
+
+                {isProfileOpen && (
+                  <div className="profile-dropdown" role="menu">
+                    <div className="profile-meta">
+                      <span className="profile-name">{user?.name || 'Người dùng'}</span>
+                      {user?.email && <span className="profile-email">{user.email}</span>}
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="profile-dropdown-link"
+                      role="menuitem"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      Quản lý profile
+                    </Link>
+                    <button
+                      type="button"
+                      className="profile-dropdown-link logout"
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="auth-buttons">

@@ -50,7 +50,6 @@ const HomePage = () => {
               className="category-card"
             >
               <h3>{category.name}</h3>
-              <p>{category.description}</p>
             </Link>
           ))}
         </div>
