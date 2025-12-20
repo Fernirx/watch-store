@@ -151,25 +151,23 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div style={{ marginTop: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1e293b', marginBottom: '1.5rem' }}>
-          Thao tác nhanh
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-          <Link to="/admin/products/create" className="btn btn-primary btn-lg" style={{ justifyContent: 'center' }}>
-            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm sản phẩm
+      <div className="admin-quick-actions">
+        <h2>Thao tác nhanh</h2>
+        <div className="admin-quick-actions-grid">
+          <Link to="/admin/products/create" className="quick-action-btn quick-action-products">
+            <i className="fa fa-plus"></i> Thêm sản phẩm
           </Link>
-          <Link to="/admin/categories" className="btn btn-success btn-lg" style={{ justifyContent: 'center' }}>
-            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm danh mục
+          <Link to="/admin/categories" className="quick-action-btn quick-action-categories">
+            <i className="fa fa-plus"></i> Thêm danh mục
           </Link>
-          <Link to="/admin/brands" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center', background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
-            <i className="fa fa-plus" style={{ marginRight: '0.5rem' }}></i> Thêm thương hiệu
+          <Link to="/admin/brands" className="quick-action-btn quick-action-brands">
+            <i className="fa fa-plus"></i> Thêm thương hiệu
           </Link>
-          <Link to="/admin/orders" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center' }}>
-            <i className="fa fa-list" style={{ marginRight: '0.5rem' }}></i>   Xem đơn hàng
+          <Link to="/admin/orders" className="quick-action-btn quick-action-orders">
+            <i className="fa fa-list"></i> Xem đơn hàng
           </Link>
-          <Link to="/admin/users" className="btn btn-secondary btn-lg" style={{ justifyContent: 'center', background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: 'white' }}>
-            <i className="fa fa-user-plus" style={{ marginRight: '0.5rem' }}></i> Thêm người dùng
+          <Link to="/admin/users" className="quick-action-btn quick-action-users">
+            <i className="fa fa-user-plus"></i> Thêm người dùng
           </Link>
         </div>
       </div>
@@ -177,7 +175,7 @@ const Dashboard = () => {
       {/* Recent Activity Section */}
       <div style={{ marginTop: '2rem', background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b', marginBottom: '1rem' }}>
-          📈 Hoạt động gần đây
+          <i className="fa fa-history" style={{ marginRight: '0.5rem' }}></i> Hoạt động gần đây
         </h2>
         <p style={{ color: '#64748b' }}>Chức năng này đang được phát triển...</p>
       </div>

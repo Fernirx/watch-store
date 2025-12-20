@@ -157,64 +157,52 @@ const Products = () => {
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1>📦 Quản Lý Sản Phẩm</h1>
+          <h1>Quản Lý Sản Phẩm</h1>
           <div className="admin-breadcrumb">
             <Link to="/admin">Dashboard</Link>
             <span>/</span>
             <span>Sản phẩm</span>
           </div>
         </div>
-        <Link to="/admin/products/create" className="btn btn-primary">
-          ➕ Thêm Sản Phẩm Mới
-        </Link>
       </div>
 
       {/* Search & Filters Bar */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-          <form onSubmit={handleSearch} style={{ flex: 1 }}>
+      <div className="products-toolbar">
+        <div className="toolbar-row">
+          <form onSubmit={handleSearch} className="toolbar-search-form">
             <div className="search-bar">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên hoặc mã sản phẩm..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%' }}
               />
             </div>
           </form>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn btn-secondary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-          >
-            🔍 Bộ lọc
+          <div className="toolbar-actions">
             {activeFiltersCount > 0 && (
-              <span style={{
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.75rem',
-                fontWeight: '600'
-              }}>
-                {activeFiltersCount}
-              </span>
+              <button
+                onClick={clearAllFilters}
+                className="btn btn-danger toolbar-btn"
+              >
+                ✕ Xóa bộ lọc
+              </button>
             )}
-          </button>
-          {activeFiltersCount > 0 && (
             <button
-              onClick={clearAllFilters}
-              className="btn btn-danger"
-              style={{ whiteSpace: 'nowrap' }}
+              onClick={() => setShowFilters(!showFilters)}
+              className="btn btn-secondary toolbar-btn"
             >
-              ✕ Xóa bộ lọc
+              <i className="fas fa-filter"></i> Bộ lọc
+              {activeFiltersCount > 0 && (
+                <span className="filter-count-badge">
+                  {activeFiltersCount}
+                </span>
+              )}
             </button>
-          )}
+            <Link to="/admin/products/create" className="btn btn-addproduct toolbar-btn">
+              <i className="fas fa-plus"></i> Thêm Sản Phẩm Mới
+            </Link>
+          </div>
         </div>
 
         {/* Filters Panel */}
@@ -486,7 +474,7 @@ const Products = () => {
                     <h3>Chưa có sản phẩm nào</h3>
                     <p>Hãy thêm sản phẩm đầu tiên của bạn</p>
                     <Link to="/admin/products/create" className="btn btn-primary">
-                      ➕ Thêm Sản Phẩm
+                      <i className="fas fa-plus"></i> Thêm Sản Phẩm
                     </Link>
                   </div>
                 </td>
@@ -529,7 +517,6 @@ const Products = () => {
                         justifyContent: 'center',
                         fontSize: '1.5rem'
                       }}>
-                        📷
                       </div>
                     )}
                   </td>
@@ -550,7 +537,7 @@ const Products = () => {
                   <td>
                     <span style={{
                       padding: '0.25rem 0.5rem',
-                      background: '#e0e7ff',
+                      background: 'none',
                       color: '#4f46e5',
                       borderRadius: '0.375rem',
                       fontSize: '0.75rem',
@@ -565,7 +552,7 @@ const Products = () => {
                     {product.movement_type ? (
                       <span style={{
                         padding: '0.25rem 0.5rem',
-                        background: '#dbeafe',
+                        background: 'none',
                         color: '#1e40af',
                         borderRadius: '0.375rem',
                         fontSize: '0.75rem',
@@ -616,13 +603,13 @@ const Products = () => {
                             ? 'badge badge-warning'
                             : 'badge badge-success'
                         }
-                        style={{ fontWeight: '600', fontSize: '0.875rem' }}
+                        style={{ fontWeight: '700', fontSize: '0.875rem' }}
                       >
                         {product.stock_quantity}
                       </span>
                       {product.stock_quantity <= (product.min_stock_level || 10) && product.stock_quantity > 0 && (
                         <div style={{ fontSize: '0.625rem', color: '#f59e0b', marginTop: '0.25rem' }}>
-                          ⚠️ Sắp hết
+                          <i className="fas fa-exclamation-triangle"></i> Sắp hết
                         </div>
                       )}
                     </div>
@@ -634,11 +621,11 @@ const Products = () => {
                       {product.is_new && (
                         <span style={{
                           padding: '0.125rem 0.5rem',
-                          background: '#10b981',
-                          color: 'white',
+                          background: 'none',
+                          color: '#059669',
                           borderRadius: '0.25rem',
                           fontSize: '0.625rem',
-                          fontWeight: '600',
+                          fontWeight: '700',
                           textAlign: 'center'
                         }}>
                           NEW
@@ -647,11 +634,11 @@ const Products = () => {
                       {product.is_on_sale && (
                         <span style={{
                           padding: '0.125rem 0.5rem',
-                          background: '#ef4444',
-                          color: 'white',
+                          background: 'none',
+                          color: '#dc2626',
                           borderRadius: '0.25rem',
                           fontSize: '0.625rem',
-                          fontWeight: '600',
+                          fontWeight: '700',
                           textAlign: 'center'
                         }}>
                           SALE
@@ -660,14 +647,14 @@ const Products = () => {
                       {product.is_featured && (
                         <span style={{
                           padding: '0.125rem 0.5rem',
-                          background: '#f59e0b',
-                          color: 'white',
+                          background: 'none',
+                          color: '#b45309',
                           borderRadius: '0.25rem',
                           fontSize: '0.625rem',
-                          fontWeight: '600',
+                          fontWeight: '700',
                           textAlign: 'center'
                         }}>
-                          ⭐ HOT
+                          HOT
                         </span>
                       )}
                       {!product.is_new && !product.is_on_sale && !product.is_featured && (
@@ -685,13 +672,13 @@ const Products = () => {
                             ? 'badge badge-success'
                             : 'badge badge-secondary'
                         }
-                        style={{ fontSize: '0.75rem' }}
+                        style={{ fontSize: '0.75rem', fontWeight: '700' }}
                       >
                         {product.is_active ? '✓ Hiện' : '✕ Ẩn'}
                       </span>
                       {product.view_count > 0 && (
                         <div style={{ fontSize: '0.625rem', color: '#64748b', marginTop: '0.25rem' }}>
-                          👁️ {product.view_count} lượt xem
+                          <i className="fas fa-eye"></i> {product.view_count} lượt xem
                         </div>
                       )}
                     </div>
@@ -702,17 +689,17 @@ const Products = () => {
                     <div className="table-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                       <Link
                         to={`/admin/products/edit/${product.id}`}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '0.75rem' }}
+                        className="btn-icon edit"
+                        aria-label="Chỉnh sửa sản phẩm"
                       >
-                        ✏️ Sửa
+                        <i className="fas fa-edit"></i>
                       </Link>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="btn btn-danger btn-sm"
-                        style={{ fontSize: '0.75rem' }}
+                        className="btn-icon delete"
+                        aria-label="Xóa sản phẩm"
                       >
-                        🗑️
+                        <i className="fas fa-trash-alt"></i>
                       </button>
                     </div>
                   </td>

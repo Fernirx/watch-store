@@ -385,7 +385,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: url("../public/backgroundlogin.webp");
+    background: url("../public/background.png");
     background-size: cover;
     padding: 2rem;
   }
@@ -656,7 +656,7 @@
 
   /* Products Grid */
   .products-grid {
-    margin: 0 30px;
+    margin: 0 40px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 2rem;
@@ -1524,7 +1524,14 @@
     grid-template-columns: 1fr 350px;
     gap: 2rem;
   }
-
+.cart-item-container{
+  display: flex;
+  align-items: center;
+}
+.checkbox{
+  margin-right: 10px;
+  transform: scale(1.2);
+}
   .cart-item {
     display: grid;
     grid-template-columns: 100px 1fr 120px 150px 120px 40px;
@@ -1534,6 +1541,7 @@
     padding: 1.5rem;
     border-radius: 8px;
     margin-bottom: 1rem;
+    display: flex;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 

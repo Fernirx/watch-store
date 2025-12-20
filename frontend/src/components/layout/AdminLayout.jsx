@@ -37,7 +37,7 @@ const AdminLayout = () => {
       {/* Admin Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <h2>⌚ Watch Store</h2>
+          <h2> Watch Store</h2>
           <p>{user?.name}</p>
         </div>
 
@@ -46,46 +46,47 @@ const AdminLayout = () => {
             to="/admin"
             className={`nav-item ${isActive('/admin') ? 'active' : ''}`}
           >
-            Dashboard
+            Dashboard  <span><i class="fa-solid fa-chart-line"></i></span> 
           </Link>
           <Link
             to="/admin/products"
             className={`nav-item ${isActive('/admin/products') ? 'active' : ''}`}
           >
-            Sản phẩm
+             Sản phẩm <span><i class="fa-solid fa-box"></i></span>
           </Link>
           <Link
             to="/admin/categories"
             className={`nav-item ${isActive('/admin/categories') ? 'active' : ''}`}
           >
-            Danh mục
+            Danh mục <span><i class="fa-solid fa-list"></i></span>
           </Link>
           <Link
             to="/admin/brands"
             className={`nav-item ${isActive('/admin/brands') ? 'active' : ''}`}
           >
-            Thương hiệu
+            Thương hiệu <span><i class="fa-solid fa-tag"></i></span>
+
           </Link>
           <Link
             to="/admin/orders"
             className={`nav-item ${isActive('/admin/orders') ? 'active' : ''}`}
           >
-            Đơn hàng
+            Đơn hàng <span><i class="fa-solid fa-receipt"></i></span>
           </Link>
           <Link
             to="/admin/users"
             className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
           >
-            Người dùng
+            Người dùng <span><i class="fa-solid fa-users"></i></span>
           </Link>
         </nav>
 
         <div className="admin-footer">
           <Link to="/" className="nav-item">
-            🏠 Xem trang web
+             Xem trang web
           </Link>
           <button onClick={handleLogout} className="btn-logout">
-            🚪 Đăng xuất
+             Đăng xuất
           </button>
         </div>
       </aside>

@@ -143,7 +143,7 @@ const Categories = () => {
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1>🏷️ Quản Lý Danh Mục</h1>
+          <h1> Quản Lý Danh Mục</h1>
           <div className="admin-breadcrumb">
             <a href="/admin">Dashboard</a>
             <span>/</span>
@@ -157,7 +157,7 @@ const Categories = () => {
           }}
           className="btn btn-primary"
         >
-          ➕ Thêm Danh Mục Mới
+           Thêm Danh Mục Mới
         </button>
       </div>
 
@@ -166,7 +166,7 @@ const Categories = () => {
         <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && resetForm()}>
           <div className="modal">
             <div className="modal-header">
-              <h2>{editingId ? '✏️ Sửa Danh Mục' : '➕ Thêm Danh Mục Mới'}</h2>
+              <h2>{editingId ? ' Sửa Danh Mục' : ' Thêm Danh Mục Mới'}</h2>
               <button onClick={resetForm} className="modal-close">
                 ✕
               </button>
@@ -235,7 +235,7 @@ const Categories = () => {
                   ✕ Hủy
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingId ? '💾 Cập nhật' : '✓ Tạo mới'}
+                  {editingId ? ' Cập nhật' : ' Tạo mới'}
                 </button>
               </div>
             </form>
@@ -247,7 +247,7 @@ const Categories = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
         {categories.length === 0 ? (
           <div className="empty-state" style={{ gridColumn: '1 / -1' }}>
-            <div className="empty-state-icon">🏷️</div>
+            <div className="empty-state-icon"></div>
             <h3>Chưa có danh mục nào</h3>
             <p>Hãy tạo danh mục đầu tiên cho cửa hàng</p>
             <button
@@ -257,7 +257,7 @@ const Categories = () => {
               }}
               className="btn btn-primary"
             >
-              ➕ Thêm Danh Mục
+             Thêm Danh Mục
             </button>
           </div>
         ) : (
@@ -305,14 +305,14 @@ const Categories = () => {
                     className="btn btn-secondary btn-sm"
                     style={{ flex: 1 }}
                   >
-                    ✏️ Sửa
+                     Sửa
                   </button>
                   <button
                     onClick={() => handleDelete(category.id)}
                     className="btn btn-danger btn-sm"
                     style={{ flex: 1 }}
                   >
-                    🗑️ Xóa
+                     Xóa
                   </button>
                 </div>
               </div>

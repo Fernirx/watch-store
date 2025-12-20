@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import Toast from '../../components/Toast';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -15,6 +16,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
@@ -45,9 +47,9 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     try {
       await addToCart(product.id, quantity);
-      alert('Đã thêm sản phẩm vào giỏ hàng!');
+      setToast({ message: 'Đã thêm sản phẩm vào giỏ hàng!', type: 'success' });
     } catch (error) {
-      alert('Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -56,7 +58,7 @@ const ProductDetail = () => {
       await addToCart(product.id, quantity);
       navigate('/cart');
     } catch (error) {
-      alert('Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -80,7 +82,7 @@ const ProductDetail = () => {
         setIsWishlisted(true);
       }
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -388,6 +390,13 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };
