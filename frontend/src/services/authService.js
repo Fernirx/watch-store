@@ -68,7 +68,12 @@ const authService = {
 
   // Google OAuth - Redirect
   googleLogin: () => {
-    window.location.href = `${axios.defaults.baseURL}/auth/google`;
+    const guestToken = guestService.getGuestToken();
+    const url = new URL(`${axios.defaults.baseURL}/auth/google`);
+    if (guestToken) {
+      url.searchParams.append('guest_token', guestToken);
+    }
+    window.location.href = url.toString();
   },
 
   // Đăng xuất

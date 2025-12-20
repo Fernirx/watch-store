@@ -276,6 +276,12 @@ class AuthService
             }
         }
 
+        // Merge guest cart if guest_token provided
+        if ($request && $request->has('guest_token')) {
+            $cartService = app(CartService::class);
+            $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+        }
+
         // Tạo tokens
         $accessToken = auth('api')->login($user);
         $refreshToken = $this->createRefreshToken($user, $request);

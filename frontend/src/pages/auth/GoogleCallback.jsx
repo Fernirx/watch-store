@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import guestService from '../../services/guestService';
 
 const GoogleCallback = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,9 @@ const GoogleCallback = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('refresh_token', refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
+
+        // Xóa guest token sau khi merge cart thành công
+        guestService.clearGuestToken();
 
         // Cập nhật Auth context
         if (setUser) {

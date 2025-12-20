@@ -295,10 +295,15 @@ class AuthController extends Controller
     /**
      * Redirect to Google OAuth
      */
-    public function googleRedirect()
+    public function googleRedirect(Request $request)
     {
         try {
-            return Socialite::driver('google')->stateless()->redirect();
+            // Lưu guest_token vào session để dùng sau khi callback
+            if ($request->has('guest_token')) {
+                session(['google_oauth_guest_token' => $request->input('guest_token')]);
+            }
+
+            return Socialite::driver('google')->redirect();
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -314,6 +319,13 @@ class AuthController extends Controller
     public function googleCallback(Request $request): \Illuminate\Http\RedirectResponse
     {
         try {
+            // Lấy guest_token từ session nếu có
+            $guestToken = session('google_oauth_guest_token');
+            if ($guestToken) {
+                $request->merge(['guest_token' => $guestToken]);
+                session()->forget('google_oauth_guest_token'); // Xóa sau khi sử dụng
+            }
+
             $result = $this->authService->handleGoogleCallback($request);
 
             $frontendUrl = config('app.frontend_url');

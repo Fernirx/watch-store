@@ -9,8 +9,12 @@ Route::post('/register', [AuthController::class, 'sendRegisterOtp']);
 Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp']);
 Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp']);
 Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
-Route::get('/auth/google', [AuthController::class, 'googleRedirect']);
-Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+
+// Google OAuth routes - cần session middleware
+Route::middleware(['web'])->group(function () {
+    Route::get('/auth/google', [AuthController::class, 'googleRedirect']);
+    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback']);
+});
 
 // Refresh token - không cần auth vì dùng khi token hết hạn
 Route::post('/refresh', [AuthController::class, 'refresh']);
