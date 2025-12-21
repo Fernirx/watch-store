@@ -5,16 +5,19 @@ const authService = {
   // Đăng nhập
   login: async (email, password) => {
     const guestToken = guestService.getGuestToken();
+    console.log('🔑 Login - Guest token:', guestToken);
     const response = await axios.post('/login', {
       email,
       password,
       guest_token: guestToken // Gửi guest_token để merge cart
     });
+    console.log('✅ Login response:', response.data);
     if (response.data.success) {
       localStorage.setItem('token', response.data.data.access_token);
       localStorage.setItem('refresh_token', response.data.data.refresh_token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));
       // Xóa guest token sau khi đăng nhập thành công
+      console.log('🗑️ Clearing guest token');
       guestService.clearGuestToken();
     }
     return response.data;

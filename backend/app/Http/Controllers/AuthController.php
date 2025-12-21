@@ -298,13 +298,26 @@ class AuthController extends Controller
     public function googleRedirect(Request $request)
     {
         try {
-            // Lưu guest_token vào session để dùng sau khi callback
-            if ($request->has('guest_token')) {
-                session(['google_oauth_guest_token' => $request->input('guest_token')]);
+            \Log::info('🔵 Google redirect - guest_token from request: ' . $request->input('guest_token'));
+
+            // Sử dụng state parameter thay vì session để truyền guest_token
+            $stateData = [
+                'random' => bin2hex(random_bytes(16)), // Random để bảo mật
+            ];
+
+            // Thêm guest_token vào state nếu có
+            if ($request->has('guest_token') && $request->input('guest_token')) {
+                $stateData['guest_token'] = $request->input('guest_token');
             }
 
-            return Socialite::driver('google')->redirect();
+            $state = base64_encode(json_encode($stateData));
+            \Log::info('🔵 State parameter: ' . $state);
+
+            return Socialite::driver('google')
+                ->with(['state' => $state])
+                ->redirect();
         } catch (\Exception $e) {
+            \Log::error('Google redirect error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to redirect to Google',
@@ -319,11 +332,27 @@ class AuthController extends Controller
     public function googleCallback(Request $request): \Illuminate\Http\RedirectResponse
     {
         try {
-            // Lấy guest_token từ session nếu có
-            $guestToken = session('google_oauth_guest_token');
+            \Log::info('🟢 Google callback - state parameter: ' . $request->input('state'));
+
+            // Lấy guest_token từ state parameter
+            $guestToken = null;
+            if ($request->has('state')) {
+                try {
+                    $stateData = json_decode(base64_decode($request->input('state')), true);
+                    \Log::info('🟢 Decoded state data: ' . json_encode($stateData));
+
+                    if (isset($stateData['guest_token'])) {
+                        $guestToken = $stateData['guest_token'];
+                        \Log::info('🟢 Guest token from state: ' . $guestToken);
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('⚠️ Failed to decode state parameter: ' . $e->getMessage());
+                }
+            }
+
+            // Merge guest_token vào request nếu có
             if ($guestToken) {
                 $request->merge(['guest_token' => $guestToken]);
-                session()->forget('google_oauth_guest_token'); // Xóa sau khi sử dụng
             }
 
             $result = $this->authService->handleGoogleCallback($request);
@@ -333,11 +362,9 @@ class AuthController extends Controller
                 $frontendUrl . '/auth/google/callback?token=' . $result['token'] . '&refresh_token=' . $result['refresh_token'] . '&user=' . urlencode(json_encode($result['user']))
             );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Google authentication failed',
-                'error' => $e->getMessage(),
-            ], 500);
+            \Log::error('Google callback error: ' . $e->getMessage());
+            $frontendUrl = config('app.frontend_url');
+            return redirect()->away($frontendUrl . '/login?error=' . urlencode($e->getMessage()));
         }
     }
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import cartService from '../services/cartService';
 import { useAuth } from './AuthContext';
 
@@ -9,10 +9,12 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
+      console.log('🛒 Fetching cart, isAuthenticated:', isAuthenticated);
       setLoading(true);
       const response = await cartService.getCart(isAuthenticated);
+      console.log('🛒 Cart fetched:', response.data);
       setCart(response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -20,12 +22,12 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Fetch cart for both authenticated and guest users
     fetchCart();
-  }, [isAuthenticated]);
+  }, [fetchCart]);
 
   const addToCart = async (product_id, quantity = 1) => {
     const data = await cartService.addToCart(product_id, quantity, isAuthenticated);

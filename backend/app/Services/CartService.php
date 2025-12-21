@@ -249,16 +249,29 @@ class CartService
      */
     public function mergeGuestCartToUser(string $guestToken, int $userId): void
     {
+        \Log::info('🛒 Starting merge - Guest token: ' . $guestToken . ', User ID: ' . $userId);
+
         $guestCart = Cart::where('guest_token', $guestToken)->first();
 
-        if (!$guestCart || $guestCart->items->isEmpty()) {
-            return; // Không có giỏ hàng guest hoặc giỏ rỗng
+        if (!$guestCart) {
+            \Log::warning('⚠️ No guest cart found for token: ' . $guestToken);
+            return;
         }
+
+        if ($guestCart->items->isEmpty()) {
+            \Log::warning('⚠️ Guest cart is empty');
+            return;
+        }
+
+        \Log::info('📦 Guest cart has ' . $guestCart->items->count() . ' items');
 
         // Lấy hoặc tạo giỏ hàng của user
         $userCart = Cart::firstOrCreate(['user_id' => $userId]);
+        \Log::info('👤 User cart ID: ' . $userCart->id . ', has ' . $userCart->items->count() . ' items');
 
         // Merge từng item
+        $mergedCount = 0;
+        $createdCount = 0;
         foreach ($guestCart->items as $guestItem) {
             $existingItem = CartItem::where('cart_id', $userCart->id)
                 ->where('product_id', $guestItem->product_id)
@@ -270,23 +283,31 @@ class CartService
 
                 // Kiểm tra tồn kho
                 if ($guestItem->product->stock_quantity >= $newQuantity) {
+                    \Log::info('➕ Merging product #' . $guestItem->product_id . ': ' . $existingItem->quantity . ' + ' . $guestItem->quantity . ' = ' . $newQuantity);
                     $existingItem->quantity = $newQuantity;
                     $existingItem->save();
+                    $mergedCount++;
+                } else {
+                    \Log::warning('⚠️ Insufficient stock for product #' . $guestItem->product_id);
                 }
-                // Nếu không đủ stock, giữ nguyên số lượng cũ
             } else {
                 // Tạo item mới trong giỏ user
+                \Log::info('✨ Creating new item for product #' . $guestItem->product_id . ', quantity: ' . $guestItem->quantity);
                 CartItem::create([
                     'cart_id' => $userCart->id,
                     'product_id' => $guestItem->product_id,
                     'quantity' => $guestItem->quantity,
                     'price' => $guestItem->price,
                 ]);
+                $createdCount++;
             }
         }
+
+        \Log::info('✅ Merge summary - Merged: ' . $mergedCount . ', Created: ' . $createdCount);
 
         // Xóa giỏ hàng guest sau khi merge
         $guestCart->items()->delete();
         $guestCart->delete();
+        \Log::info('🗑️ Guest cart deleted');
     }
 }

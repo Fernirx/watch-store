@@ -26,8 +26,12 @@ class AuthService
 
         // Merge guest cart if guest_token provided
         if ($request && $request->has('guest_token')) {
+            \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+            \Log::info('✅ Cart merge completed for user: ' . $user->id);
+        } else {
+            \Log::info('⚠️ No guest token provided for user: ' . $user->id);
         }
 
         // Tạo access token (JWT)
@@ -194,8 +198,12 @@ class AuthService
 
         // Merge guest cart if guest_token provided
         if ($request && $request->has('guest_token')) {
+            \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+            \Log::info('✅ Cart merge completed for user: ' . $user->id);
+        } else {
+            \Log::info('⚠️ No guest token provided for user: ' . $user->id);
         }
 
         // Tạo tokens
@@ -278,8 +286,12 @@ class AuthService
 
         // Merge guest cart if guest_token provided
         if ($request && $request->has('guest_token')) {
+            \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
+            \Log::info('✅ Cart merge completed for user: ' . $user->id);
+        } else {
+            \Log::info('⚠️ No guest token provided for user: ' . $user->id);
         }
 
         // Tạo tokens
