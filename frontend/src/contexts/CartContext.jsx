@@ -30,9 +30,16 @@ export const CartProvider = ({ children }) => {
   }, [fetchCart]);
 
   const addToCart = async (product_id, quantity = 1) => {
-    const data = await cartService.addToCart(product_id, quantity, isAuthenticated);
-    await fetchCart();
-    return data;
+    console.log('🛒 CartContext.addToCart() - START', { product_id, quantity, isAuthenticated });
+    try {
+      const data = await cartService.addToCart(product_id, quantity, isAuthenticated);
+      console.log('✅ CartContext.addToCart() - Product added, now fetching cart');
+      await fetchCart();
+      return data;
+    } catch (error) {
+      console.error('❌ CartContext.addToCart() - Error:', error);
+      throw error;
+    }
   };
 
   const updateCartItem = async (id, quantity) => {

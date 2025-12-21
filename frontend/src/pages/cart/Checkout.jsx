@@ -13,6 +13,8 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    customer_name: '',
+    customer_email: '',
     shipping_address: '',
     shipping_phone: '',
     payment_method: 'cod',
@@ -26,11 +28,16 @@ const Checkout = () => {
   useEffect(() => {
     fetchCart();
 
-    // Chỉ fetch saved address nếu đã đăng nhập
-    if (isAuthenticated) {
+    // Tự động điền thông tin user nếu đã đăng nhập
+    if (isAuthenticated && user) {
+      setFormData(prev => ({
+        ...prev,
+        customer_name: user.name || '',
+        customer_email: user.email || '',
+      }));
       fetchSavedAddress();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (cart && cart?.cart?.items?.length === 0) {
@@ -84,6 +91,20 @@ const Checkout = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    // Validate tên khách hàng
+    if (!formData.customer_name.trim()) {
+      newErrors.customer_name = 'Tên khách hàng là bắt buộc';
+    } else if (formData.customer_name.trim().length < 2) {
+      newErrors.customer_name = 'Tên phải có ít nhất 2 ký tự';
+    }
+
+    // Validate email
+    if (!formData.customer_email.trim()) {
+      newErrors.customer_email = 'Email là bắt buộc';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
+      newErrors.customer_email = 'Email không hợp lệ';
+    }
+
     // Validate địa chỉ
     if (!formData.shipping_address.trim()) {
       newErrors.shipping_address = 'Địa chỉ giao hàng là bắt buộc';
@@ -128,12 +149,23 @@ const Checkout = () => {
     try {
       // Thêm guest_token nếu chưa đăng nhập
       const orderData = { ...formData };
-      if (!isAuthenticated) {
-        const guestToken = guestService.getGuestToken();
-        if (guestToken) {
-          orderData.guest_token = guestToken;
-        }
+      const guestToken = guestService.getGuestToken();
+
+      console.log('🔐 Checkout Debug:');
+      console.log('  - isAuthenticated:', isAuthenticated);
+      console.log('  - user:', user);
+      console.log('  - localStorage token:', localStorage.getItem('token'));
+      console.log('  - guest_token:', guestToken);
+
+      // Luôn gửi guest_token nếu có (cho cả user và guest)
+      if (guestToken) {
+        orderData.guest_token = guestToken;
+        console.log('  ✅ Added guest_token to orderData');
+      } else {
+        console.log('  ⚠️ No guest_token found');
       }
+
+      console.log('  - orderData:', orderData);
 
       const response = await orderService.createOrder(orderData);
       const orderId = response.data.id;
@@ -233,16 +265,29 @@ const Checkout = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Tên người nhận *</label>
+                <label>Tên khách hàng *</label>
                 <input
                   type="text"
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
+                  name="customer_name"
+                  value={formData.customer_name}
+                  onChange={handleChange}
                   required
-                  placeholder="Nhập tên người nhận hàng"
+                  placeholder="Nhập tên của bạn"
                 />
               </div>
-              
+
+              <div className="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  name="customer_email"
+                  value={formData.customer_email}
+                  onChange={handleChange}
+                  required
+                  placeholder="Email để nhận xác nhận đơn hàng"
+                />
+              </div>
+
               <div className="form-group">
                 <label>Địa chỉ giao hàng *</label>
                 <textarea

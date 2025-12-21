@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Mail\OrderConfirmationMail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
@@ -44,12 +46,17 @@ class OrderService
     public function createOrder(?int $userId, array $data, ?string $guestToken = null): Order
     {
         // Tìm cart theo user_id hoặc guest_token
+        // QUAN TRỌNG: Ưu tiên user_id nếu đã login!
         $cartQuery = Cart::with('items.product');
 
         if ($userId) {
+            // User đã login → tìm theo user_id (KHÔNG dùng guest_token)
             $cartQuery->where('user_id', $userId);
+            \Log::info('🛒 Finding cart for user_id: ' . $userId);
         } elseif ($guestToken) {
+            // Guest → tìm theo guest_token
             $cartQuery->where('guest_token', $guestToken);
+            \Log::info('🛒 Finding cart for guest_token: ' . $guestToken);
         } else {
             throw new \Exception('Either user_id or guest_token is required');
         }
@@ -81,6 +88,8 @@ class OrderService
             $order = Order::create([
                 'user_id' => $userId,
                 'guest_token' => $guestToken,
+                'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'],
                 'order_number' => 'ORD-' . strtoupper(uniqid()),
                 'status' => 'PENDING',
                 'subtotal' => $subtotal,
@@ -112,6 +121,15 @@ class OrderService
             $cart->items()->delete();
 
             DB::commit();
+
+            // Gửi email xác nhận đơn hàng
+            try {
+                Mail::to($order->customer_email)->send(new OrderConfirmationMail($order->load('items.product')));
+                \Log::info('📧 Order confirmation email sent to: ' . $order->customer_email);
+            } catch (\Exception $e) {
+                \Log::error('❌ Failed to send order confirmation email: ' . $e->getMessage());
+                // Không throw exception để không ảnh hưởng đến order creation
+            }
 
             return $order->load('items.product');
         } catch (\Exception $e) {

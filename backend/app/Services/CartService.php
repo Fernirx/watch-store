@@ -128,6 +128,15 @@ class CartService
      */
     public function getGuestCart(string $guestToken): array
     {
+        // Validate guest session exists and is not expired
+        $session = GuestSession::where('guest_token', $guestToken)->first();
+        if (!$session) {
+            throw new \Exception('Guest session not found. Please refresh the page.');
+        }
+        if ($session->isExpired()) {
+            throw new \Exception('Guest session expired. Please refresh the page.');
+        }
+
         $cart = Cart::with(['items.product.category', 'items.product.brand'])
             ->where('guest_token', $guestToken)
             ->first();
@@ -157,6 +166,15 @@ class CartService
      */
     public function addToGuestCart(string $guestToken, int $productId, int $quantity): CartItem
     {
+        // Validate guest session exists and is not expired
+        $session = GuestSession::where('guest_token', $guestToken)->first();
+        if (!$session) {
+            throw new \Exception('Guest session not found. Please refresh the page.');
+        }
+        if ($session->isExpired()) {
+            throw new \Exception('Guest session expired. Please refresh the page.');
+        }
+
         $product = Product::findOrFail($productId);
 
         // Kiểm tra tồn kho
@@ -201,6 +219,12 @@ class CartService
      */
     public function updateGuestCartItem(string $guestToken, int $cartItemId, int $quantity): CartItem
     {
+        // Validate guest session
+        $session = GuestSession::where('guest_token', $guestToken)->first();
+        if (!$session || $session->isExpired()) {
+            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+        }
+
         $cart = Cart::where('guest_token', $guestToken)->firstOrFail();
 
         $cartItem = CartItem::where('cart_id', $cart->id)
@@ -223,6 +247,12 @@ class CartService
      */
     public function removeFromGuestCart(string $guestToken, int $cartItemId): void
     {
+        // Validate guest session
+        $session = GuestSession::where('guest_token', $guestToken)->first();
+        if (!$session || $session->isExpired()) {
+            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+        }
+
         $cart = Cart::where('guest_token', $guestToken)->firstOrFail();
 
         $cartItem = CartItem::where('cart_id', $cart->id)
@@ -237,6 +267,12 @@ class CartService
      */
     public function clearGuestCart(string $guestToken): void
     {
+        // Validate guest session
+        $session = GuestSession::where('guest_token', $guestToken)->first();
+        if (!$session || $session->isExpired()) {
+            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+        }
+
         $cart = Cart::where('guest_token', $guestToken)->first();
 
         if ($cart) {

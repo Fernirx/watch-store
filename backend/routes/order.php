@@ -3,8 +3,9 @@
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
-// Route tạo order không cần auth (hỗ trợ guest checkout)
-Route::post('/orders', [OrderController::class, 'store']);
+// Route tạo order - cho phép cả user và guest
+// Middleware check token nếu có trong header (không throw error nếu không có)
+Route::post('/orders', [OrderController::class, 'store'])->middleware('auth.optional');
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);

@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('guest_token', 64)->nullable();
             $table->foreign('guest_token')->references('guest_token')->on('guest_sessions')->onDelete('set null');
+            $table->string('customer_name')->nullable(); // Tên khách hàng (guest hoặc user)
+            $table->string('customer_email'); // Email (bắt buộc)
             $table->string('order_number')->unique();
             $table->decimal('subtotal', 15, 2);
             $table->decimal('total', 15, 2);

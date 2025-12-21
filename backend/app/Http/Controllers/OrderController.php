@@ -77,6 +77,8 @@ class OrderController extends Controller
     {
         try {
             $validated = $request->validate([
+                'customer_name' => 'required|string|max:255', // Tên khách hàng (bắt buộc)
+                'customer_email' => 'required|email|max:255', // Email (bắt buộc)
                 'shipping_address' => 'required|string',
                 'shipping_phone' => 'required|string',
                 'payment_method' => 'required|in:cod,bank_transfer,vnpay',
