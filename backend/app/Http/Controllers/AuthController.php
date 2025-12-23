@@ -232,6 +232,8 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'email' => 'required|email|exists:users,email',
+            ], [
+                'email.exists' => 'Email này không tồn tại trong hệ thống.',
             ]);
 
             $this->authService->sendForgotPasswordOtp($validated['email']);
@@ -289,6 +291,70 @@ class AuthController extends Controller
                 'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
             ], 400);
+        }
+    }
+
+    /**
+     * Gửi lại OTP đăng ký
+     */
+    public function resendRegisterOtp(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+            ]);
+
+            $this->authService->resendRegisterOtp($validated['email']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP resent to your email. Valid for 5 minutes.',
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend OTP',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Gửi lại OTP quên mật khẩu
+     */
+    public function resendForgotPasswordOtp(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email|exists:users,email',
+            ], [
+                'email.exists' => 'Email này không tồn tại trong hệ thống.',
+            ]);
+
+            $this->authService->resendForgotPasswordOtp($validated['email']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP resent to your email. Valid for 5 minutes.',
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend OTP',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 

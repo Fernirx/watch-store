@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'sendRegisterOtp']);
+Route::post('/register/resend-otp', [AuthController::class, 'resendRegisterOtp']);
 Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp']);
 Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp']);
+Route::post('/forgot-password/resend-otp', [AuthController::class, 'resendForgotPasswordOtp']);
 Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);
 
 // Google OAuth routes - cần session middleware

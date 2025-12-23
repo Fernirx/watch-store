@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 
@@ -12,8 +12,33 @@ const ForgotPassword = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [countdown, setCountdown] = useState(300); // 5 phút
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (step === 2) {
+      // Countdown timer
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 0) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [step]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -56,11 +81,8 @@ const ForgotPassword = () => {
       if (err.response?.status === 422) {
         const backendErrors = err.response?.data?.errors;
         if (backendErrors?.email) {
-          if (backendErrors.email[0].includes('exists')) {
-            setErrors({ email: ['Email này không tồn tại trong hệ thống.'] });
-          } else {
-            setErrors({ email: ['Email không hợp lệ.'] });
-          }
+          // Hiển thị message từ backend (đã custom ở controller)
+          setErrors({ email: backendErrors.email });
         } else {
           setErrors({ general: 'Không thể gửi mã OTP. Vui lòng thử lại.' });
         }
@@ -150,6 +172,20 @@ const ForgotPassword = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    setResendLoading(true);
+    setErrors({});
+    try {
+      await authService.resendForgotPasswordOtp(formData.email);
+      setCountdown(300);
+      setErrors({ success: 'Mã OTP mới đã được gửi đến email của bạn' });
+    } catch (err) {
+      setErrors({ general: 'Không thể gửi lại mã OTP. Vui lòng thử lại.' });
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -186,60 +222,93 @@ const ForgotPassword = () => {
             </p>
           </form>
         ) : (
-          <form onSubmit={handleResetPassword} autoComplete="off">
-            <p className="form-subtitle">
-              Mã OTP đã được gửi đến email: <strong>{formData.email}</strong>
-            </p>
+          <>
+            <form onSubmit={handleResetPassword} autoComplete="off">
+              <p className="form-subtitle">
+                Mã OTP đã được gửi đến email: <strong>{formData.email}</strong>
+              </p>
 
-            <div className="form-group">
-              <label>Mã OTP</label>
-              <input
-                type="text"
-                name="otp"
-                value={formData.otp}
-                onChange={handleChange}
-                required
-                maxLength={6}
-                placeholder="Nhập mã OTP (6 chữ số)"
-                className={errors.otp ? 'input-error' : ''}
-              />
-              {errors.otp && <span className="field-error">{errors.otp[0]}</span>}
+              {errors.success && <div className="success-message">{errors.success}</div>}
+
+              {countdown > 0 && (
+                <div className="countdown">
+                  Mã OTP có hiệu lực trong: <strong>{formatTime(countdown)}</strong>
+                </div>
+              )}
+
+              {countdown === 0 && (
+                <div className="error-message">
+                  Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Mã OTP</label>
+                <input
+                  type="text"
+                  name="otp"
+                  value={formData.otp}
+                  onChange={handleChange}
+                  required
+                  maxLength={6}
+                  placeholder="Nhập mã OTP (6 chữ số)"
+                  className={errors.otp ? 'input-error' : ''}
+                />
+                {errors.otp && <span className="field-error">{errors.otp[0]}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Mật khẩu mới</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  placeholder="Nhập mật khẩu mới"
+                  className={errors.password ? 'input-error' : ''}
+                />
+                {errors.password && <span className="field-error">{errors.password[0]}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Xác nhận mật khẩu mới</label>
+                <input
+                  type="password"
+                  name="password_confirmation"
+                  value={formData.password_confirmation}
+                  onChange={handleChange}
+                  required
+                  minLength={8}
+                  placeholder="Nhập lại mật khẩu mới"
+                  className={errors.password_confirmation ? 'input-error' : ''}
+                />
+                {errors.password_confirmation && <span className="field-error">{errors.password_confirmation}</span>}
+              </div>
+
+              <button type="submit" className="btn-primary" disabled={loading || countdown === 0}>
+                {loading ? 'Đang xử lý...' : 'Đặt Lại Mật Khẩu'}
+              </button>
+            </form>
+
+            <div className="resend-section">
+              <p>Không nhận được mã?</p>
+              {countdown > 240 ? (
+                <p className="resend-countdown">
+                  Bạn có thể gửi lại sau <strong>{countdown - 240}s</strong>
+                </p>
+              ) : (
+                <button
+                  onClick={handleResendOtp}
+                  className="btn-link"
+                  disabled={resendLoading}
+                >
+                  {resendLoading ? 'Đang gửi...' : 'Gửi lại mã OTP'}
+                </button>
+              )}
             </div>
-
-            <div className="form-group">
-              <label>Mật khẩu mới</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={8}
-                placeholder="Nhập mật khẩu mới"
-                className={errors.password ? 'input-error' : ''}
-              />
-              {errors.password && <span className="field-error">{errors.password[0]}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>Xác nhận mật khẩu mới</label>
-              <input
-                type="password"
-                name="password_confirmation"
-                value={formData.password_confirmation}
-                onChange={handleChange}
-                required
-                minLength={8}
-                placeholder="Nhập lại mật khẩu mới"
-                className={errors.password_confirmation ? 'input-error' : ''}
-              />
-              {errors.password_confirmation && <span className="field-error">{errors.password_confirmation}</span>}
-            </div>
-
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Đang xử lý...' : 'Đặt Lại Mật Khẩu'}
-            </button>
-          </form>
+          </>
         )}
       </div>
     </div>

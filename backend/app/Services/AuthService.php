@@ -247,6 +247,51 @@ class AuthService
     }
 
     /**
+     * Gửi lại OTP đăng ký
+     */
+    public function resendRegisterOtp(string $email): void
+    {
+        // Tìm OTP record chưa sử dụng (bao gồm cả đã hết hạn)
+        $existingOtp = Otp::where('email', $email)
+            ->where('type', 'REGISTER')
+            ->where('is_used', false)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$existingOtp) {
+            throw new \Exception('No pending registration found for this email. Please register again.');
+        }
+
+        // Xóa tất cả OTP cũ của email này
+        Otp::where('email', $email)
+            ->where('type', 'REGISTER')
+            ->where('is_used', false)
+            ->delete();
+
+        // Tạo OTP mới với cùng name và password từ OTP cũ
+        $otpRecord = Otp::create([
+            'email' => $email,
+            'name' => $existingOtp->name,
+            'password' => $existingOtp->password, // Already hashed
+            'otp' => Otp::generateOtp(),
+            'type' => 'REGISTER',
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        // Gửi email
+        Mail::to($email)->send(new OtpMail($otpRecord->otp, 'REGISTER'));
+    }
+
+    /**
+     * Gửi lại OTP quên mật khẩu
+     */
+    public function resendForgotPasswordOtp(string $email): void
+    {
+        // Gọi lại sendForgotPasswordOtp để tạo OTP mới
+        $this->sendForgotPasswordOtp($email);
+    }
+
+    /**
      * Đăng nhập bằng Google
      */
     public function handleGoogleCallback($request = null): array

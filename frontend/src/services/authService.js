@@ -52,6 +52,12 @@ const authService = {
     return response.data;
   },
 
+  // Đăng ký - Gửi lại OTP
+  resendRegisterOtp: async (email) => {
+    const response = await axios.post('/register/resend-otp', { email });
+    return response.data;
+  },
+
   // Quên mật khẩu - Bước 1: Gửi OTP
   sendForgotPasswordOtp: async (email) => {
     const response = await axios.post('/forgot-password/send-otp', { email });
@@ -66,6 +72,12 @@ const authService = {
       password,
       password_confirmation,
     });
+    return response.data;
+  },
+
+  // Quên mật khẩu - Gửi lại OTP
+  resendForgotPasswordOtp: async (email) => {
+    const response = await axios.post('/forgot-password/resend-otp', { email });
     return response.data;
   },
 

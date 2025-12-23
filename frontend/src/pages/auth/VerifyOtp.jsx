@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import authService from '../../services/authService';
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState('');
@@ -20,18 +21,22 @@ const VerifyOtp = () => {
       return;
     }
 
-    // Countdown timer
+    console.log('VerifyOtp: Starting countdown timer');
+    // Countdown timer chạy liên tục
     const timer = setInterval(() => {
       setCountdown((prev) => {
+        console.log('Countdown:', prev);
         if (prev <= 0) {
-          clearInterval(timer);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      console.log('VerifyOtp: Clearing countdown timer');
+      clearInterval(timer);
+    };
   }, [email, navigate]);
 
   const formatTime = (seconds) => {
@@ -75,11 +80,13 @@ const VerifyOtp = () => {
     setResendLoading(true);
     setErrors({});
     try {
-      // Gọi lại API gửi OTP (cần implement trong authService nếu cần)
+      await authService.resendRegisterOtp(email);
       setCountdown(300);
       setErrors({ success: 'Mã OTP mới đã được gửi đến email của bạn' });
     } catch (err) {
-      setErrors({ general: 'Không thể gửi lại mã OTP. Vui lòng thử lại.' });
+      console.error('Resend OTP error:', err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại.';
+      setErrors({ general: errorMessage });
     } finally {
       setResendLoading(false);
     }
@@ -131,13 +138,19 @@ const VerifyOtp = () => {
 
         <div className="resend-section">
           <p>Không nhận được mã?</p>
-          <button
-            onClick={handleResendOtp}
-            className="btn-link"
-            disabled={resendLoading || countdown > 240}
-          >
-            {resendLoading ? 'Đang gửi...' : 'Gửi lại mã OTP'}
-          </button>
+          {countdown > 240 ? (
+            <p className="resend-countdown">
+              Bạn có thể gửi lại sau <strong>{countdown - 240}s</strong>
+            </p>
+          ) : (
+            <button
+              onClick={handleResendOtp}
+              className="btn-link"
+              disabled={resendLoading}
+            >
+              {resendLoading ? 'Đang gửi...' : 'Gửi lại mã OTP'}
+            </button>
+          )}
         </div>
       </div>
     </div>
