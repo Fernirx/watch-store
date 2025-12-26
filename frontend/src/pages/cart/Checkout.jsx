@@ -30,9 +30,9 @@ const Checkout = () => {
 
     // Tự động điền thông tin user nếu đã đăng nhập
     if (isAuthenticated && user) {
+      // Chỉ set email trước, tên và SĐT sẽ được set trong fetchSavedAddress
       setFormData(prev => ({
         ...prev,
-        customer_name: user.name || '',
         customer_email: user.email || '',
       }));
       fetchSavedAddress();
@@ -57,14 +57,16 @@ const Checkout = () => {
         const fullAddress = `${addr.street}, ${addr.ward}, ${addr.city}${addr.postal_code ? ', ' + addr.postal_code : ''}`;
         setFormData(prev => ({
           ...prev,
+          customer_name: addr.recipient_name || user.name || '', // Dùng tên người nhận từ địa chỉ
           shipping_address: fullAddress,
-          shipping_phone: addr.phone || '',
+          shipping_phone: addr.phone || '', // Dùng SĐT từ địa chỉ
         }));
       } else if (user) {
         // Nếu không có địa chỉ đã lưu, dùng thông tin user
         setFormData(prev => ({
           ...prev,
-          shipping_phone: user.phone || '',
+          customer_name: user.name || '', // Dùng tên từ profile
+          shipping_phone: user.phone || '', // Dùng SĐT từ profile
         }));
         setRecipientName(user.name || '');
       }
@@ -74,7 +76,8 @@ const Checkout = () => {
       if (user) {
         setFormData(prev => ({
           ...prev,
-          shipping_phone: user.phone || '',
+          customer_name: user.name || '', // Dùng tên từ profile
+          shipping_phone: user.phone || '', // Dùng SĐT từ profile
         }));
         setRecipientName(user.name || '');
       }

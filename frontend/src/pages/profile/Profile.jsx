@@ -50,6 +50,17 @@ const Profile = () => {
         fetchAddress();
     }, [isAuthenticated]);
 
+    // Auto-fill tên và SĐT từ profile khi chưa có địa chỉ
+    useEffect(() => {
+        if (!hasAddress && profileData.name && profileData.phone) {
+            setAddressData(prev => ({
+                ...prev,
+                recipient_name: profileData.name,
+                phone: profileData.phone,
+            }));
+        }
+    }, [hasAddress, profileData.name, profileData.phone]);
+
     const fetchProfile = async () => {
         try {
             const response = await profileService.getProfile();
@@ -82,10 +93,24 @@ const Profile = () => {
                 });
                 setHasAddress(true);
                 setAddressId(addr.id);
+            } else {
+                // Chưa có địa chỉ → auto-fill tên và SĐT từ profile
+                setHasAddress(false);
+                setAddressData(prev => ({
+                    ...prev,
+                    recipient_name: user?.name || '',
+                    phone: user?.phone || '',
+                }));
             }
         } catch (error) {
             console.error('Failed to fetch address:', error);
             setHasAddress(false);
+            // Auto-fill tên và SĐT từ profile khi có lỗi
+            setAddressData(prev => ({
+                ...prev,
+                recipient_name: user?.name || '',
+                phone: user?.phone || '',
+            }));
         }
     };
 
