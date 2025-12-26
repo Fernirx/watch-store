@@ -90,8 +90,21 @@ axiosInstance.interceptors.response.use(
     if (!refreshToken) {
       isRefreshing = false;
       localStorage.removeItem('token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+
+      // Kiểm tra xem có phải public route không
+      const publicRoutes = ['/cart', '/checkout', '/products', '/'];
+      const isPublicRoute = publicRoutes.some(route =>
+        window.location.pathname === route || window.location.pathname.startsWith(route + '/')
+      );
+
+      if (!isPublicRoute) {
+        // Protected route: redirect to login
+        window.location.href = '/login';
+      }
+      // Public route: không redirect, để component tự xử lý
+
       return Promise.reject(error);
     }
 
@@ -136,7 +149,18 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+
+      // Kiểm tra xem có phải public route không
+      const publicRoutes = ['/cart', '/checkout', '/products', '/'];
+      const isPublicRoute = publicRoutes.some(route =>
+        window.location.pathname === route || window.location.pathname.startsWith(route + '/')
+      );
+
+      if (!isPublicRoute) {
+        // Protected route: redirect to login
+        window.location.href = '/login';
+      }
+      // Public route: không redirect, để component tự xử lý
 
       return Promise.reject(refreshError);
     }

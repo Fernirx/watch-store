@@ -18,7 +18,21 @@ export const CartProvider = ({ children }) => {
       setCart(response.data);
     } catch (error) {
       console.error('Error fetching cart:', error);
-      setCart(null);
+
+      // Nếu lỗi 401 (token hết hạn) và đang nghĩ là authenticated, thử lại với guest cart
+      if (error.response?.status === 401 && isAuthenticated) {
+        console.warn('⚠️ Token expired, falling back to guest cart...');
+        try {
+          const guestResponse = await cartService.getCart(false);
+          console.log('🛒 Guest cart fetched:', guestResponse.data);
+          setCart(guestResponse.data);
+        } catch (guestError) {
+          console.error('Error fetching guest cart:', guestError);
+          setCart(null);
+        }
+      } else {
+        setCart(null);
+      }
     } finally {
       setLoading(false);
     }
