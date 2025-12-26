@@ -211,9 +211,9 @@ const Checkout = () => {
 
       if (validationErrors) {
         const errorList = Object.values(validationErrors).flat().join(', ');
-        setError(`${errorMessage}: ${errorList}`);
+        setError(`${errorMessage}: ${errorList}. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng thử lại.`);
       } else {
-        setError(errorMessage);
+        setError(`${errorMessage}. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng thử lại.`);
       }
       setLoading(false);
     }

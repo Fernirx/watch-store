@@ -4,16 +4,19 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\OrderService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
     protected VNPayService $vnpayService;
+    protected OrderService $orderService;
 
-    public function __construct(VNPayService $vnpayService)
+    public function __construct(VNPayService $vnpayService, OrderService $orderService)
     {
         $this->vnpayService = $vnpayService;
+        $this->orderService = $orderService;
     }
 
     /**
@@ -99,6 +102,16 @@ class PaymentService
                     'payment_method' => 'vnpay',
                 ]);
 
+                // Xóa giỏ hàng sau khi thanh toán thành công
+                $cart = \App\Models\Cart::where('user_id', $order->user_id)
+                    ->orWhere('guest_token', $order->guest_token)
+                    ->first();
+
+                if ($cart) {
+                    $cart->items()->delete();
+                    Log::info("🗑️ Cart cleared after successful VNPay payment for order #{$order->order_number}");
+                }
+
                 DB::commit();
 
                 return [
@@ -106,6 +119,24 @@ class PaymentService
                     'order_id' => $order->id,
                 ];
             } else {
+                // Payment failed - restore stock
+                Log::warning("⚠️ Payment failed for order #{$order->order_number}, code: {$vnpResponseCode}");
+
+                // Hoàn lại tồn kho
+                foreach ($order->items as $item) {
+                    $item->product->increment('stock_quantity', $item->quantity);
+                }
+
+                // KHÔNG cần restore cart vì cart vẫn còn (chưa bị xóa với VNPay)
+                // Cart items đã được giữ nguyên khi tạo order
+                Log::info("ℹ️ Cart items already preserved, no need to restore");
+
+                // Cập nhật trạng thái order
+                $order->update([
+                    'status' => 'CANCELLED',
+                    'payment_status' => 'failed',
+                ]);
+
                 DB::commit();
 
                 return [

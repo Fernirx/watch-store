@@ -41,7 +41,7 @@ const OrderDetail = () => {
     try {
       await orderService.cancelOrder(id);
       fetchOrder(); // Reload order
-      alert('Đơn hàng đã được hủy');
+      alert('✅ Đơn hàng đã được hủy thành công!\n\nSản phẩm đã được trả về giỏ hàng. Bạn có thể truy cập giỏ hàng để đặt hàng lại.');
     } catch (error) {
       alert('Không thể hủy đơn hàng: ' + (error.response?.data?.message || error.message));
     }

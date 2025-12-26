@@ -65,16 +65,18 @@ const PaymentFailed = () => {
           {orderId && (
             <div className="order-info">
               <p>Mã đơn hàng: <strong>#{orderId}</strong></p>
-              <p className="note">Đơn hàng của bạn vẫn được lưu và chờ thanh toán.</p>
             </div>
           )}
 
+          <div className="order-info">
+            <p className="note">✅ Giỏ hàng của bạn vẫn còn nguyên.</p>
+            <p className="note">Bạn có thể quay lại giỏ hàng để đặt hàng lại.</p>
+          </div>
+
           <div className="result-actions">
-            {orderId && (
-              <button className="btn btn-primary" onClick={handleTryAgain}>
-                Thử Thanh Toán Lại
-              </button>
-            )}
+            <button className="btn btn-primary" onClick={() => navigate('/cart')}>
+              Quay Lại Giỏ Hàng
+            </button>
             <button className="btn btn-secondary" onClick={handleBackToHome}>
               Về Trang Chủ
             </button>

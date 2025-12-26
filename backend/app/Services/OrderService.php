@@ -118,7 +118,14 @@ class OrderService
             }
 
             // Xóa giỏ hàng
-            $cart->items()->delete();
+            // QUAN TRỌNG: Với VNPay, chỉ xóa cart SAU KHI thanh toán thành công
+            // Với các phương thức khác (COD, bank_transfer), xóa ngay
+            if ($data['payment_method'] !== 'vnpay') {
+                $cart->items()->delete();
+                \Log::info("🗑️ Cart cleared for payment method: {$data['payment_method']}");
+            } else {
+                \Log::info("⏳ Cart preserved for VNPay payment, will be cleared after payment success");
+            }
 
             DB::commit();
 
@@ -177,6 +184,9 @@ class OrderService
             $order->status = 'CANCELLED';
             $order->save();
 
+            // Trả sản phẩm về giỏ hàng (nếu user muốn mua lại)
+            $this->restoreCartFromOrder($order);
+
             DB::commit();
 
             return $order;
@@ -184,5 +194,45 @@ class OrderService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Restore cart items từ order (khi cancel hoặc payment failed)
+     */
+    public function restoreCartFromOrder(Order $order): void
+    {
+        // Chỉ restore cart nếu order có user_id hoặc guest_token
+        if (!$order->user_id && !$order->guest_token) {
+            return;
+        }
+
+        // Tìm hoặc tạo cart
+        $cart = Cart::firstOrCreate(
+            [
+                'user_id' => $order->user_id,
+                'guest_token' => $order->guest_token,
+            ]
+        );
+
+        // Thêm lại các items vào cart
+        foreach ($order->items as $orderItem) {
+            // Kiểm tra xem item đã có trong cart chưa
+            $existingCartItem = $cart->items()->where('product_id', $orderItem->product_id)->first();
+
+            if ($existingCartItem) {
+                // Nếu đã có, tăng số lượng
+                $existingCartItem->quantity += $orderItem->quantity;
+                $existingCartItem->save();
+            } else {
+                // Nếu chưa có, tạo mới
+                $cart->items()->create([
+                    'product_id' => $orderItem->product_id,
+                    'quantity' => $orderItem->quantity,
+                    'price' => $orderItem->price,
+                ]);
+            }
+        }
+
+        \Log::info("✅ Restored cart from order #{$order->order_number}");
     }
 }
