@@ -17,8 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade')->comment('Người dùng đánh giá (nếu đã đăng nhập)');
 
             // Guest Information
-            $table->string('guest_email')->nullable()->comment('Email khách (nếu guest)');
-            $table->string('guest_phone')->nullable()->comment('SĐT khách (nếu guest)');
+            $table->string('guest_email')->nullable()->comment('Email khách (nếu guest) - dùng để xác thực');
             $table->string('guest_name')->nullable()->comment('Tên khách (nếu guest)');
 
             // Review Content
@@ -35,12 +34,13 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('rating');
             $table->index('created_at');
+            $table->index('guest_email');
 
             // Unique constraints để ngăn duplicate review
             // User đã đăng nhập: 1 user chỉ review 1 product 1 lần
             $table->unique(['product_id', 'user_id'], 'unique_user_review');
-            // Guest: 1 email+phone chỉ review 1 product 1 lần
-            $table->unique(['product_id', 'guest_email', 'guest_phone'], 'unique_guest_review');
+            // Guest: 1 email chỉ review 1 product 1 lần
+            $table->unique(['product_id', 'guest_email'], 'unique_guest_review');
         });
     }
 

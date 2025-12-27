@@ -15,7 +15,6 @@ class Review extends Model
         'order_id',
         'user_id',
         'guest_email',
-        'guest_phone',
         'guest_name',
         'rating',
         'comment',
@@ -81,7 +80,7 @@ class Review extends Model
         if ($this->user) {
             return $this->user->email;
         }
-        return $this->guest_email ?? $this->guest_phone ?? 'Anonymous';
+        return $this->guest_email ?? 'Anonymous';
     }
 
     public function isGuest(): bool

@@ -200,7 +200,7 @@ const AdminReviews = () => {
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="form-control"
-              placeholder="Email, SĐT, nội dung..."
+              placeholder="Email, nội dung..."
             />
           </div>
         </div>
@@ -242,7 +242,7 @@ const AdminReviews = () => {
                     <div>
                       <strong>{review.reviewer_name}</strong>
                       <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                        {review.user ? review.user.email : (review.guest_email || review.guest_phone || 'N/A')}
+                        {review.user ? review.user.email : (review.guest_email || 'N/A')}
                       </div>
                     </div>
                   </td>

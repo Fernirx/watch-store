@@ -15,12 +15,13 @@ const ProductReviews = ({ productId }) => {
   // Filter states
   const [filterRating, setFilterRating] = useState(null);
 
+  // Guest email input (for checking eligibility)
+  const [guestEmailInput, setGuestEmailInput] = useState('');
+
   // Review form states
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
     comment: '',
-    guest_email: '',
-    guest_phone: '',
     guest_name: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -48,19 +49,24 @@ const ProductReviews = ({ productId }) => {
   const checkReviewEligibility = async () => {
     if (checkingEligibility) return;
 
+    // Nếu là guest, kiểm tra đã nhập email chưa
+    if (!isAuthenticated && !guestEmailInput.trim()) {
+      alert('Vui lòng nhập email trước khi đánh giá');
+      return;
+    }
+
     try {
       setCheckingEligibility(true);
-      const email = isAuthenticated ? user?.email : reviewForm.guest_email;
-      const phone = isAuthenticated ? user?.phone : reviewForm.guest_phone;
+      const email = isAuthenticated ? user?.email : guestEmailInput;
 
-      const response = await reviewService.canReview(productId, email, phone);
+      const response = await reviewService.canReview(productId, email);
       setCanReview(response.data.can_review);
 
       if (!response.data.can_review) {
         if (!response.data.has_purchased) {
-          alert('Bạn chưa mua sản phẩm này nên không thể đánh giá.');
+          alert('Email này chưa mua sản phẩm này nên không thể đánh giá.');
         } else if (response.data.has_reviewed) {
-          alert('Bạn đã đánh giá sản phẩm này rồi.');
+          alert('Email này đã đánh giá sản phẩm này rồi.');
         }
       } else {
         setShowReviewForm(true);
@@ -85,12 +91,7 @@ const ProductReviews = ({ productId }) => {
       };
 
       if (!isAuthenticated) {
-        if (!reviewForm.guest_email && !reviewForm.guest_phone) {
-          alert('Vui lòng nhập email hoặc số điện thoại');
-          return;
-        }
-        reviewData.guest_email = reviewForm.guest_email;
-        reviewData.guest_phone = reviewForm.guest_phone;
+        reviewData.guest_email = guestEmailInput;
         reviewData.guest_name = reviewForm.guest_name;
       }
 
@@ -98,7 +99,8 @@ const ProductReviews = ({ productId }) => {
       alert('Đánh giá của bạn đã được gửi thành công!');
 
       // Reset form and refresh
-      setReviewForm({ rating: 5, comment: '', guest_email: '', guest_phone: '', guest_name: '' });
+      setReviewForm({ rating: 5, comment: '', guest_name: '' });
+      setGuestEmailInput('');
       setShowReviewForm(false);
       setCanReview(false);
       fetchReviews();
@@ -164,14 +166,32 @@ const ProductReviews = ({ productId }) => {
         </div>
       )}
 
-      {/* Write Review Button */}
-      <div className="review-actions">
-        {!showReviewForm && (
+      {/* Write Review Section */}
+      {!showReviewForm && (
+        <div className="review-actions">
+          {!isAuthenticated && (
+            <div className="guest-email-input" style={{ marginBottom: '1rem' }}>
+              <label htmlFor="guest-email-check" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Nhập email đã dùng khi mua hàng để đánh giá:
+              </label>
+              <div style={{ display: 'flex', gap: '0.75rem', maxWidth: '500px' }}>
+                <input
+                  type="email"
+                  id="guest-email-check"
+                  value={guestEmailInput}
+                  onChange={(e) => setGuestEmailInput(e.target.value)}
+                  className="form-control"
+                  placeholder="email@example.com"
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+          )}
           <button onClick={checkReviewEligibility} className="btn btn-primary" disabled={checkingEligibility}>
             {checkingEligibility ? 'Đang kiểm tra...' : 'Viết đánh giá'}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Review Form */}
       {showReviewForm && canReview && (
@@ -196,46 +216,17 @@ const ProductReviews = ({ productId }) => {
             </div>
 
             {!isAuthenticated && (
-              <>
-                <div className="form-group">
-                  <label htmlFor="guest_name">Tên của bạn</label>
-                  <input
-                    type="text"
-                    id="guest_name"
-                    value={reviewForm.guest_name}
-                    onChange={(e) => setReviewForm({ ...reviewForm, guest_name: e.target.value })}
-                    className="form-control"
-                    placeholder="Nhập tên"
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label htmlFor="guest_email">Email *</label>
-                    <input
-                      type="email"
-                      id="guest_email"
-                      value={reviewForm.guest_email}
-                      onChange={(e) => setReviewForm({ ...reviewForm, guest_email: e.target.value })}
-                      className="form-control"
-                      placeholder="Email đã dùng khi mua hàng"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="guest_phone">Số điện thoại *</label>
-                    <input
-                      type="text"
-                      id="guest_phone"
-                      value={reviewForm.guest_phone}
-                      onChange={(e) => setReviewForm({ ...reviewForm, guest_phone: e.target.value })}
-                      className="form-control"
-                      placeholder="SĐT đã dùng khi mua hàng"
-                    />
-                  </div>
-                </div>
-                <small style={{ color: '#64748b' }}>* Email hoặc số điện thoại phải trùng với thông tin khi đặt hàng</small>
-              </>
+              <div className="form-group">
+                <label htmlFor="guest_name">Tên của bạn</label>
+                <input
+                  type="text"
+                  id="guest_name"
+                  value={reviewForm.guest_name}
+                  onChange={(e) => setReviewForm({ ...reviewForm, guest_name: e.target.value })}
+                  className="form-control"
+                  placeholder="Nhập tên (tùy chọn)"
+                />
+              </div>
             )}
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
@@ -246,7 +237,7 @@ const ProductReviews = ({ productId }) => {
                 type="button"
                 onClick={() => {
                   setShowReviewForm(false);
-                  setReviewForm({ rating: 5, comment: '', guest_email: '', guest_phone: '', guest_name: '' });
+                  setReviewForm({ rating: 5, comment: '', guest_name: '' });
                 }}
                 className="btn btn-secondary"
               >

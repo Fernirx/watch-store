@@ -16,11 +16,10 @@ const reviewService = {
     return response.data;
   },
 
-  canReview: async (productId, email = null, phone = null) => {
+  canReview: async (productId, email = null) => {
     const response = await axios.post('/reviews/can-review', {
       product_id: productId,
       email,
-      phone,
     });
     return response.data;
   },

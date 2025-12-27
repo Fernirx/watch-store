@@ -11,11 +11,11 @@ use Illuminate\Database\Eloquent\Collection;
 class ReviewService
 {
     /**
-     * Kiểm tra xem user/guest đã mua sản phẩm chưa
+     * Kiểm tra xem user/guest đã mua sản phẩm chưa (chỉ dùng email)
      */
-    public function hasUserPurchasedProduct(int $productId, ?int $userId = null, ?string $email = null, ?string $phone = null): ?int
+    public function hasUserPurchasedProduct(int $productId, ?int $userId = null, ?string $email = null): ?int
     {
-        $query = Order::where('status', 'DELIVERED')
+        $query = Order::where('status', 'COMPLETED')
             ->whereHas('items', function ($q) use ($productId) {
                 $q->where('product_id', $productId);
             });
@@ -23,15 +23,10 @@ class ReviewService
         if ($userId) {
             $query->where('user_id', $userId);
         } else {
-            // Guest checkout
-            $query->where(function ($q) use ($email, $phone) {
-                if ($email) {
-                    $q->where('email', $email);
-                }
-                if ($phone) {
-                    $q->orWhere('phone', $phone);
-                }
-            });
+            // Guest checkout - xác thực bằng email
+            if ($email) {
+                $query->where('email', $email);
+            }
         }
 
         $order = $query->first();
@@ -39,25 +34,19 @@ class ReviewService
     }
 
     /**
-     * Kiểm tra xem user/guest đã review sản phẩm chưa
+     * Kiểm tra xem user/guest đã review sản phẩm chưa (chỉ dùng email)
      */
-    public function hasUserReviewedProduct(int $productId, ?int $userId = null, ?string $email = null, ?string $phone = null): bool
+    public function hasUserReviewedProduct(int $productId, ?int $userId = null, ?string $email = null): bool
     {
         $query = Review::where('product_id', $productId);
 
         if ($userId) {
             $query->where('user_id', $userId);
         } else {
-            $query->where(function ($q) use ($email, $phone) {
-                if ($email && $phone) {
-                    $q->where('guest_email', $email)
-                      ->where('guest_phone', $phone);
-                } elseif ($email) {
-                    $q->where('guest_email', $email);
-                } elseif ($phone) {
-                    $q->where('guest_phone', $phone);
-                }
-            });
+            // Guest - xác thực bằng email
+            if ($email) {
+                $query->where('guest_email', $email);
+            }
         }
 
         return $query->exists();
@@ -74,8 +63,7 @@ class ReviewService
             $orderId = $this->hasUserPurchasedProduct(
                 $data['product_id'],
                 $data['user_id'] ?? null,
-                $data['guest_email'] ?? null,
-                $data['guest_phone'] ?? null
+                $data['guest_email'] ?? null
             );
 
             if (!$orderId) {
@@ -86,8 +74,7 @@ class ReviewService
             $hasReviewed = $this->hasUserReviewedProduct(
                 $data['product_id'],
                 $data['user_id'] ?? null,
-                $data['guest_email'] ?? null,
-                $data['guest_phone'] ?? null
+                $data['guest_email'] ?? null
             );
 
             if ($hasReviewed) {
@@ -100,7 +87,6 @@ class ReviewService
                 'order_id' => $orderId,
                 'user_id' => $data['user_id'] ?? null,
                 'guest_email' => $data['guest_email'] ?? null,
-                'guest_phone' => $data['guest_phone'] ?? null,
                 'guest_name' => $data['guest_name'] ?? null,
                 'rating' => $data['rating'],
                 'comment' => $data['comment'] ?? null,
@@ -228,8 +214,7 @@ class ReviewService
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('comment', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('guest_email', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('guest_phone', 'like', '%' . $filters['search'] . '%');
+                  ->orWhere('guest_email', 'like', '%' . $filters['search'] . '%');
             });
         }
 

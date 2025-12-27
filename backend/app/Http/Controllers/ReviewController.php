@@ -58,19 +58,18 @@ class ReviewController extends Controller
                 'rating' => 'required|integer|min:1|max:5',
                 'comment' => 'nullable|string|max:1000',
                 'guest_email' => 'nullable|email|max:255',
-                'guest_phone' => 'nullable|string|max:20',
                 'guest_name' => 'nullable|string|max:255',
             ]);
 
             // Lấy user_id nếu đã đăng nhập
             $validated['user_id'] = auth()->id();
 
-            // Nếu là guest, yêu cầu email hoặc phone
+            // Nếu là guest, yêu cầu email
             if (!$validated['user_id']) {
-                if (empty($validated['guest_email']) && empty($validated['guest_phone'])) {
+                if (empty($validated['guest_email'])) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Vui lòng cung cấp email hoặc số điện thoại để xác thực mua hàng.',
+                        'message' => 'Vui lòng cung cấp email để xác thực mua hàng.',
                     ], 422);
                 }
             }
@@ -105,19 +104,17 @@ class ReviewController extends Controller
             $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'email' => 'nullable|email',
-                'phone' => 'nullable|string',
             ]);
 
             $productId = $validated['product_id'];
             $userId = auth()->id();
             $email = $validated['email'] ?? null;
-            $phone = $validated['phone'] ?? null;
 
             // Kiểm tra đã mua chưa
-            $hasPurchased = $this->reviewService->hasUserPurchasedProduct($productId, $userId, $email, $phone);
+            $hasPurchased = $this->reviewService->hasUserPurchasedProduct($productId, $userId, $email);
 
             // Kiểm tra đã review chưa
-            $hasReviewed = $this->reviewService->hasUserReviewedProduct($productId, $userId, $email, $phone);
+            $hasReviewed = $this->reviewService->hasUserReviewedProduct($productId, $userId, $email);
 
             return response()->json([
                 'success' => true,
