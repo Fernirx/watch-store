@@ -74,6 +74,12 @@ const AdminLayout = () => {
             Đơn hàng <span><i class="fa-solid fa-receipt"></i></span>
           </Link>
           <Link
+            to="/admin/coupons"
+            className={`nav-item ${isActive('/admin/coupons') ? 'active' : ''}`}
+          >
+            Mã giảm giá <span><i class="fa-solid fa-ticket"></i></span>
+          </Link>
+          <Link
             to="/admin/users"
             className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
           >

@@ -6,6 +6,7 @@ import orderService from '../../services/orderService';
 import paymentService from '../../services/paymentService';
 import { addressService } from '../../services';
 import guestService from '../../services/guestService';
+import couponService from '../../services/couponService';
 
 const Checkout = () => {
   const { cart, subtotal, fetchCart } = useCart();
@@ -24,6 +25,12 @@ const Checkout = () => {
   const [error, setError] = useState('');
   const [savedAddress, setSavedAddress] = useState(null);
   const [recipientName, setRecipientName] = useState('');
+
+  // Coupon states
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
     fetchCart();
@@ -136,6 +143,53 @@ const Checkout = () => {
     return newErrors;
   };
 
+  // Handle apply coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Vui lòng nhập mã giảm giá');
+      return;
+    }
+
+    // Need email and phone to validate
+    if (!formData.customer_email || !formData.shipping_phone) {
+      setCouponError('Vui lòng nhập email và số điện thoại trước');
+      return;
+    }
+
+    setValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const response = await couponService.validateCoupon(
+        couponCode,
+        subtotal,
+        formData.customer_email,
+        formData.shipping_phone
+      );
+
+      setAppliedCoupon({
+        code: couponCode,
+        discount_amount: response.data.discount_amount,
+        discount_type: response.data.discount_type,
+        discount_value: response.data.discount_value,
+      });
+
+      setCouponError('');
+    } catch (err) {
+      setCouponError(err.response?.data?.message || 'Mã giảm giá không hợp lệ');
+      setAppliedCoupon(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  // Handle remove coupon
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -150,8 +204,11 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Thêm guest_token nếu chưa đăng nhập
-      const orderData = { ...formData };
+      // Thêm guest_token và coupon nếu có
+      const orderData = {
+        ...formData,
+        coupon_code: appliedCoupon?.code || null,
+      };
       const guestToken = guestService.getGuestToken();
 
       console.log('🔐 Checkout Debug:');
@@ -159,6 +216,7 @@ const Checkout = () => {
       console.log('  - user:', user);
       console.log('  - localStorage token:', localStorage.getItem('token'));
       console.log('  - guest_token:', guestToken);
+      console.log('  - coupon_code:', orderData.coupon_code);
 
       // Luôn gửi guest_token nếu có (cho cả user và guest)
       if (guestToken) {
@@ -228,7 +286,8 @@ const Checkout = () => {
 
   const cartItems = cart?.cart?.items || [];
   const shippingFee = 30000; // 30,000 VND
-  const total = subtotal + shippingFee;
+  const discountAmount = appliedCoupon?.discount_amount || 0;
+  const total = subtotal + shippingFee - discountAmount;
 
   return (
     <div className="checkout-page">
@@ -369,6 +428,84 @@ const Checkout = () => {
               })}
             </div>
 
+            {/* Coupon Section */}
+            <div className="coupon-section" style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Mã Giảm Giá</h3>
+
+              {!appliedCoupon ? (
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Nhập mã giảm giá"
+                      style={{
+                        flex: 1,
+                        padding: '0.625rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={validatingCoupon}
+                      style={{
+                        padding: '0.625rem 1rem',
+                        background: '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {validatingCoupon ? 'Đang kiểm tra...' : 'Áp dụng'}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <div style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                      {couponError}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.75rem',
+                  background: '#f0fdf4',
+                  border: '1px solid #86efac',
+                  borderRadius: '0.375rem',
+                }}>
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#166534' }}>{appliedCoupon.code}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#15803d' }}>
+                      Giảm {discountAmount.toLocaleString('vi-VN')}đ
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      fontSize: '1.25rem',
+                      padding: '0.25rem',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="summary-totals">
               <div className="summary-row">
                 <span>Tạm tính:</span>
@@ -379,6 +516,13 @@ const Checkout = () => {
                 <span>Phí vận chuyển:</span>
                 <span>{shippingFee.toLocaleString('vi-VN')}đ</span>
               </div>
+
+              {appliedCoupon && (
+                <div className="summary-row" style={{ color: '#dc2626' }}>
+                  <span>Giảm giá ({appliedCoupon.code}):</span>
+                  <span>-{discountAmount.toLocaleString('vi-VN')}đ</span>
+                </div>
+              )}
 
               <div className="summary-row total">
                 <span>Tổng cộng:</span>

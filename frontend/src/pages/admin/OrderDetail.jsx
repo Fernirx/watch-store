@@ -161,6 +161,12 @@ const AdminOrderDetail = () => {
             <span>Phí vận chuyển:</span>
             <span>{order.shipping_fee.toLocaleString('vi-VN')} ₫</span>
           </div>
+          {order.discount_amount > 0 && (
+            <div className="summary-row" style={{ color: '#dc2626' }}>
+              <span>Giảm giá ({order.coupon_code}):</span>
+              <span>-{order.discount_amount.toLocaleString('vi-VN')} ₫</span>
+            </div>
+          )}
           <div className="summary-row total">
             <span>Tổng cộng:</span>
             <span>{order.total.toLocaleString('vi-VN')} ₫</span>

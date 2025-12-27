@@ -24,6 +24,9 @@ return new class extends Migration
             $table->decimal('shipping_fee', 15, 2)->default(0);
             $table->text('shipping_address'); // Địa chỉ giao hàng (bắt buộc)
             $table->string('shipping_phone'); // Số điện thoại giao hàng (bắt buộc)
+            $table->foreignId('coupon_id')->nullable()->constrained('coupons')->onDelete('set null');
+            $table->string('coupon_code', 50)->nullable();
+            $table->decimal('discount_amount', 15, 2)->default(0);
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->index(['user_id', 'status']);

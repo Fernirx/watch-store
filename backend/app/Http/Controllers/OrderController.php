@@ -83,6 +83,7 @@ class OrderController extends Controller
                 'shipping_phone' => 'required|string',
                 'payment_method' => 'required|in:cod,bank_transfer,vnpay',
                 'notes' => 'nullable|string',
+                'coupon_code' => 'nullable|string|max:50', // Mã giảm giá (optional)
                 'guest_token' => 'nullable|string|size:64', // Cho guest checkout
             ]);
 

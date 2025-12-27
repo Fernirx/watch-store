@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Mail;
 
 class OrderService
 {
+    protected CouponService $couponService;
+
+    public function __construct(CouponService $couponService)
+    {
+        $this->couponService = $couponService;
+    }
+
     /**
      * Lấy danh sách đơn hàng
      */
@@ -82,7 +89,33 @@ class OrderService
             });
 
             $shipping_fee = 30000; // 30k cố định
-            $total = $subtotal + $shipping_fee;
+            $discount_amount = 0;
+            $couponId = null;
+            $couponCode = null;
+            $couponData = null;
+
+            // Process coupon if provided
+            if (!empty($data['coupon_code'])) {
+                $validation = $this->couponService->validateCoupon(
+                    $data['coupon_code'],
+                    $subtotal,
+                    $data['customer_email'],
+                    $data['shipping_phone'],
+                    $userId
+                );
+
+                if (!$validation['valid']) {
+                    throw new \Exception($validation['message']);
+                }
+
+                $discount_amount = $validation['discount_amount'];
+                $couponId = $validation['coupon']->id;
+                $couponCode = $validation['coupon']->code;
+                $couponData = $validation['coupon'];
+            }
+
+            // Calculate total with discount
+            $total = $subtotal + $shipping_fee - $discount_amount;
 
             // Tạo đơn hàng
             $order = Order::create([
@@ -99,6 +132,9 @@ class OrderService
                 'payment_status' => 'PENDING',
                 'shipping_address' => $data['shipping_address'],
                 'shipping_phone' => $data['shipping_phone'],
+                'coupon_id' => $couponId,
+                'coupon_code' => $couponCode,
+                'discount_amount' => $discount_amount,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -115,6 +151,19 @@ class OrderService
 
                 // Giảm tồn kho
                 $cartItem->product->decrement('stock_quantity', $cartItem->quantity);
+            }
+
+            // Apply coupon if used
+            if ($couponId && $couponData) {
+                $this->couponService->applyCoupon(
+                    $couponData,
+                    $order->id,
+                    $discount_amount,
+                    $data['customer_email'],
+                    $data['shipping_phone'],
+                    $userId,
+                    $guestToken
+                );
             }
 
             // Xóa giỏ hàng
@@ -178,6 +227,11 @@ class OrderService
             // Hoàn lại tồn kho
             foreach ($order->items as $item) {
                 $item->product->increment('stock_quantity', $item->quantity);
+            }
+
+            // Restore coupon usage if applicable
+            if ($order->coupon_id) {
+                $this->couponService->restoreCouponUsage($orderId);
             }
 
             // Cập nhật trạng thái
