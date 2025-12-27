@@ -25,11 +25,10 @@ const Orders = () => {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      pending: { label: '⏳ Chờ xử lý', class: 'badge-warning' },
-      processing: { label: '🔄 Đang xử lý', class: 'badge-info' },
-      shipped: { label: '🚚 Đang giao', class: 'badge-info' },
-      delivered: { label: '✅ Đã giao', class: 'badge-success' },
-      cancelled: { label: '❌ Đã hủy', class: 'badge-danger' },
+      PENDING: { label: '⏳ Chờ xử lý', class: 'badge-warning' },
+      PROCESSING: { label: '🔄 Đang xử lý', class: 'badge-info' },
+      COMPLETED: { label: '✅ Hoàn thành', class: 'badge-success' },
+      CANCELLED: { label: '❌ Đã hủy', class: 'badge-danger' },
     };
 
     const statusInfo = statusMap[status] || { label: status, class: 'badge-secondary' };

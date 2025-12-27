@@ -32,7 +32,6 @@ const OrderList = () => {
   const getStatusLabel = (status) => {
     const statusMap = {
       PENDING: 'Chờ xử lý',
-      PAID: 'Đã thanh toán',
       PROCESSING: 'Đang xử lý',
       COMPLETED: 'Hoàn thành',
       CANCELLED: 'Đã hủy',
@@ -43,7 +42,6 @@ const OrderList = () => {
   const getStatusClass = (status) => {
     const classMap = {
       PENDING: 'status-pending',
-      PAID: 'status-paid',
       PROCESSING: 'status-processing',
       COMPLETED: 'status-completed',
       CANCELLED: 'status-cancelled',

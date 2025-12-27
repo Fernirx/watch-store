@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('order_number')->unique();
             $table->decimal('subtotal', 15, 2);
             $table->decimal('total', 15, 2);
-            $table->enum('status', ['PENDING', 'PAID', 'PROCESSING', 'COMPLETED', 'CANCELLED'])->default('PENDING');
-            $table->string('payment_method')->nullable();
+            $table->enum('status', ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'])->default('PENDING');
+            $table->enum('payment_method', ['cod', 'vnpay'])->default('cod');
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
             $table->decimal('shipping_fee', 15, 2)->default(0);
             $table->text('shipping_address'); // Địa chỉ giao hàng (bắt buộc)

@@ -129,7 +129,7 @@ class OrderService
                 'shipping_fee' => $shipping_fee,
                 'total' => $total,
                 'payment_method' => $data['payment_method'],
-                'payment_status' => 'PENDING',
+                'payment_status' => 'pending',
                 'shipping_address' => $data['shipping_address'],
                 'shipping_phone' => $data['shipping_phone'],
                 'coupon_id' => $couponId,
@@ -168,7 +168,7 @@ class OrderService
 
             // Xóa giỏ hàng
             // QUAN TRỌNG: Với VNPay, chỉ xóa cart SAU KHI thanh toán thành công
-            // Với các phương thức khác (COD, bank_transfer), xóa ngay
+            // Với COD, xóa ngay
             if ($data['payment_method'] !== 'vnpay') {
                 $cart->items()->delete();
                 \Log::info("🗑️ Cart cleared for payment method: {$data['payment_method']}");
@@ -208,6 +208,19 @@ class OrderService
     }
 
     /**
+     * Cập nhật trạng thái thanh toán (Admin - dành cho COD)
+     */
+    public function updatePaymentStatus(int $orderId, string $paymentStatus): Order
+    {
+        $order = Order::with('items.product')->findOrFail($orderId);
+
+        $order->payment_status = $paymentStatus;
+        $order->save();
+
+        return $order;
+    }
+
+    /**
      * Hủy đơn hàng
      */
     public function cancelOrder(int $orderId, int $userId): Order
@@ -217,8 +230,8 @@ class OrderService
             ->where('id', $orderId)
             ->firstOrFail();
 
-        // Chỉ cho phép hủy đơn PENDING hoặc PAID
-        if (!in_array($order->status, ['PENDING', 'PAID'])) {
+        // Chỉ cho phép hủy đơn PENDING
+        if ($order->status !== 'PENDING') {
             throw new \Exception('Cannot cancel order in current status');
         }
 

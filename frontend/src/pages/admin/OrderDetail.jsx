@@ -36,13 +36,34 @@ const AdminOrderDetail = () => {
     }
   };
 
+  const updatePaymentStatus = async (newPaymentStatus) => {
+    try {
+      await axios.put(`/orders/${id}/payment-status`, { payment_status: newPaymentStatus });
+      alert('Cập nhật trạng thái thanh toán thành công!');
+      fetchOrder();
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      alert('Không thể cập nhật trạng thái thanh toán');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
-      pending: { label: 'Chờ xử lý', class: 'badge-warning' },
-      processing: { label: 'Đang xử lý', class: 'badge-info' },
-      shipped: { label: 'Đang giao', class: 'badge-primary' },
-      delivered: { label: 'Đã giao', class: 'badge-success' },
-      cancelled: { label: 'Đã hủy', class: 'badge-danger' },
+      PENDING: { label: 'Chờ xử lý', class: 'badge-warning' },
+      PROCESSING: { label: 'Đang xử lý', class: 'badge-info' },
+      COMPLETED: { label: 'Hoàn thành', class: 'badge-success' },
+      CANCELLED: { label: 'Đã hủy', class: 'badge-danger' },
+    };
+
+    const statusInfo = statusMap[status] || { label: status, class: 'badge-secondary' };
+    return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
+  };
+
+  const getPaymentStatusBadge = (status) => {
+    const statusMap = {
+      pending: { label: '⏳ Chưa thanh toán', class: 'badge-warning' },
+      paid: { label: '✓ Đã thanh toán', class: 'badge-success' },
+      failed: { label: '✗ Thất bại', class: 'badge-danger' },
     };
 
     const statusInfo = statusMap[status] || { label: status, class: 'badge-secondary' };
@@ -86,8 +107,12 @@ const AdminOrderDetail = () => {
           <div className="info-row">
             <span className="label">Phương thức thanh toán:</span>
             <span className="value">
-              {order.payment_method === 'cod' ? 'COD (Thanh toán khi nhận hàng)' : order.payment_method}
+              {order.payment_method === 'cod' ? 'COD (Thanh toán khi nhận hàng)' : 'VNPay'}
             </span>
+          </div>
+          <div className="info-row">
+            <span className="label">Trạng thái thanh toán:</span>
+            <span className="value">{getPaymentStatusBadge(order.payment_status)}</span>
           </div>
         </div>
 
@@ -174,42 +199,57 @@ const AdminOrderDetail = () => {
         </div>
       </div>
 
-      {order.status !== 'cancelled' && order.status !== 'delivered' && (
+      {order.status !== 'CANCELLED' && order.status !== 'COMPLETED' && (
         <div className="order-actions">
-          <h3>Cập Nhật Trạng Thái</h3>
+          <h3>Cập Nhật Trạng Thái Đơn Hàng</h3>
           <div className="status-buttons">
-            {order.status === 'pending' && (
+            {order.status === 'PENDING' && (
               <>
                 <button
-                  onClick={() => updateOrderStatus('processing')}
+                  onClick={() => updateOrderStatus('PROCESSING')}
                   className="btn btn-info"
                 >
                   Xác nhận đơn hàng
                 </button>
                 <button
-                  onClick={() => updateOrderStatus('cancelled')}
+                  onClick={() => updateOrderStatus('CANCELLED')}
                   className="btn btn-danger"
                 >
                   Hủy đơn hàng
                 </button>
               </>
             )}
-            {order.status === 'processing' && (
-              <button
-                onClick={() => updateOrderStatus('shipped')}
-                className="btn btn-primary"
-              >
-                Chuyển sang đang giao hàng
-              </button>
+            {order.status === 'PROCESSING' && (
+              <>
+                <button
+                  onClick={() => updateOrderStatus('COMPLETED')}
+                  className="btn btn-success"
+                >
+                  Đánh dấu hoàn thành
+                </button>
+                <button
+                  onClick={() => updateOrderStatus('CANCELLED')}
+                  className="btn btn-danger"
+                >
+                  Hủy đơn hàng
+                </button>
+              </>
             )}
-            {order.status === 'shipped' && (
-              <button
-                onClick={() => updateOrderStatus('delivered')}
-                className="btn btn-success"
-              >
-                Đánh dấu đã giao hàng
-              </button>
-            )}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Status Update - Chỉ cho COD */}
+      {order.payment_method === 'cod' && order.payment_status !== 'paid' && order.status !== 'CANCELLED' && (
+        <div className="order-actions" style={{ marginTop: '1.5rem' }}>
+          <h3>Cập Nhật Trạng Thái Thanh Toán</h3>
+          <div className="status-buttons">
+            <button
+              onClick={() => updatePaymentStatus('paid')}
+              className="btn btn-success"
+            >
+              ✓ Đánh dấu đã thanh toán
+            </button>
           </div>
         </div>
       )}

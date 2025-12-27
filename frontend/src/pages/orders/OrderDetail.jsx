@@ -50,7 +50,6 @@ const OrderDetail = () => {
   const getStatusLabel = (status) => {
     const statusMap = {
       PENDING: 'Chờ xử lý',
-      PAID: 'Đã thanh toán',
       PROCESSING: 'Đang xử lý',
       COMPLETED: 'Hoàn thành',
       CANCELLED: 'Đã hủy',
@@ -61,7 +60,6 @@ const OrderDetail = () => {
   const getStatusClass = (status) => {
     const classMap = {
       PENDING: 'status-pending',
-      PAID: 'status-paid',
       PROCESSING: 'status-processing',
       COMPLETED: 'status-completed',
       CANCELLED: 'status-cancelled',
@@ -77,7 +75,7 @@ const OrderDetail = () => {
     return <div className="error-page">Không tìm thấy đơn hàng</div>;
   }
 
-  const canCancel = ['PENDING', 'PAID'].includes(order.status);
+  const canCancel = order.status === 'PENDING';
 
   return (
     <div className="order-detail-page">

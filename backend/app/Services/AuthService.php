@@ -25,7 +25,7 @@ class AuthService
         }
 
         // Merge guest cart if guest_token provided
-        if ($request && $request->has('guest_token')) {
+        if ($request && $request->filled('guest_token')) {
             \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
@@ -197,7 +197,7 @@ class AuthService
         $otpRecord->update(['is_used' => true]);
 
         // Merge guest cart if guest_token provided
-        if ($request && $request->has('guest_token')) {
+        if ($request && $request->filled('guest_token')) {
             \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
@@ -330,7 +330,7 @@ class AuthService
         }
 
         // Merge guest cart if guest_token provided
-        if ($request && $request->has('guest_token')) {
+        if ($request && $request->filled('guest_token')) {
             \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);

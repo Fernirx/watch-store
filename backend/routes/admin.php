@@ -23,6 +23,7 @@ Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::put('/orders/{id}/payment-status', [OrderController::class, 'updatePaymentStatus']);
 
     // User Management Routes
     Route::get('/users', [UserController::class, 'index']);

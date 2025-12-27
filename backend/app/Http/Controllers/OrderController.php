@@ -81,7 +81,7 @@ class OrderController extends Controller
                 'customer_email' => 'required|email|max:255', // Email (bắt buộc)
                 'shipping_address' => 'required|string',
                 'shipping_phone' => 'required|string',
-                'payment_method' => 'required|in:cod,bank_transfer,vnpay',
+                'payment_method' => 'required|in:cod,vnpay',
                 'notes' => 'nullable|string',
                 'coupon_code' => 'nullable|string|max:50', // Mã giảm giá (optional)
                 'guest_token' => 'nullable|string|size:64', // Cho guest checkout
@@ -127,7 +127,7 @@ class OrderController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
+                'status' => 'required|in:PENDING,PROCESSING,COMPLETED,CANCELLED',
             ]);
 
             $order = $this->orderService->updateOrderStatus((int)$id, $validated['status']);
@@ -147,6 +147,38 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update order status',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái thanh toán (Admin - dành cho COD)
+     */
+    public function updatePaymentStatus(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'payment_status' => 'required|in:pending,paid,failed',
+            ]);
+
+            $order = $this->orderService->updatePaymentStatus((int)$id, $validated['payment_status']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment status updated successfully',
+                'data' => $order,
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update payment status',
                 'error' => $e->getMessage(),
             ], 500);
         }

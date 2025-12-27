@@ -14,7 +14,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->enum('status', ['PENDING', 'SUCCESS', 'FAILED'])->default('PENDING');
             $table->string('transaction_id')->nullable();
-            $table->string('payment_method')->default('vnpay');
+            $table->enum('payment_method', ['cod', 'vnpay'])->default('vnpay');
             $table->string('response_code')->nullable();
             $table->text('response_message')->nullable();
             $table->timestamp('paid_at')->nullable();

@@ -77,9 +77,7 @@
             <p><strong>Phương thức thanh toán:</strong>
                 @if($order->payment_method === 'cod')
                     Thanh toán khi nhận hàng (COD)
-                @elseif($order->payment_method === 'bank_transfer')
-                    Chuyển khoản ngân hàng
-                @elseif($order->payment_method === 'vnpay')
+                @else
                     VNPay
                 @endif
             </p>
@@ -132,16 +130,6 @@
             </tfoot>
         </table>
 
-        @if($order->payment_method === 'bank_transfer')
-        <div class="order-info" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
-            <h3>Thông tin chuyển khoản</h3>
-            <p><strong>Ngân hàng:</strong> Vietcombank</p>
-            <p><strong>Số tài khoản:</strong> 1234567890</p>
-            <p><strong>Chủ tài khoản:</strong> WATCH STORE</p>
-            <p><strong>Nội dung:</strong> {{ $order->order_number }}</p>
-            <p><em>Vui lòng chuyển khoản và gửi ảnh xác nhận cho chúng tôi.</em></p>
-        </div>
-        @endif
 
         <p style="margin-top: 20px;">Chúng tôi sẽ xử lý đơn hàng của bạn trong thời gian sớm nhất. Bạn có thể theo dõi trạng thái đơn hàng qua email này.</p>
 

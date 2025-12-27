@@ -384,7 +384,6 @@ const Checkout = () => {
                 >
                   <option value="cod">Thanh toán khi nhận hàng (COD)</option>
                   <option value="vnpay">Thanh toán qua VNPay</option>
-                  <option value="bank_transfer">Chuyển khoản ngân hàng</option>
                 </select>
               </div>
 
