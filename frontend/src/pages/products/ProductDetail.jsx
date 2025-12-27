@@ -5,6 +5,7 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import Toast from '../../components/Toast';
+import ProductReviews from '../../components/ProductReviews';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -390,6 +391,10 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Product Reviews */}
+      <ProductReviews productId={id} />
+
       {toast && (
         <Toast
           message={toast.message}

@@ -103,6 +103,12 @@ const AdminLayout = () => {
           >
             Người dùng <span><i class="fa-solid fa-users"></i></span>
           </Link>
+          <Link
+            to="/admin/reviews"
+            className={`nav-item ${isActive('/admin/reviews') ? 'active' : ''}`}
+          >
+            Đánh giá <span><i class="fa-solid fa-star"></i></span>
+          </Link>
         </nav>
 
         <div className="admin-footer">

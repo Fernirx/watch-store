@@ -9,6 +9,7 @@ use App\Http\Controllers\CouponController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
@@ -57,4 +58,10 @@ Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
     Route::get('/stock/low-stock', [StockController::class, 'lowStock']);
     Route::get('/stock/report', [StockController::class, 'report']);
     Route::get('/stock/transactions', [StockController::class, 'transactions']);
+
+    // Review Management Routes
+    Route::get('/reviews', [ReviewController::class, 'index']);
+    Route::put('/reviews/{id}', [ReviewController::class, 'update']);
+    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
+    Route::get('/reviews/export', [ReviewController::class, 'export']);
 });

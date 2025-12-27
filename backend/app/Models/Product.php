@@ -28,7 +28,6 @@ class Product extends Model
         'stock_quantity',
         'min_stock_level',
         'reorder_point',
-        'unit',
 
         // Product Details
         'warranty_period',
@@ -76,6 +75,10 @@ class Product extends Model
         // Statistics
         'sold_count',
         'view_count',
+
+        // Reviews
+        'average_rating',
+        'review_count',
     ];
 
     protected $casts = [
@@ -108,6 +111,10 @@ class Product extends Model
         // Statistics
         'sold_count' => 'integer',
         'view_count' => 'integer',
+
+        // Reviews
+        'average_rating' => 'decimal:2',
+        'review_count' => 'integer',
     ];
 
     protected $appends = [
@@ -138,6 +145,11 @@ class Product extends Model
     public function stockTransactions()
     {
         return $this->hasMany(StockTransaction::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class)->orderBy('created_at', 'desc');
     }
 
     public function favorites()

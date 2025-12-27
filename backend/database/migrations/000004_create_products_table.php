@@ -14,6 +14,7 @@ return new class extends Migration
             // Foreign Keys
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('brand_id')->constrained()->onDelete('cascade');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null')->comment('Nhà cung cấp');
 
             // Basic Information
             $table->string('code', 50)->unique()->comment('Mã sản phẩm duy nhất');
@@ -81,6 +82,10 @@ return new class extends Migration
             // Statistics
             $table->integer('sold_count')->default(0)->comment('Số lượng đã bán');
             $table->unsignedInteger('view_count')->default(0)->comment('Số lượt xem');
+
+            // Reviews
+            $table->decimal('average_rating', 3, 2)->default(0)->comment('Điểm đánh giá trung bình (0-5)');
+            $table->unsignedInteger('review_count')->default(0)->comment('Số lượng đánh giá');
 
             // Timestamps
             $table->timestamps();

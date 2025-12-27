@@ -52,6 +52,7 @@ import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminSuppliers from './pages/admin/Suppliers';
 import AdminStock from './pages/admin/Stock';
 import AdminUsers from './pages/admin/Users';
+import AdminReviews from './pages/admin/AdminReviews';
 
 import './App.css';
 
@@ -140,6 +141,7 @@ function App() {
               <Route path="/admin/suppliers" element={<AdminSuppliers />} />
               <Route path="/admin/stock" element={<AdminStock />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/reviews" element={<AdminReviews />} />
             </Route>
             </Routes>
           </WishlistProvider>
