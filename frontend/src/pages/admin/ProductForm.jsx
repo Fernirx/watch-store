@@ -279,9 +279,11 @@ const ProductForm = () => {
       if (formData.weight) submitData.append('weight', formData.weight);
 
       // Features (convert comma-separated string to array)
-      if (formData.features) {
+      if (formData.features && formData.features.trim()) {
         const featuresArray = formData.features.split(',').map(f => f.trim()).filter(f => f);
         submitData.append('features', JSON.stringify(featuresArray));
+      } else {
+        submitData.append('features', JSON.stringify([]));
       }
 
       // Relations

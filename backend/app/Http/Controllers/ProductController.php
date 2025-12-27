@@ -132,7 +132,7 @@ class ProductController extends Controller
                 'weight' => 'nullable|numeric|min:0',
 
                 // Features & Images
-                'features' => 'nullable|array',
+                'features' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'images' => 'nullable|array',
                 'images.*' => 'image|max:2048',
@@ -236,7 +236,7 @@ class ProductController extends Controller
                 'weight' => 'nullable|numeric|min:0',
 
                 // Features & Images
-                'features' => 'nullable|array',
+                'features' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'images' => 'nullable|array',
                 'images.*' => 'image|max:2048',
