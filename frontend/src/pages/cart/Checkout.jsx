@@ -287,7 +287,7 @@ const Checkout = () => {
                   value={formData.customer_email}
                   onChange={handleChange}
                   required
-                  placeholder="Email để nhận xác nhận đơn hàng"
+                  placeholder="Email để nhận xác nhận đơn hàng và khuyến mãi"
                 />
               </div>
 
@@ -311,7 +311,7 @@ const Checkout = () => {
                   value={formData.shipping_phone}
                   onChange={handleChange}
                   required
-                  placeholder="Nhập số điện thoại"
+                  placeholder="Số điện thoại để shipper liên lạc giao hàng"
                 />
               </div>
 

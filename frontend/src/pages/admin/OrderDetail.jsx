@@ -95,11 +95,11 @@ const AdminOrderDetail = () => {
           <h3>Thông Tin Khách Hàng</h3>
           <div className="info-row">
             <span className="label">Tên:</span>
-            <span className="value">{order.user?.name}</span>
+            <span className="value">{order.customer_name}</span>
           </div>
           <div className="info-row">
             <span className="label">Email:</span>
-            <span className="value">{order.user?.email}</span>
+            <span className="value">{order.customer_email}</span>
           </div>
           <div className="info-row">
             <span className="label">Số điện thoại:</span>

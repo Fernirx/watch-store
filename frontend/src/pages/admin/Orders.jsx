@@ -104,7 +104,7 @@ const Orders = () => {
               orders.map((order) => (
                 <tr key={order.id}>
                   <td style={{ fontWeight: '600', color: '#667eea' }}>#{order.id}</td>
-                  <td style={{ fontWeight: '600' }}>{order.user?.name || 'Khách'}</td>
+                  <td style={{ fontWeight: '600' }}>{order.customer_name || 'Khách'}</td>
                   <td>{order.shipping_phone}</td>
                   <td style={{ fontWeight: '600', color: '#1e293b' }}>
                     {order.total.toLocaleString('vi-VN')}₫

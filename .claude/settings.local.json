@@ -4,7 +4,8 @@
       "Bash(composer show:*)",
       "Bash(php artisan:*)",
       "Bash(find:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(cat:*)"
     ]
   }
 }

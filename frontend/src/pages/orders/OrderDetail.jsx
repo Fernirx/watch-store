@@ -111,12 +111,10 @@ const OrderDetail = () => {
                 <label>Email:</label>
                 <span>{order.customer_email}</span>
               </div>
-              {order.customer_phone && (
-                <div className="info-item">
-                  <label>Số điện thoại:</label>
-                  <span>{order.customer_phone}</span>
-                </div>
-              )}
+              <div className="info-item">
+                <label>Số điện thoại:</label>
+                <span>{order.shipping_phone}</span>
+              </div>
             </div>
           </div>
 
