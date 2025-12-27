@@ -11,6 +11,7 @@ class Product extends Model
         // Foreign Keys
         'category_id',
         'brand_id',
+        'supplier_id',
 
         // Basic Information
         'code',
@@ -27,6 +28,7 @@ class Product extends Model
         'stock_quantity',
         'min_stock_level',
         'reorder_point',
+        'unit',
 
         // Product Details
         'warranty_period',
@@ -126,6 +128,16 @@ class Product extends Model
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function stockTransactions()
+    {
+        return $this->hasMany(StockTransaction::class);
     }
 
     public function favorites()

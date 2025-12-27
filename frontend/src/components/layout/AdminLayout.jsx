@@ -86,6 +86,18 @@ const AdminLayout = () => {
             Thông báo <span><i class="fa-solid fa-bell"></i></span>
           </Link>
           <Link
+            to="/admin/suppliers"
+            className={`nav-item ${isActive('/admin/suppliers') ? 'active' : ''}`}
+          >
+            Nhà cung cấp <span><i class="fa-solid fa-truck"></i></span>
+          </Link>
+          <Link
+            to="/admin/stock"
+            className={`nav-item ${isActive('/admin/stock') ? 'active' : ''}`}
+          >
+            Quản lý kho <span><i class="fa-solid fa-warehouse"></i></span>
+          </Link>
+          <Link
             to="/admin/users"
             className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
           >

@@ -1,0 +1,216 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import supplierService from '../../services/supplierService';
+
+const Suppliers = () => {
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    contact_person: '',
+    phone: '',
+    email: '',
+    address: '',
+    is_active: true,
+  });
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      setLoading(true);
+      const response = await supplierService.getSuppliers();
+      setSuppliers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert('Vui lòng nhập tên nhà cung cấp');
+      return;
+    }
+
+    try {
+      if (editingId) {
+        await supplierService.updateSupplier(editingId, formData);
+        alert('Cập nhật nhà cung cấp thành công!');
+      } else {
+        await supplierService.createSupplier(formData);
+        alert('Tạo nhà cung cấp thành công!');
+      }
+      resetForm();
+      fetchSuppliers();
+    } catch (error) {
+      alert(`Lỗi: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const handleEdit = (supplier) => {
+    setEditingId(supplier.id);
+    setFormData({
+      name: supplier.name,
+      contact_person: supplier.contact_person || '',
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      is_active: supplier.is_active,
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) return;
+
+    try {
+      await supplierService.deleteSupplier(id);
+      fetchSuppliers();
+      alert('Xóa nhà cung cấp thành công!');
+    } catch (error) {
+      alert('Không thể xóa: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ name: '', contact_person: '', phone: '', email: '', address: '', is_active: true });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  if (loading) {
+    return <div className="loading"><div className="spinner"></div><p>Đang tải...</p></div>;
+  }
+
+  return (
+    <div className="admin-suppliers">
+      <div className="admin-page-header">
+        <div>
+          <h1>Quản Lý Nhà Cung Cấp</h1>
+          <div className="admin-breadcrumb">
+            <Link to="/admin">Dashboard</Link>
+            <span>/</span>
+            <span>Nhà cung cấp</span>
+          </div>
+        </div>
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">
+          Thêm Nhà Cung Cấp
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && resetForm()}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{editingId ? 'Sửa Nhà Cung Cấp' : 'Thêm Nhà Cung Cấp'}</h2>
+              <button onClick={resetForm} className="modal-close">✕</button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="name" className="required">Tên nhà cung cấp</label>
+                  <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="contact_person">Người liên hệ</label>
+                  <input type="text" id="contact_person" name="contact_person" value={formData.contact_person} onChange={handleChange} className="form-control" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label htmlFor="phone">Số điện thoại</label>
+                    <input type="text" id="phone" name="phone" value={formData.phone} onChange={handleChange} className="form-control" />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className="form-control" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="address">Địa chỉ</label>
+                  <textarea id="address" name="address" value={formData.address} onChange={handleChange} rows="3" className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleChange} style={{ width: '18px', height: '18px' }} />
+                    <span>Kích hoạt</span>
+                  </label>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" onClick={resetForm} className="btn btn-secondary">Hủy</button>
+                <button type="submit" className="btn btn-primary">{editingId ? 'Cập nhật' : 'Tạo mới'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Tên</th>
+              <th>Người liên hệ</th>
+              <th>Liên lạc</th>
+              <th>Địa chỉ</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {suppliers.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>
+                  <div className="empty-state">
+                    <div className="empty-state-icon">🏢</div>
+                    <h3>Chưa có nhà cung cấp nào</h3>
+                    <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">Thêm Nhà Cung Cấp</button>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              suppliers.map((supplier) => (
+                <tr key={supplier.id}>
+                  <td><strong>{supplier.name}</strong></td>
+                  <td>{supplier.contact_person || '-'}</td>
+                  <td>
+                    {supplier.phone && <div>{supplier.phone}</div>}
+                    {supplier.email && <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{supplier.email}</div>}
+                  </td>
+                  <td style={{ fontSize: '0.875rem' }}>{supplier.address || '-'}</td>
+                  <td>
+                    <span className={`badge ${supplier.is_active ? 'badge-success' : 'badge-secondary'}`}>
+                      {supplier.is_active ? 'Hoạt động' : 'Dừng'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="table-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => handleEdit(supplier)} className="btn-icon edit"><i className="fas fa-edit"></i></button>
+                      <button onClick={() => handleDelete(supplier.id)} className="btn-icon delete"><i className="fas fa-trash-alt"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default Suppliers;

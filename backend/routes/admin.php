@@ -7,6 +7,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
@@ -41,4 +43,18 @@ Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
     Route::post('/notifications', [NotificationController::class, 'store']);
     Route::put('/notifications/{id}', [NotificationController::class, 'update']);
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+
+    // Supplier Management Routes
+    Route::get('/suppliers', [SupplierController::class, 'index']);
+    Route::get('/suppliers/{id}', [SupplierController::class, 'show']);
+    Route::post('/suppliers', [SupplierController::class, 'store']);
+    Route::put('/suppliers/{id}', [SupplierController::class, 'update']);
+    Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy']);
+
+    // Stock Management Routes
+    Route::post('/stock/import', [StockController::class, 'import']);
+    Route::post('/stock/export', [StockController::class, 'export']);
+    Route::get('/stock/low-stock', [StockController::class, 'lowStock']);
+    Route::get('/stock/report', [StockController::class, 'report']);
+    Route::get('/stock/transactions', [StockController::class, 'transactions']);
 });

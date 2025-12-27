@@ -49,6 +49,8 @@ import AdminOrders from './pages/admin/Orders';
 import AdminOrderDetail from './pages/admin/OrderDetail';
 import AdminCoupons from './pages/admin/Coupons';
 import AdminNotifications from './pages/admin/AdminNotifications';
+import AdminSuppliers from './pages/admin/Suppliers';
+import AdminStock from './pages/admin/Stock';
 import AdminUsers from './pages/admin/Users';
 
 import './App.css';
@@ -135,6 +137,8 @@ function App() {
               <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/admin/notifications" element={<AdminNotifications />} />
+              <Route path="/admin/suppliers" element={<AdminSuppliers />} />
+              <Route path="/admin/stock" element={<AdminStock />} />
               <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
             </Routes>
