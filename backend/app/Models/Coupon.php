@@ -67,13 +67,16 @@ class Coupon extends Model
 
     /**
      * Check if usage limit has been reached
+     * Note: SINGLE_USE only checks per email/phone, not total count
      */
     public function hasReachedLimit(): bool
     {
+        // SINGLE_USE: No global limit, only per-user limit (checked via hasUserUsedCoupon)
         if ($this->usage_type === 'SINGLE_USE') {
-            return $this->usage_count > 0;
+            return false;
         }
 
+        // LIMITED_USE: Check total usage count against limit
         if ($this->usage_type === 'LIMITED_USE' && $this->usage_limit) {
             return $this->usage_count >= $this->usage_limit;
         }

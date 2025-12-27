@@ -199,9 +199,7 @@ const Coupons = () => {
       return { label: 'Đã hết hạn', class: 'badge-danger' };
     }
 
-    if (coupon.usage_type === 'SINGLE_USE' && coupon.usage_count >= 1) {
-      return { label: 'Đã sử dụng', class: 'badge-secondary' };
-    }
+    // Only check usage limit for LIMITED_USE type
     if (coupon.usage_type === 'LIMITED_USE' && coupon.usage_count >= coupon.usage_limit) {
       return { label: 'Đã hết lượt', class: 'badge-secondary' };
     }
