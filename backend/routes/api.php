@@ -12,4 +12,5 @@ require __DIR__ . '/vnpay.php';
 require __DIR__ . '/profile.php';
 require __DIR__ . '/guest.php';
 require __DIR__ . '/coupon.php';
+require __DIR__ . '/notification.php';
 ?>

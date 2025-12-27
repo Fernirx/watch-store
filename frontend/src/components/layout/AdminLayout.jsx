@@ -80,6 +80,12 @@ const AdminLayout = () => {
             Mã giảm giá <span><i class="fa-solid fa-ticket"></i></span>
           </Link>
           <Link
+            to="/admin/notifications"
+            className={`nav-item ${isActive('/admin/notifications') ? 'active' : ''}`}
+          >
+            Thông báo <span><i class="fa-solid fa-bell"></i></span>
+          </Link>
+          <Link
             to="/admin/users"
             className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
           >

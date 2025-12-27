@@ -29,6 +29,9 @@ import Wishlist from './pages/wishlist/Wishlist';
 import OrderList from './pages/orders/OrderList';
 import OrderDetail from './pages/orders/OrderDetail';
 
+// Notifications
+import Notifications from './pages/notifications/Notifications';
+
 // Profile
 import Profile from './pages/profile/Profile';
 
@@ -45,6 +48,7 @@ import AdminBrands from './pages/admin/Brands';
 import AdminOrders from './pages/admin/Orders';
 import AdminOrderDetail from './pages/admin/OrderDetail';
 import AdminCoupons from './pages/admin/Coupons';
+import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminUsers from './pages/admin/Users';
 
 import './App.css';
@@ -76,6 +80,7 @@ function App() {
               {/* Public Routes - Guest can access */}
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/notifications" element={<Notifications />} />
 
               {/* Protected Routes */}
               <Route
@@ -129,6 +134,7 @@ function App() {
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
+              <Route path="/admin/notifications" element={<AdminNotifications />} />
               <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
             </Routes>

@@ -43,6 +43,7 @@ const Header = () => {
           <nav className="nav-menu">
             <Link to="/">Trang Chủ</Link>
             <Link to="/products">Sản Phẩm</Link>
+            <Link to="/notifications">Thông Báo</Link>
             {isAuthenticated && <Link to="/orders">Đơn Hàng</Link>}
           </nav>
 
