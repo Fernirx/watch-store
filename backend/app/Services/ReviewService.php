@@ -25,7 +25,7 @@ class ReviewService
         } else {
             // Guest checkout - xác thực bằng email
             if ($email) {
-                $query->where('email', $email);
+                $query->where('customer_email', $email);
             }
         }
 

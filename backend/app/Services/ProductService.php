@@ -66,11 +66,6 @@ class ProductService
             $data['code'] = $this->generateProductCode();
         }
 
-        // Auto-generate slug từ name nếu không có
-        if (empty($data['slug']) && !empty($data['name'])) {
-            $data['slug'] = Str::slug($data['name']);
-        }
-
         // Xử lý features array
         if (isset($data['features']) && is_string($data['features'])) {
             $data['features'] = json_decode($data['features'], true);
@@ -85,11 +80,6 @@ class ProductService
     public function updateProduct(int $id, array $data): Product
     {
         $product = Product::findOrFail($id);
-
-        // Auto-generate slug từ name nếu name thay đổi nhưng không có slug
-        if (isset($data['name']) && !isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['name']);
-        }
 
         // Xử lý features array
         if (isset($data['features']) && is_string($data['features'])) {

@@ -86,7 +86,6 @@ class ProductController extends Controller
                 // Basic Information
                 'code' => 'nullable|string|max:50|unique:products,code',
                 'name' => 'required|string|max:255',
-                'slug' => 'nullable|string|max:255|unique:products,slug',
                 'description' => 'nullable|string',
 
                 // Pricing
@@ -190,7 +189,6 @@ class ProductController extends Controller
                 // Basic Information
                 'code' => 'nullable|string|max:50|unique:products,code,' . $id,
                 'name' => 'nullable|string|max:255',
-                'slug' => 'nullable|string|max:255|unique:products,slug,' . $id,
                 'description' => 'nullable|string',
 
                 // Pricing

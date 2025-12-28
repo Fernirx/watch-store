@@ -19,7 +19,6 @@ return new class extends Migration
             // Basic Information
             $table->string('code', 50)->unique()->comment('Mã sản phẩm duy nhất');
             $table->string('name', 255)->comment('Tên sản phẩm');
-            $table->string('slug', 255)->unique()->comment('URL-friendly name');
             $table->text('description')->nullable()->comment('Mô tả chi tiết');
 
             // Pricing

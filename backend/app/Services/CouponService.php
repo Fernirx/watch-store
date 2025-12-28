@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\BusinessValidator;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use Illuminate\Database\Eloquent\Collection;
@@ -178,6 +179,17 @@ class CouponService
             // Increment usage count
             $coupon->increment('usage_count');
 
+            // Kiểm tra xem có vượt giới hạn không (sau khi increment)
+            $coupon->refresh();
+            if ($coupon->usage_limit > 0) {
+                BusinessValidator::checkCouponOverLimit(
+                    $coupon->id,
+                    $coupon->code,
+                    $coupon->usage_limit,
+                    $coupon->usage_count
+                );
+            }
+
             // Record usage
             $usage = CouponUsage::create([
                 'coupon_id' => $coupon->id,
@@ -188,6 +200,16 @@ class CouponService
                 'phone' => $phone,
                 'discount_amount' => $discountAmount,
                 'used_at' => now(),
+            ]);
+
+            // Log business event
+            BusinessValidator::logBusinessEvent('COUPON_APPLIED', [
+                'coupon_id' => $coupon->id,
+                'coupon_code' => $coupon->code,
+                'order_id' => $orderId,
+                'discount_amount' => $discountAmount,
+                'usage_count' => $coupon->usage_count,
+                'usage_limit' => $coupon->usage_limit,
             ]);
 
             DB::commit();
@@ -211,6 +233,14 @@ class CouponService
                 // Decrement usage count
                 $coupon = $usage->coupon;
                 $coupon->decrement('usage_count');
+
+                // Log business event
+                BusinessValidator::logBusinessEvent('COUPON_RESTORED', [
+                    'coupon_id' => $coupon->id,
+                    'coupon_code' => $coupon->code,
+                    'order_id' => $orderId,
+                    'discount_amount' => $usage->discount_amount,
+                ]);
 
                 // Delete usage record
                 $usage->delete();

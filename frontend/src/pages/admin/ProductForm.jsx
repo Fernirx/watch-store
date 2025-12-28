@@ -20,7 +20,6 @@ const ProductForm = () => {
     // Basic Information
     code: '',
     name: '',
-    slug: '',
     description: '',
 
     // Pricing
@@ -109,7 +108,6 @@ const ProductForm = () => {
       setFormData({
         code: product.code || '',
         name: product.name || '',
-        slug: product.slug || '',
         description: product.description || '',
         price: product.price || '',
         original_price: product.original_price || '',
@@ -235,7 +233,6 @@ const ProductForm = () => {
       // Basic Information
       if (formData.code) submitData.append('code', formData.code);
       submitData.append('name', formData.name);
-      if (formData.slug) submitData.append('slug', formData.slug);
       if (formData.description) submitData.append('description', formData.description);
 
       // Pricing
@@ -396,20 +393,6 @@ const ProductForm = () => {
                 placeholder="VD: ROLEX-SUB-001"
               />
               <small>Để trống để tự động tạo</small>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="slug">Slug (URL)</label>
-              <input
-                type="text"
-                id="slug"
-                name="slug"
-                value={formData.slug}
-                onChange={handleChange}
-                className="form-control"
-                placeholder="VD: rolex-submariner-date"
-              />
-              <small>Để trống để tự động tạo từ tên</small>
             </div>
           </div>
 

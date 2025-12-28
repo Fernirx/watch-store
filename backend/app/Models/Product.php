@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -16,7 +15,6 @@ class Product extends Model
         // Basic Information
         'code',
         'name',
-        'slug',
         'description',
 
         // Pricing
@@ -211,16 +209,6 @@ class Product extends Model
             return number_format($this->original_price, 0, ',', '.') . ' ₫';
         }
         return null;
-    }
-
-    // Mutators (Set Attributes)
-    public function setNameAttribute($value)
-    {
-        $this->attributes['name'] = $value;
-        // Auto-generate slug nếu chưa có
-        if (empty($this->attributes['slug'])) {
-            $this->attributes['slug'] = Str::slug($value);
-        }
     }
 
     // Scopes (Query Helpers)

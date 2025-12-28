@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Helpers\BusinessValidator;
 use App\Mail\OrderConfirmationMail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\StockTransaction;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -151,6 +153,26 @@ class OrderService
 
                 // Giảm tồn kho
                 $cartItem->product->decrement('stock_quantity', $cartItem->quantity);
+
+                // Kiểm tra stock âm sau khi giảm
+                $updatedProduct = $cartItem->product->fresh();
+                BusinessValidator::checkNegativeStock(
+                    $updatedProduct->id,
+                    $updatedProduct->stock_quantity,
+                    $updatedProduct->name
+                );
+
+                // Tạo stock transaction để track
+                StockTransaction::create([
+                    'type' => 'EXPORT',
+                    'product_id' => $cartItem->product_id,
+                    'quantity' => $cartItem->quantity,
+                    'reference_type' => 'ORDER',
+                    'reference_id' => $order->id,
+                    'performed_by' => $userId ?? 1, // Guest = admin user 1
+                    'notes' => "Stock exported for order #{$order->order_number}",
+                    'transaction_date' => now(),
+                ]);
             }
 
             // Apply coupon if used
@@ -178,6 +200,17 @@ class OrderService
 
             DB::commit();
 
+            // Log business event: Đơn hàng mới được tạo
+            BusinessValidator::logBusinessEvent('ORDER_CREATED', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'user_id' => $userId,
+                'guest_token' => $guestToken,
+                'total' => $order->total,
+                'payment_method' => $order->payment_method,
+                'items_count' => $cart->items->count(),
+            ]);
+
             // Gửi email xác nhận đơn hàng
             try {
                 Mail::to($order->customer_email)->send(new OrderConfirmationMail($order->load('items.product')));
@@ -201,8 +234,28 @@ class OrderService
     {
         $order = Order::with('items.product')->findOrFail($orderId);
 
-        $order->status = strtoupper($status);
+        $oldStatus = $order->status;
+        $newStatus = strtoupper($status);
+
+        $order->status = $newStatus;
         $order->save();
+
+        // Kiểm tra tính nhất quán order-payment sau khi cập nhật
+        BusinessValidator::checkOrderPaymentConsistency(
+            $order->id,
+            $order->order_number,
+            $order->status,
+            $order->payment_status,
+            $order->total
+        );
+
+        // Log event quan trọng
+        BusinessValidator::logBusinessEvent('ORDER_STATUS_UPDATED', [
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+        ]);
 
         return $order;
     }
@@ -214,8 +267,26 @@ class OrderService
     {
         $order = Order::with('items.product')->findOrFail($orderId);
 
+        $oldPaymentStatus = $order->payment_status;
         $order->payment_status = $paymentStatus;
         $order->save();
+
+        // Kiểm tra tính nhất quán order-payment sau khi cập nhật
+        BusinessValidator::checkOrderPaymentConsistency(
+            $order->id,
+            $order->order_number,
+            $order->status,
+            $order->payment_status,
+            $order->total
+        );
+
+        // Log event quan trọng
+        BusinessValidator::logBusinessEvent('PAYMENT_STATUS_UPDATED', [
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'old_payment_status' => $oldPaymentStatus,
+            'new_payment_status' => $paymentStatus,
+        ]);
 
         return $order;
     }
@@ -235,11 +306,28 @@ class OrderService
             throw new \Exception('Cannot cancel order in current status');
         }
 
+        // KHÔNG cho phép hủy nếu đã thanh toán
+        if ($order->payment_status === 'paid') {
+            throw new \Exception('Cannot cancel paid order. Please contact admin for refund.');
+        }
+
         DB::beginTransaction();
         try {
             // Hoàn lại tồn kho
             foreach ($order->items as $item) {
                 $item->product->increment('stock_quantity', $item->quantity);
+
+                // Tạo stock transaction để track
+                StockTransaction::create([
+                    'type' => 'IMPORT',
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'reference_type' => 'ORDER_CANCELLED',
+                    'reference_id' => $order->id,
+                    'performed_by' => $userId,
+                    'notes' => "Stock restored from cancelled order #{$order->order_number}",
+                    'transaction_date' => now(),
+                ]);
             }
 
             // Restore coupon usage if applicable
@@ -248,8 +336,27 @@ class OrderService
             }
 
             // Cập nhật trạng thái
+            $oldStatus = $order->status;
             $order->status = 'CANCELLED';
             $order->save();
+
+            // Kiểm tra tính nhất quán order-payment
+            BusinessValidator::checkOrderPaymentConsistency(
+                $order->id,
+                $order->order_number,
+                $order->status,
+                $order->payment_status,
+                $order->total
+            );
+
+            // Log event hủy đơn
+            BusinessValidator::logBusinessEvent('ORDER_CANCELLED', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'user_id' => $userId,
+                'old_status' => $oldStatus,
+                'total' => $order->total,
+            ]);
 
             // Trả sản phẩm về giỏ hàng (nếu user muốn mua lại)
             $this->restoreCartFromOrder($order);
