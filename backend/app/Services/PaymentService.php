@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Services\OrderService;
+use App\Helpers\BusinessValidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -76,6 +77,27 @@ class PaymentService
 
         if (!$order) {
             throw new \Exception('Order not found');
+        }
+
+        // CRITICAL VALIDATION: So sánh số tiền thanh toán với tổng đơn hàng
+        if ($vnpAmount != $order->total) {
+            Log::error('🚨 VNPay amount mismatch detected!', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'order_total' => $order->total,
+                'vnpay_amount' => $vnpAmount,
+                'difference' => $order->total - $vnpAmount,
+            ]);
+
+            BusinessValidator::alert('PAYMENT_AMOUNT_MISMATCH', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'expected_amount' => $order->total,
+                'received_amount' => $vnpAmount,
+                'vnp_txn_ref' => $vnpTxnRef,
+            ]);
+
+            throw new \Exception('Payment amount does not match order total');
         }
 
         DB::beginTransaction();
@@ -178,6 +200,30 @@ class PaymentService
             return [
                 'RspCode' => '01',
                 'Message' => 'Order not found'
+            ];
+        }
+
+        // CRITICAL VALIDATION: So sánh số tiền thanh toán với tổng đơn hàng (IPN)
+        if ($vnpAmount != $order->total) {
+            Log::error('🚨 VNPay IPN amount mismatch detected!', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'order_total' => $order->total,
+                'vnpay_amount' => $vnpAmount,
+                'difference' => $order->total - $vnpAmount,
+            ]);
+
+            BusinessValidator::alert('PAYMENT_AMOUNT_MISMATCH_IPN', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'expected_amount' => $order->total,
+                'received_amount' => $vnpAmount,
+                'vnp_txn_ref' => $vnpTxnRef,
+            ]);
+
+            return [
+                'RspCode' => '04',
+                'Message' => 'Invalid Amount'
             ];
         }
 
