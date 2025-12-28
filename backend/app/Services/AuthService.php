@@ -297,12 +297,10 @@ class AuthService
      */
     public function handleGoogleCallback($request = null): array
     {
-        $guzzleClient = new \GuzzleHttp\Client([
-            'verify' => false,
-        ]);
+        // CRITICAL FIX: Removed 'verify' => false to enable SSL verification
+        // This prevents Man-in-the-Middle attacks on OAuth flow
 
         $googleUser = Socialite::driver('google')
-            ->setHttpClient($guzzleClient)
             ->stateless()
             ->user();
 
