@@ -81,13 +81,17 @@ class UserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:100',
+                // User fields
                 'email' => 'required|email|max:100|unique:users,email',
                 'password' => 'required|string|min:6',
-                'phone' => 'nullable|string|max:15',
                 'role' => ['required', Rule::in(['USER', 'ADMIN'])],
                 'is_active' => 'nullable|boolean',
                 'avatar' => 'nullable|image|max:2048',
+                // Customer fields
+                'name' => 'required|string|max:100',
+                'shipping_phone' => 'nullable|string|max:15',
+                'shipping_name' => 'nullable|string|max:200',
+                'shipping_address' => 'nullable|string',
             ]);
 
             $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;
@@ -121,13 +125,17 @@ class UserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'string|max:100',
+                // User fields
                 'email' => ['email', 'max:100', Rule::unique('users', 'email')->ignore($id)],
                 'password' => 'nullable|string|min:6',
-                'phone' => 'nullable|string|max:15',
                 'role' => [Rule::in(['USER', 'ADMIN'])],
                 'is_active' => 'nullable|boolean',
                 'avatar' => 'nullable|image|max:2048',
+                // Customer fields
+                'name' => 'string|max:100',
+                'shipping_phone' => 'nullable|string|max:15',
+                'shipping_name' => 'nullable|string|max:200',
+                'shipping_address' => 'nullable|string',
             ]);
 
             $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;

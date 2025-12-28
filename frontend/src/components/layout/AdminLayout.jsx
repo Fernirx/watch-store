@@ -38,7 +38,7 @@ const AdminLayout = () => {
       <aside className="admin-sidebar">
         <div className="admin-brand">
           <h2> Watch Store</h2>
-          <p>{user?.name}</p>
+          <p>{user?.customer?.name}</p>
         </div>
 
         <nav className="admin-nav">

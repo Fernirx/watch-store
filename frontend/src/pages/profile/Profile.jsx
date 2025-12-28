@@ -1,28 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { profileService, addressService } from '../../services';
+import { profileService } from '../../services';
 import '../../styles/Profile.css';
 
 const Profile = () => {
     const { user, isAuthenticated, updateUser } = useAuth();
     const navigate = useNavigate();
 
-    // Profile state
+    // Profile state (bao gồm cả shipping address)
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
-        phone: '',
-    });
-
-    // Address state
-    const [addressData, setAddressData] = useState({
-        recipient_name: '',
-        phone: '',
-        street: '',
-        ward: '',
-        city: '',
-        postal_code: '',
+        shipping_name: '',
+        shipping_phone: '',
+        shipping_address: '',
     });
 
     // Password state
@@ -35,11 +27,9 @@ const Profile = () => {
     // UI state
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
-    const [activeTab, setActiveTab] = useState('profile'); // profile | address | password
+    const [activeTab, setActiveTab] = useState('profile'); // profile | password
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(null);
-    const [hasAddress, setHasAddress] = useState(false);
-    const [addressId, setAddressId] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -47,29 +37,20 @@ const Profile = () => {
             return;
         }
         fetchProfile();
-        fetchAddress();
     }, [isAuthenticated]);
-
-    // Auto-fill tên và SĐT từ profile khi chưa có địa chỉ
-    useEffect(() => {
-        if (!hasAddress && profileData.name && profileData.phone) {
-            setAddressData(prev => ({
-                ...prev,
-                recipient_name: profileData.name,
-                phone: profileData.phone,
-            }));
-        }
-    }, [hasAddress, profileData.name, profileData.phone]);
 
     const fetchProfile = async () => {
         try {
             const response = await profileService.getProfile();
             if (response.success) {
                 const userData = response.data;
+                const customer = userData.customer || {};
                 setProfileData({
-                    name: userData.name || '',
+                    name: customer.name || '',
                     email: userData.email || '',
-                    phone: userData.phone || '',
+                    shipping_name: customer.shipping_name || '',
+                    shipping_phone: customer.shipping_phone || '',
+                    shipping_address: customer.shipping_address || '',
                 });
                 setAvatarPreview(userData.avatar_url);
             }
@@ -78,48 +59,8 @@ const Profile = () => {
         }
     };
 
-    const fetchAddress = async () => {
-        try {
-            const response = await addressService.getDefaultAddress();
-            if (response.success && response.data) {
-                const addr = response.data;
-                setAddressData({
-                    recipient_name: addr.recipient_name || '',
-                    phone: addr.phone || '',
-                    street: addr.street || '',
-                    ward: addr.ward || '',
-                    city: addr.city || '',
-                    postal_code: addr.postal_code || '',
-                });
-                setHasAddress(true);
-                setAddressId(addr.id);
-            } else {
-                // Chưa có địa chỉ → auto-fill tên và SĐT từ profile
-                setHasAddress(false);
-                setAddressData(prev => ({
-                    ...prev,
-                    recipient_name: user?.name || '',
-                    phone: user?.phone || '',
-                }));
-            }
-        } catch (error) {
-            console.error('Failed to fetch address:', error);
-            setHasAddress(false);
-            // Auto-fill tên và SĐT từ profile khi có lỗi
-            setAddressData(prev => ({
-                ...prev,
-                recipient_name: user?.name || '',
-                phone: user?.phone || '',
-            }));
-        }
-    };
-
     const handleProfileChange = (e) => {
         setProfileData({ ...profileData, [e.target.name]: e.target.value });
-    };
-
-    const handleAddressChange = (e) => {
-        setAddressData({ ...addressData, [e.target.name]: e.target.value });
     };
 
     const handlePasswordChange = (e) => {
@@ -171,7 +112,6 @@ const Profile = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            // Update profile (avatar đã upload tự động khi chọn file)
             const response = await profileService.updateProfile(profileData);
             if (response.success) {
                 setMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
@@ -185,41 +125,6 @@ const Profile = () => {
             setMessage({
                 type: 'error',
                 text: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAddressSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage({ type: '', text: '' });
-
-        try {
-            let response;
-            if (hasAddress && addressId) {
-                // Update existing address
-                response = await addressService.updateAddress(addressId, addressData);
-            } else {
-                // Create new address
-                response = await addressService.createAddress({
-                    ...addressData,
-                    is_default: true,
-                });
-            }
-
-            if (response.success) {
-                setMessage({ type: 'success', text: 'Cập nhật địa chỉ thành công!' });
-                if (!hasAddress) {
-                    setHasAddress(true);
-                    setAddressId(response.data.id);
-                }
-            }
-        } catch (error) {
-            setMessage({
-                type: 'error',
-                text: error.response?.data?.message || 'Cập nhật địa chỉ thất bại'
             });
         } finally {
             setLoading(false);
@@ -263,268 +168,215 @@ const Profile = () => {
     };
 
     const handleDeleteAvatar = async () => {
-        if (!window.confirm('Bạn có chắc muốn xóa ảnh đại diện?')) return;
+        if (!window.confirm('Bạn có chắc muốn xóa avatar?')) return;
+
+        setLoading(true);
+        setMessage({ type: '', text: '' });
 
         try {
             const response = await profileService.deleteAvatar();
             if (response.success) {
+                setMessage({ type: 'success', text: 'Xóa avatar thành công!' });
                 setAvatarPreview(null);
-                setMessage({ type: 'success', text: 'Xóa ảnh đại diện thành công!' });
+                if (user) {
+                    updateUser({ ...user, avatar_url: null });
+                }
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Xóa ảnh đại diện thất bại' });
+            setMessage({
+                type: 'error',
+                text: error.response?.data?.message || 'Xóa avatar thất bại'
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="profile-container">
-            <div className="profile-wrapper">
-                <h1>Quản lý tài khoản</h1>
+        <div className="profile-page">
+            <div className="container">
+                <h1>Tài Khoản Của Tôi</h1>
 
-                {/* Tabs */}
-                <div className="profile-tabs">
-                    <button
-                        className={activeTab === 'profile' ? 'active' : ''}
-                        onClick={() => setActiveTab('profile')}
-                    >
-                        Thông tin cá nhân
-                    </button>
-                    <button
-                        className={activeTab === 'address' ? 'active' : ''}
-                        onClick={() => setActiveTab('address')}
-                    >
-                        Địa chỉ giao hàng
-                    </button>
-                    <button
-                        className={activeTab === 'password' ? 'active' : ''}
-                        onClick={() => setActiveTab('password')}
-                    >
-                        Đổi mật khẩu
-                    </button>
-                </div>
-
-                {/* Message */}
                 {message.text && (
                     <div className={`message ${message.type}`}>
                         {message.text}
                     </div>
                 )}
 
-                {/* Profile Tab */}
-                {activeTab === 'profile' && (
-                    <form onSubmit={handleProfileSubmit} className="profile-form">
-                        <div className="avatar-section">
-                            <div className="avatar-preview">
-                                {avatarPreview ? (
-                                    <img src={avatarPreview} alt="Avatar" />
-                                ) : (
-                                    <div className="avatar-placeholder">
-                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                    </div>
-                                )}
+                <div className="profile-tabs">
+                    <button
+                        className={activeTab === 'profile' ? 'active' : ''}
+                        onClick={() => setActiveTab('profile')}
+                    >
+                        Thông Tin Cá Nhân
+                    </button>
+                    <button
+                        className={activeTab === 'password' ? 'active' : ''}
+                        onClick={() => setActiveTab('password')}
+                    >
+                        Đổi Mật Khẩu
+                    </button>
+                </div>
+
+                <div className="profile-content">
+                    {/* Tab Thông Tin Cá Nhân */}
+                    {activeTab === 'profile' && (
+                        <form onSubmit={handleProfileSubmit} className="profile-form">
+                            <h2>Thông Tin Cá Nhân</h2>
+
+                            {/* Avatar */}
+                            <div className="avatar-section">
+                                <div className="avatar-preview">
+                                    {avatarPreview ? (
+                                        <img src={avatarPreview} alt="Avatar" />
+                                    ) : (
+                                        <div className="avatar-placeholder">
+                                            {user?.customer?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="avatar-actions">
+                                    <label htmlFor="avatar-upload" className="btn-upload">
+                                        Chọn Ảnh
+                                        <input
+                                            id="avatar-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarChange}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </label>
+                                    {avatarPreview && (
+                                        <button type="button" onClick={handleDeleteAvatar} className="btn-delete">
+                                            Xóa Avatar
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            <div className="avatar-actions">
-                                <label htmlFor="avatar-upload" className="btn-upload">
-                                    {loading ? 'Đang tải...' : 'Chọn ảnh'}
-                                </label>
+
+                            {/* Thông tin cơ bản */}
+                            <div className="form-group">
+                                <label>Họ và tên *</label>
                                 <input
-                                    id="avatar-upload"
-                                    type="file"
-                                    accept="image/jpeg,image/png,image/jpg,image/gif"
-                                    onChange={handleAvatarChange}
-                                    style={{ display: 'none' }}
-                                    disabled={loading}
+                                    type="text"
+                                    name="name"
+                                    value={profileData.name}
+                                    onChange={handleProfileChange}
+                                    required
                                 />
-                                <small style={{ color: '#666', fontSize: '12px' }}>
-                                    Tự động upload khi chọn (max 2MB)
+                            </div>
+
+                            <div className="form-group">
+                                <label>Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={profileData.email}
+                                    onChange={handleProfileChange}
+                                    required
+                                    readOnly
+                                    disabled
+                                    style={{
+                                        backgroundColor: '#f3f4f6',
+                                        cursor: 'not-allowed',
+                                        opacity: 0.7
+                                    }}
+                                />
+                                <small style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                                    Email không thể thay đổi
                                 </small>
-                                {avatarPreview && (
-                                    <button
-                                        type="button"
-                                        onClick={handleDeleteAvatar}
-                                        className="btn-delete"
-                                        disabled={loading}
-                                    >
-                                        Xóa ảnh
-                                    </button>
-                                )}
                             </div>
-                        </div>
 
-                        <div className="form-group">
-                            <label>Họ tên</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={profileData.name}
-                                onChange={handleProfileChange}
-                                required
-                            />
-                        </div>
+                            <hr style={{ margin: '2rem 0', border: '1px solid #e5e7eb' }} />
 
-                        <div className="form-group">
-                            <label>Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={profileData.email}
-                                onChange={handleProfileChange}
-                                required
-                                readOnly
-                                disabled
-                                style={{
-                                    backgroundColor: '#f3f4f6',
-                                    cursor: 'not-allowed',
-                                    opacity: 0.7
-                                }}
-                            />
-                            <small style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
-                                Email không thể thay đổi
-                            </small>
-                        </div>
+                            {/* Địa chỉ giao hàng */}
+                            <h3>Địa Chỉ Giao Hàng Mặc Định</h3>
 
-                        <div className="form-group">
-                            <label>Số điện thoại</label>
-                            <input
-                                type="tel"
-                                name="phone"
-                                value={profileData.phone}
-                                onChange={handleProfileChange}
-                                placeholder="0912345678"
-                            />
-                        </div>
-
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                            {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                        </button>
-                    </form>
-                )}
-
-                {/* Address Tab */}
-                {activeTab === 'address' && (
-                    <form onSubmit={handleAddressSubmit} className="profile-form">
-                        <div className="form-group">
-                            <label>Tên người nhận</label>
-                            <input
-                                type="text"
-                                name="recipient_name"
-                                value={addressData.recipient_name}
-                                onChange={handleAddressChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Số điện thoại</label>
-                            <input
-                                type="tel"
-                                name="phone"
-                                value={addressData.phone}
-                                onChange={handleAddressChange}
-                                placeholder="0912345678"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Địa chỉ chi tiết (số nhà, tên đường)</label>
-                            <input
-                                type="text"
-                                name="street"
-                                value={addressData.street}
-                                onChange={handleAddressChange}
-                                placeholder="123 Lê Lợi"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-row">
                             <div className="form-group">
-                                <label>Phường/Xã</label>
+                                <label>Tên người nhận</label>
                                 <input
                                     type="text"
-                                    name="ward"
-                                    value={addressData.ward}
-                                    onChange={handleAddressChange}
-                                    placeholder="Phường Bến Nghé"
+                                    name="shipping_name"
+                                    value={profileData.shipping_name}
+                                    onChange={handleProfileChange}
+                                    placeholder="Tên người nhận hàng"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Số điện thoại nhận hàng</label>
+                                <input
+                                    type="tel"
+                                    name="shipping_phone"
+                                    value={profileData.shipping_phone}
+                                    onChange={handleProfileChange}
+                                    placeholder="Số điện thoại để shipper liên lạc"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Địa chỉ giao hàng</label>
+                                <textarea
+                                    name="shipping_address"
+                                    value={profileData.shipping_address}
+                                    onChange={handleProfileChange}
+                                    rows="3"
+                                    placeholder="Địa chỉ đầy đủ (Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+                                />
+                            </div>
+
+                            <button type="submit" className="btn-submit" disabled={loading}>
+                                {loading ? 'Đang cập nhật...' : 'Cập Nhật Thông Tin'}
+                            </button>
+                        </form>
+                    )}
+
+                    {/* Tab Đổi Mật Khẩu */}
+                    {activeTab === 'password' && (
+                        <form onSubmit={handlePasswordSubmit} className="password-form">
+                            <h2>Đổi Mật Khẩu</h2>
+
+                            <div className="form-group">
+                                <label>Mật khẩu hiện tại *</label>
+                                <input
+                                    type="password"
+                                    name="current_password"
+                                    value={passwordData.current_password}
+                                    onChange={handlePasswordChange}
                                     required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>Tỉnh/Thành phố</label>
+                                <label>Mật khẩu mới *</label>
                                 <input
-                                    type="text"
-                                    name="city"
-                                    value={addressData.city}
-                                    onChange={handleAddressChange}
-                                    placeholder="TP. Hồ Chí Minh"
+                                    type="password"
+                                    name="new_password"
+                                    value={passwordData.new_password}
+                                    onChange={handlePasswordChange}
                                     required
+                                    minLength={8}
                                 />
                             </div>
-                        </div>
 
-                        <div className="form-group">
-                            <label>Mã bưu điện (tùy chọn)</label>
-                            <input
-                                type="text"
-                                name="postal_code"
-                                value={addressData.postal_code}
-                                onChange={handleAddressChange}
-                                placeholder="700000"
-                                maxLength="6"
-                            />
-                        </div>
+                            <div className="form-group">
+                                <label>Xác nhận mật khẩu mới *</label>
+                                <input
+                                    type="password"
+                                    name="new_password_confirmation"
+                                    value={passwordData.new_password_confirmation}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    minLength={8}
+                                />
+                            </div>
 
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                            {loading ? 'Đang lưu...' : hasAddress ? 'Cập nhật địa chỉ' : 'Lưu địa chỉ'}
-                        </button>
-                    </form>
-                )}
-
-                {/* Password Tab */}
-                {activeTab === 'password' && (
-                    <form onSubmit={handlePasswordSubmit} className="profile-form">
-                        <div className="form-group">
-                            <label>Mật khẩu hiện tại</label>
-                            <input
-                                type="password"
-                                name="current_password"
-                                value={passwordData.current_password}
-                                onChange={handlePasswordChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Mật khẩu mới</label>
-                            <input
-                                type="password"
-                                name="new_password"
-                                value={passwordData.new_password}
-                                onChange={handlePasswordChange}
-                                minLength="8"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Xác nhận mật khẩu mới</label>
-                            <input
-                                type="password"
-                                name="new_password_confirmation"
-                                value={passwordData.new_password_confirmation}
-                                onChange={handlePasswordChange}
-                                minLength="8"
-                                required
-                            />
-                        </div>
-
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                            {loading ? 'Đang lưu...' : 'Đổi mật khẩu'}
-                        </button>
-                    </form>
-                )}
+                            <button type="submit" className="btn-submit" disabled={loading}>
+                                {loading ? 'Đang cập nhật...' : 'Đổi Mật Khẩu'}
+                            </button>
+                        </form>
+                    )}
+                </div>
             </div>
         </div>
     );

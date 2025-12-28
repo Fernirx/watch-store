@@ -10,16 +10,14 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('email', 100)->unique();
-            $table->string('password')->nullable();
-            $table->enum('provider', ['LOCAL', 'GOOGLE'])->default('LOCAL');
-            $table->string('provider_id')->nullable();
-            $table->string('name', 100);
-            $table->string('phone', 15)->nullable();
-            $table->string('avatar_url')->nullable();
-            $table->enum('role', ['USER', 'ADMIN'])->default('USER');
-            $table->boolean('is_active')->default(true);
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('email', 100)->unique()->comment('Email đăng nhập');
+            $table->string('password')->nullable()->comment('Mật khẩu (null nếu đăng nhập qua Google)');
+            $table->enum('provider', ['LOCAL', 'GOOGLE'])->default('LOCAL')->comment('Phương thức đăng nhập');
+            $table->string('provider_id')->nullable()->comment('ID từ provider (Google ID)');
+            $table->string('avatar_url')->nullable()->comment('URL avatar');
+            $table->enum('role', ['USER', 'ADMIN'])->default('USER')->comment('Vai trò');
+            $table->boolean('is_active')->default(true)->comment('Trạng thái active');
+            $table->timestamp('email_verified_at')->nullable()->comment('Thời điểm verify email');
             $table->timestamps();
             $table->index(['provider', 'provider_id']);
         });

@@ -13,11 +13,9 @@ class User extends Authenticatable implements JWTSubject
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
         'email',
         'password',
         'email_verified_at',
-        'phone',
         'avatar_url',
         'provider',
         'provider_id',
@@ -59,22 +57,16 @@ class User extends Authenticatable implements JWTSubject
             ->withTimestamps();
     }
 
+    // Relationship với Customer
+    public function customer()
+    {
+        return $this->hasOne(Customer::class);
+    }
+
     // Relationship với Wishlist
     public function wishlist()
     {
         return $this->hasOne(Wishlist::class);
-    }
-
-    // Relationship với Addresses
-    public function addresses()
-    {
-        return $this->hasMany(Address::class);
-    }
-
-    // Lấy địa chỉ mặc định
-    public function defaultAddress()
-    {
-        return $this->hasOne(Address::class)->where('is_default', true);
     }
 
     // JWT Methods

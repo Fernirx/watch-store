@@ -47,8 +47,10 @@ class ProfileController extends Controller
 
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:100',
-                'phone' => 'sometimes|nullable|string|max:15',
                 'email' => 'sometimes|required|email|max:100|unique:users,email,' . $user->id,
+                'shipping_name' => 'sometimes|nullable|string|max:200',
+                'shipping_phone' => 'sometimes|nullable|string|max:15',
+                'shipping_address' => 'sometimes|nullable|string',
             ]);
 
             $updatedUser = $this->profileService->updateProfile($user->id, $validated);

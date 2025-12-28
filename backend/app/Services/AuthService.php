@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\OTPMail;
+use App\Models\Customer;
 use App\Models\Otp;
 use App\Models\RefreshToken;
 use App\Models\User;
@@ -50,14 +51,19 @@ class AuthService
     }
 
     /**
-     * Đăng ký tài khoản mới
+     * Đăng ký tài khoản mới (phương thức cũ, không dùng nữa)
      */
     public function register(array $data): array
     {
         $user = User::create([
-            'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+        ]);
+
+        // Tạo customer profile
+        Customer::create([
+            'user_id' => $user->id,
+            'name' => $data['name'],
         ]);
 
         $accessToken = auth('api')->login($user);
@@ -202,12 +208,17 @@ class AuthService
             throw new \Exception('Email đã được đăng ký');
         }
 
-        // Tạo user mới
+        // Tạo user mới (chỉ auth info)
         $user = User::create([
-            'name' => $name,
             'email' => $email,
             'password' => Hash::make($password),
             'email_verified_at' => now(),
+        ]);
+
+        // Tạo customer profile
+        Customer::create([
+            'user_id' => $user->id,
+            'name' => $name,
         ]);
 
         // Merge guest cart if guest_token provided
@@ -295,12 +306,17 @@ class AuthService
         if (!$user) {
             // Tạo user mới
             $user = User::create([
-                'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
                 'avatar_url' => $googleUser->getAvatar(),
                 'provider' => 'GOOGLE',
                 'provider_id' => $googleUser->getId(),
                 'email_verified_at' => now(),
+            ]);
+
+            // Tạo customer profile
+            Customer::create([
+                'user_id' => $user->id,
+                'name' => $googleUser->getName(),
             ]);
         } else {
             // Cập nhật thông tin Google nếu chưa có

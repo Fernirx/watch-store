@@ -90,7 +90,7 @@ const Header = () => {
                   aria-haspopup="true"
                 >
                   <div className="profile-avatar" aria-hidden>
-                    {(user?.name?.charAt(0) || 'U').toUpperCase()}
+                    {(user?.customer?.name?.charAt(0) || 'U').toUpperCase()}
                   </div>
                   <svg
                     className="profile-caret"
@@ -110,7 +110,7 @@ const Header = () => {
                 {isProfileOpen && (
                   <div className="profile-dropdown" role="menu">
                     <div className="profile-meta">
-                      <span className="profile-name">{user?.name || 'Người dùng'}</span>
+                      <span className="profile-name">{user?.customer?.name || 'Người dùng'}</span>
                       {user?.email && <span className="profile-email">{user.email}</span>}
                     </div>
                     <Link

@@ -17,7 +17,7 @@ const Users = () => {
     name: '',
     email: '',
     password: '',
-    phone: '',
+    shipping_phone: '',
     role: 'USER',
     is_active: true,
     avatar: null,
@@ -109,9 +109,9 @@ const Users = () => {
       errors.push('Mật khẩu phải có ít nhất 6 ký tự');
     }
 
-    // Validate phone nếu có
-    if (formData.phone && !/^[0-9]{10,15}$/.test(formData.phone.replace(/\s/g, ''))) {
-      errors.push('Số điện thoại phải có 10-15 chữ số');
+    // Validate shipping_phone nếu có
+    if (formData.shipping_phone && !/^[0-9]{10,15}$/.test(formData.shipping_phone.replace(/\s/g, ''))) {
+      errors.push('Số điện thoại giao hàng phải có 10-15 chữ số');
     }
 
     return errors;
@@ -131,7 +131,7 @@ const Users = () => {
       const submitData = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone || '',
+        shipping_phone: formData.shipping_phone || '',
         role: formData.role,
         is_active: formData.is_active,
       };
@@ -169,10 +169,10 @@ const Users = () => {
   const handleEdit = (user) => {
     setEditingId(user.id);
     setFormData({
-      name: user.name,
+      name: user.customer?.name || '',
       email: user.email,
       password: '', // Không hiển thị mật khẩu cũ
-      phone: user.phone || '',
+      shipping_phone: user.customer?.shipping_phone || '',
       role: user.role,
       is_active: user.is_active,
       avatar: null,
@@ -212,7 +212,7 @@ const Users = () => {
       name: '',
       email: '',
       password: '',
-      phone: '',
+      shipping_phone: '',
       role: 'USER',
       is_active: true,
       avatar: null,
@@ -368,15 +368,15 @@ const Users = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="phone">Số điện thoại</label>
+                  <label htmlFor="shipping_phone">Số điện thoại giao hàng</label>
                   <input
                     type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
+                    id="shipping_phone"
+                    name="shipping_phone"
+                    value={formData.shipping_phone}
                     onChange={handleChange}
                     className="form-control"
-                    placeholder="Nhập số điện thoại..."
+                    placeholder="Nhập số điện thoại giao hàng..."
                   />
                 </div>
 
@@ -486,7 +486,7 @@ const Users = () => {
                   Email
                 </th>
                 <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '700', color: '#475569' }}>
-                  Điện thoại
+                  SĐT giao hàng
                 </th>
                 <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '700', color: '#475569' }}>
                   Vai trò
@@ -506,7 +506,7 @@ const Users = () => {
                     {user.avatar_url ? (
                       <img
                         src={user.avatar_url}
-                        alt={user.name}
+                        alt={user.customer?.name || 'User'}
                         style={{
                           width: '40px',
                           height: '40px',
@@ -529,9 +529,9 @@ const Users = () => {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '1rem', fontWeight: '600', color: '#1e293b' }}>{user.name}</td>
+                  <td style={{ padding: '1rem', fontWeight: '600', color: '#1e293b' }}>{user.customer?.name || '-'}</td>
                   <td style={{ padding: '1rem', color: '#64748b' }}>{user.email}</td>
-                  <td style={{ padding: '1rem', color: '#64748b' }}>{user.phone || '-'}</td>
+                  <td style={{ padding: '1rem', color: '#64748b' }}>{user.customer?.shipping_phone || '-'}</td>
                   <td style={{ padding: '1rem' }}>
                     <span style={{
                       padding: '0.25rem 0.75rem',

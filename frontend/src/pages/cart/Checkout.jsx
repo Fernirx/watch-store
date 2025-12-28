@@ -4,7 +4,6 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
 import paymentService from '../../services/paymentService';
-import { addressService } from '../../services';
 import guestService from '../../services/guestService';
 import couponService from '../../services/couponService';
 import guestOtpService from '../../services/guestOtpService';
@@ -24,8 +23,6 @@ const Checkout = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [savedAddress, setSavedAddress] = useState(null);
-  const [recipientName, setRecipientName] = useState('');
 
   // Coupon states
   const [couponCode, setCouponCode] = useState('');
@@ -46,13 +43,15 @@ const Checkout = () => {
     fetchCart();
 
     // Tự động điền thông tin user nếu đã đăng nhập
-    if (isAuthenticated && user) {
-      // Chỉ set email trước, tên và SĐT sẽ được set trong fetchSavedAddress
+    if (isAuthenticated && user && user.customer) {
+      const customer = user.customer;
       setFormData(prev => ({
         ...prev,
+        customer_name: customer.shipping_name || customer.name || '',
         customer_email: user.email || '',
+        shipping_phone: customer.shipping_phone || '',
+        shipping_address: customer.shipping_address || '',
       }));
-      fetchSavedAddress();
     }
   }, [isAuthenticated, user]);
 
@@ -71,45 +70,6 @@ const Checkout = () => {
       return () => clearInterval(timer);
     }
   }, [otpCountdown]);
-
-  const fetchSavedAddress = async () => {
-    try {
-      const response = await addressService.getDefaultAddress();
-      if (response.success && response.data) {
-        const addr = response.data;
-        setSavedAddress(addr);
-        setRecipientName(addr.recipient_name || '');
-
-        // Auto-fill shipping info từ địa chỉ đã lưu
-        const fullAddress = `${addr.street}, ${addr.ward}, ${addr.city}${addr.postal_code ? ', ' + addr.postal_code : ''}`;
-        setFormData(prev => ({
-          ...prev,
-          customer_name: addr.recipient_name || user.name || '', // Dùng tên người nhận từ địa chỉ
-          shipping_address: fullAddress,
-          shipping_phone: addr.phone || '', // Dùng SĐT từ địa chỉ
-        }));
-      } else if (user) {
-        // Nếu không có địa chỉ đã lưu, dùng thông tin user
-        setFormData(prev => ({
-          ...prev,
-          customer_name: user.name || '', // Dùng tên từ profile
-          shipping_phone: user.phone || '', // Dùng SĐT từ profile
-        }));
-        setRecipientName(user.name || '');
-      }
-    } catch (error) {
-      console.error('Failed to fetch saved address:', error);
-      // Fallback to user info
-      if (user) {
-        setFormData(prev => ({
-          ...prev,
-          customer_name: user.name || '', // Dùng tên từ profile
-          shipping_phone: user.phone || '', // Dùng SĐT từ profile
-        }));
-        setRecipientName(user.name || '');
-      }
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
@@ -420,20 +380,11 @@ const Checkout = () => {
               </div>
             )}
 
-            {isAuthenticated && savedAddress && (
+            {isAuthenticated && (
               <div className="saved-address-notice">
-                <p>✓ Sử dụng địa chỉ đã lưu: <strong>{recipientName}</strong></p>
+                <p>✓ Thông tin đã được tự động điền từ hồ sơ của bạn</p>
                 <Link to="/profile" className="edit-address-link">
-                  Chỉnh sửa địa chỉ
-                </Link>
-              </div>
-            )}
-
-            {isAuthenticated && !savedAddress && (
-              <div className="no-address-notice">
-                <p>Bạn chưa có địa chỉ đã lưu.</p>
-                <Link to="/profile" className="add-address-link">
-                  Thêm địa chỉ vào hồ sơ
+                  Chỉnh sửa thông tin trong hồ sơ
                 </Link>
               </div>
             )}

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,7 +21,7 @@ class UserService
      */
     public function getUsers(array $filters = []): LengthAwarePaginator
     {
-        $query = User::query();
+        $query = User::with('customer');
 
         // Filter by role
         if (!empty($filters['role'])) {
@@ -36,8 +37,10 @@ class UserService
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('email', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                        $customerQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -57,7 +60,7 @@ class UserService
      */
     public function getUserById(int $id): ?User
     {
-        return User::find($id);
+        return User::with('customer')->find($id);
     }
 
     /**
@@ -65,26 +68,53 @@ class UserService
      */
     public function createUser(array $data, $avatarFile = null): User
     {
+        // Tách data: user vs customer
+        $userData = [];
+        $customerData = [];
+
+        // User fields
+        foreach (['email', 'password', 'role', 'is_active'] as $field) {
+            if (isset($data[$field])) {
+                $userData[$field] = $data[$field];
+            }
+        }
+
+        // Customer fields
+        foreach (['name', 'shipping_phone', 'shipping_name', 'shipping_address'] as $field) {
+            if (isset($data[$field])) {
+                $customerData[$field] = $data[$field];
+            }
+        }
+
         // Set default is_active if not provided
-        if (!isset($data['is_active'])) {
-            $data['is_active'] = true;
+        if (!isset($userData['is_active'])) {
+            $userData['is_active'] = true;
         }
 
         // Hash password
-        $data['password'] = Hash::make($data['password']);
+        $userData['password'] = Hash::make($userData['password']);
 
         // Upload avatar if provided
         if ($avatarFile) {
             $uploadResult = $this->cloudinaryService->upload($avatarFile, 'watch-store/avatars');
-            $data['avatar_url'] = $uploadResult['url'];
+            $userData['avatar_url'] = $uploadResult['url'];
         }
 
-        $user = User::create($data);
+        // Create user
+        $user = User::create($userData);
+
+        // Create customer record
+        if (!empty($customerData)) {
+            Customer::create([
+                'user_id' => $user->id,
+                ...$customerData,
+            ]);
+        }
 
         // Remove password from response
         $user->makeHidden('password');
 
-        return $user;
+        return $user->fresh('customer');
     }
 
     /**
@@ -94,12 +124,30 @@ class UserService
     {
         $user = User::findOrFail($id);
 
+        // Tách data: user vs customer
+        $userData = [];
+        $customerData = [];
+
+        // User fields
+        foreach (['email', 'password', 'role', 'is_active'] as $field) {
+            if (isset($data[$field])) {
+                $userData[$field] = $data[$field];
+            }
+        }
+
+        // Customer fields
+        foreach (['name', 'shipping_phone', 'shipping_name', 'shipping_address'] as $field) {
+            if (isset($data[$field])) {
+                $customerData[$field] = $data[$field];
+            }
+        }
+
         // Hash password if provided
-        if (isset($data['password']) && !empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
+        if (isset($userData['password']) && !empty($userData['password'])) {
+            $userData['password'] = Hash::make($userData['password']);
         } else {
             // Remove password from data if empty
-            unset($data['password']);
+            unset($userData['password']);
         }
 
         // Upload avatar if provided
@@ -113,13 +161,29 @@ class UserService
             }
 
             $uploadResult = $this->cloudinaryService->upload($avatarFile, 'watch-store/avatars');
-            $data['avatar_url'] = $uploadResult['url'];
+            $userData['avatar_url'] = $uploadResult['url'];
         }
 
-        $user->update($data);
+        // Update user
+        if (!empty($userData)) {
+            $user->update($userData);
+        }
+
+        // Update hoặc tạo customer
+        if (!empty($customerData)) {
+            if ($user->customer) {
+                $user->customer->update($customerData);
+            } else {
+                Customer::create([
+                    'user_id' => $user->id,
+                    ...$customerData,
+                ]);
+            }
+        }
+
         $user->makeHidden('password');
 
-        return $user->fresh();
+        return $user->fresh('customer');
     }
 
     /**

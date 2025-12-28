@@ -15,25 +15,51 @@ class ProfileService
     }
 
     /**
-     * Lấy thông tin profile của user
+     * Lấy thông tin profile của user (bao gồm customer)
      */
     public function getProfile(int $userId): User
     {
-        $user = User::findOrFail($userId);
-        $user->load('defaultAddress');
+        $user = User::with('customer')->findOrFail($userId);
 
         return $user;
     }
 
     /**
-     * Cập nhật thông tin profile
+     * Cập nhật thông tin profile (customer data)
      */
     public function updateProfile(int $userId, array $data): User
     {
         $user = User::findOrFail($userId);
-        $user->update($data);
 
-        return $user->fresh();
+        // Tách data: user table chỉ có avatar_url (nếu có)
+        $userData = [];
+        $customerData = [];
+
+        // Phân loại data
+        foreach ($data as $key => $value) {
+            if (in_array($key, ['name', 'shipping_name', 'shipping_phone', 'shipping_address'])) {
+                $customerData[$key] = $value;
+            } elseif ($key === 'avatar_url') {
+                $userData[$key] = $value;
+            }
+        }
+
+        // Update user table (nếu có)
+        if (!empty($userData)) {
+            $user->update($userData);
+        }
+
+        // Update hoặc tạo customer
+        if (!empty($customerData)) {
+            if ($user->customer) {
+                $user->customer->update($customerData);
+            } else {
+                // Tạo customer nếu chưa có (trường hợp user cũ hoặc Google login)
+                $user->customer()->create($customerData);
+            }
+        }
+
+        return $user->fresh('customer');
     }
 
     /**

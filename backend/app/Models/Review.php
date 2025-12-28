@@ -69,8 +69,8 @@ class Review extends Model
      */
     public function getReviewerNameAttribute(): string
     {
-        if ($this->user) {
-            return $this->user->name;
+        if ($this->user && $this->user->customer) {
+            return $this->user->customer->name;
         }
         return $this->guest_name ?? 'Khách hàng';
     }
