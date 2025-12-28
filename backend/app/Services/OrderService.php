@@ -78,12 +78,8 @@ class OrderService
 
         DB::beginTransaction();
         try {
-            // Kiểm tra tồn kho cho tất cả sản phẩm
-            foreach ($cart->items as $item) {
-                if ($item->product->stock_quantity < $item->quantity) {
-                    throw new \Exception("Insufficient stock for {$item->product->name}");
-                }
-            }
+            // NOTE: Stock validation sẽ được thực hiện với locking trong vòng lặp tạo order items
+            // để tránh race condition
 
             // Tính toán tổng tiền
             $subtotal = $cart->items->sum(function ($item) {
@@ -140,26 +136,39 @@ class OrderService
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            // Tạo order items và giảm tồn kho
+            // Tạo order items và giảm tồn kho (WITH PESSIMISTIC LOCKING)
             foreach ($cart->items as $cartItem) {
+                // CRITICAL: Lock product row để tránh race condition
+                $product = \App\Models\Product::lockForUpdate()->find($cartItem->product_id);
+
+                if (!$product) {
+                    throw new \Exception("Product not found: {$cartItem->product_id}");
+                }
+
+                // Check stock AFTER locking để đảm bảo atomic check-and-decrement
+                if ($product->stock_quantity < $cartItem->quantity) {
+                    throw new \Exception("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}, Requested: {$cartItem->quantity}");
+                }
+
+                // Tạo order item
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
-                    'product_name' => $cartItem->product->name,
+                    'product_name' => $product->name,
                     'quantity' => $cartItem->quantity,
                     'price' => $cartItem->price,
                     'subtotal' => $cartItem->price * $cartItem->quantity,
                 ]);
 
-                // Giảm tồn kho
-                $cartItem->product->decrement('stock_quantity', $cartItem->quantity);
+                // Giảm tồn kho (product đã được lock, an toàn)
+                $product->decrement('stock_quantity', $cartItem->quantity);
 
-                // Kiểm tra stock âm sau khi giảm
-                $updatedProduct = $cartItem->product->fresh();
+                // Kiểm tra stock âm sau khi giảm (defensive check)
+                $product->refresh();
                 BusinessValidator::checkNegativeStock(
-                    $updatedProduct->id,
-                    $updatedProduct->stock_quantity,
-                    $updatedProduct->name
+                    $product->id,
+                    $product->stock_quantity,
+                    $product->name
                 );
 
                 // Tạo stock transaction để track
