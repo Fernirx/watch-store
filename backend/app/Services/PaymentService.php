@@ -125,9 +125,10 @@ class PaymentService
                 ]);
 
                 // Xóa giỏ hàng sau khi thanh toán thành công
-                $cart = \App\Models\Cart::where('user_id', $order->user_id)
-                    ->orWhere('guest_token', $order->guest_token)
-                    ->first();
+                $cart = \App\Models\Cart::where(function ($query) use ($order) {
+                    $query->where('user_id', $order->user_id)
+                          ->orWhere('guest_token', $order->guest_token);
+                })->first();
 
                 if ($cart) {
                     $cart->items()->delete();
