@@ -32,7 +32,7 @@ class Otp extends Model
 
     public static function generateOtp(): string
     {
-        return str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public static function createOtp(string $email, string $type = 'REGISTER'): self

@@ -16,6 +16,7 @@ class ReviewService
     public function hasUserPurchasedProduct(int $productId, ?int $userId = null, ?string $email = null): ?int
     {
         $query = Order::where('status', 'COMPLETED')
+            ->where('payment_status', 'paid')  // CRITICAL: Only verified purchases (paid orders)
             ->whereHas('items', function ($q) use ($productId) {
                 $q->where('product_id', $productId);
             });
