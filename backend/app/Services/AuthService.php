@@ -25,6 +25,11 @@ class AuthService
             throw new \Exception('Invalid credentials');
         }
 
+        // CRITICAL: Check if account is active
+        if (!$user->is_active) {
+            throw new \Exception('Your account has been deactivated. Please contact support for assistance.');
+        }
+
         // Merge guest cart if guest_token provided
         if ($request && $request->filled('guest_token')) {
             \Log::info('🔑 Guest token received: ' . $request->input('guest_token') . ' for user: ' . $user->id);

@@ -176,18 +176,30 @@ class CouponService
     ): CouponUsage {
         DB::beginTransaction();
         try {
-            // Increment usage count
+            // CRITICAL: Lock coupon row để tránh race condition
+            $coupon = Coupon::lockForUpdate()->find($coupon->id);
+
+            if (!$coupon) {
+                throw new \Exception('Coupon not found');
+            }
+
+            // CHECK usage limit BEFORE increment để tránh over-limit
+            if ($coupon->usage_type === 'LIMITED_USE' && $coupon->usage_count >= $coupon->max_uses) {
+                throw new \Exception("Coupon '{$coupon->code}' has reached maximum usage limit ({$coupon->max_uses} uses)");
+            }
+
+            // Increment usage count (SAU khi đã check)
             $coupon->increment('usage_count');
 
-            // Kiểm tra xem có vượt giới hạn không (sau khi increment)
-            $coupon->refresh();
-            if ($coupon->usage_limit > 0) {
-                BusinessValidator::checkCouponOverLimit(
-                    $coupon->id,
-                    $coupon->code,
-                    $coupon->usage_limit,
-                    $coupon->usage_count
-                );
+            // Defensive check và alert nếu vẫn vượt quá (không nên xảy ra)
+            if ($coupon->usage_limit > 0 && $coupon->usage_count > $coupon->usage_limit) {
+                BusinessValidator::alert('COUPON_OVER_LIMIT_AFTER_INCREMENT', [
+                    'coupon_id' => $coupon->id,
+                    'coupon_code' => $coupon->code,
+                    'usage_limit' => $coupon->usage_limit,
+                    'usage_count' => $coupon->usage_count,
+                    'order_id' => $orderId,
+                ]);
             }
 
             // Record usage

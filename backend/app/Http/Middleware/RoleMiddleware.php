@@ -25,6 +25,14 @@ class RoleMiddleware
             ], 401);
         }
 
+        // CRITICAL: Check if account is active
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is inactive. Access denied.',
+            ], 403);
+        }
+
         if ($user->role !== $role) {
             return response()->json([
                 'success' => false,
