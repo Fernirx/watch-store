@@ -52,12 +52,18 @@ const VerifyOtp = () => {
     setLoading(true);
 
     try {
-      await verifyOtp(email, otp);
-      navigate('/');
+      const response = await authService.verifyRegisterOtp(email, otp);
+
+      // Nếu verify thành công, navigate đến trang complete registration
+      if (response.success) {
+        navigate('/complete-registration', {
+          state: { email: email }
+        });
+      }
     } catch (err) {
       if (err.response?.status === 400) {
         setErrors({
-          general: 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại hoặc gửi lại mã mới.'
+          general: err.response?.data?.message || 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại hoặc gửi lại mã mới.'
         });
       } else if (err.response?.data?.errors) {
         const backendErrors = err.response.data.errors;
@@ -96,6 +102,7 @@ const VerifyOtp = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h2>Xác Thực OTP</h2>
+        <p className="auth-subtitle">Bước 2/3: Nhập mã xác thực</p>
         <p className="otp-subtitle">
           Mã OTP đã được gửi đến email: <strong>{email}</strong>
         </p>

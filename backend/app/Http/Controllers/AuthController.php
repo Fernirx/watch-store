@@ -159,22 +159,20 @@ class AuthController extends Controller
     }
 
     /**
-     * Gửi OTP đăng ký
+     * Gửi OTP đăng ký (Bước 1: Chỉ nhập email)
      */
     public function sendRegisterOtp(Request $request): JsonResponse
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:8|confirmed',
             ]);
 
-            $this->authService->sendRegisterOtp($validated);
+            $this->authService->sendRegisterOtp($validated['email']);
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP sent to your email. Valid for 5 minutes.',
+                'message' => 'OTP đã được gửi đến email của bạn. Có hiệu lực trong 5 phút.',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -192,7 +190,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Xác thực OTP đăng ký
+     * Xác thực OTP đăng ký (Bước 2: Nhập OTP)
      */
     public function verifyRegisterOtp(Request $request): JsonResponse
     {
@@ -202,11 +200,50 @@ class AuthController extends Controller
                 'otp' => 'required|string|size:6',
             ]);
 
-            $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp'], $request);
+            $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp']);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registration successful',
+                'message' => $data['message'],
+                'data' => $data,
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Hoàn tất đăng ký (Bước 3: Nhập name + password)
+     */
+    public function completeRegistration(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'email' => 'required|email',
+                'name' => 'required|string|max:255',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            $data = $this->authService->completeRegistration(
+                $validated['email'],
+                $validated['name'],
+                $validated['password'],
+                $request
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đăng ký thành công',
                 'data' => $data,
             ], 201);
         } catch (ValidationException $e) {

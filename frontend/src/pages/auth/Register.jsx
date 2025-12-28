@@ -1,195 +1,94 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import authService from '../../services/authService';
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-  });
+  const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Validate name
-    if (!formData.name.trim()) {
-      newErrors.name = ['Họ tên là bắt buộc'];
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = ['Họ tên phải có ít nhất 2 ký tự'];
-    } else if (formData.name.trim().length > 100) {
-      newErrors.name = ['Họ tên không được vượt quá 100 ký tự'];
+  const validateEmail = (email) => {
+    if (!email.trim()) {
+      return 'Email là bắt buộc';
     }
-
-    // Validate email
-    if (!formData.email.trim()) {
-      newErrors.email = ['Email là bắt buộc'];
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = ['Email không hợp lệ'];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return 'Email không hợp lệ';
     }
-
-    // Validate password
-    if (!formData.password) {
-      newErrors.password = ['Mật khẩu là bắt buộc'];
-    } else if (formData.password.length < 8) {
-      newErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = ['Mật khẩu phải chứa chữ hoa, chữ thường và số'];
-    }
-
-    // Validate password confirmation
-    if (!formData.password_confirmation) {
-      newErrors.password_confirmation = 'Xác nhận mật khẩu là bắt buộc';
-    } else if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = 'Mật khẩu xác nhận không khớp';
-    }
-
-    return newErrors;
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
     setErrors({});
 
-    // Validate form trước khi submit
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    // Validate email
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setErrors({ email: [emailError] });
       return;
     }
 
     setLoading(true);
 
     try {
-      await register(
-        formData.name,
-        formData.email,
-        formData.password,
-        formData.password_confirmation
-      );
-      // Chuyển đến trang xác thực OTP
-      navigate('/verify-otp', { state: { email: formData.email } });
+      // Bước 1: Gửi OTP đến email
+      await authService.sendRegisterOtp(email);
+
+      // Navigate đến trang verify OTP
+      navigate('/verify-otp', {
+        state: {
+          email: email,
+          fromRegister: true // Flag để biết là từ register flow
+        }
+      });
     } catch (err) {
-      // Xử lý lỗi validation từ Laravel và chuyển sang tiếng Việt
-      if (err.response?.data?.errors) {
-        const backendErrors = err.response.data.errors;
-        const friendlyErrors = {};
+      console.error('Send OTP error:', err);
 
-        if (backendErrors.name) {
-          friendlyErrors.name = ['Họ tên là bắt buộc'];
+      if (err.response?.data?.errors?.email) {
+        const backendError = err.response.data.errors.email[0];
+        if (backendError.includes('already been taken') || backendError.includes('đã được đăng ký')) {
+          setErrors({ email: ['Email này đã được sử dụng. Vui lòng chọn email khác.'] });
+        } else {
+          setErrors({ email: ['Email không hợp lệ'] });
         }
-        if (backendErrors.email) {
-          if (backendErrors.email[0].includes('already been taken')) {
-            friendlyErrors.email = ['Email này đã được sử dụng. Vui lòng chọn email khác.'];
-          } else if (backendErrors.email[0].includes('valid email')) {
-            friendlyErrors.email = ['Email không hợp lệ'];
-          } else {
-            friendlyErrors.email = ['Email là bắt buộc'];
-          }
-        }
-        if (backendErrors.password) {
-          if (backendErrors.password[0].includes('at least 8')) {
-            friendlyErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
-          } else if (backendErrors.password[0].includes('confirmation')) {
-            friendlyErrors.password = ['Mật khẩu xác nhận không khớp'];
-          } else {
-            friendlyErrors.password = ['Mật khẩu là bắt buộc'];
-          }
-        }
-
-        setErrors(friendlyErrors);
       } else {
-        setErrors({ general: 'Đăng ký thất bại. Vui lòng thử lại.' });
+        setErrors({ general: err.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.' });
       }
     } finally {
       setLoading(false);
     }
-
-    return false;
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2>Đăng Ký Tài Khoản</h2>
+        <p className="auth-subtitle">Bước 1/3: Nhập email để nhận mã xác thực</p>
 
         {errors.general && <div className="error-message">{errors.general}</div>}
 
         <form onSubmit={handleSubmit} autoComplete="off">
           <div className="form-group">
-            <label>Họ và tên</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Nhập họ tên của bạn"
-              className={errors.name ? 'input-error' : ''}
-            />
-            {errors.name && <span className="field-error">{errors.name[0]}</span>}
-          </div>
-
-          <div className="form-group">
             <label>Email</label>
             <input
               type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Nhập email của bạn"
               className={errors.email ? 'input-error' : ''}
+              autoFocus
             />
             {errors.email && <span className="field-error">{errors.email[0]}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Mật khẩu</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={8}
-              placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
-              className={errors.password ? 'input-error' : ''}
-            />
-            {errors.password && <span className="field-error">{errors.password[0]}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Xác nhận mật khẩu</label>
-            <input
-              type="password"
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              required
-              minLength={8}
-              placeholder="Nhập lại mật khẩu"
-              className={errors.password_confirmation ? 'input-error' : ''}
-            />
-            {errors.password_confirmation && <span className="field-error">{errors.password_confirmation}</span>}
+            <small className="field-hint">
+              Chúng tôi sẽ gửi mã OTP (6 chữ số) đến email này
+            </small>
           </div>
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Đang xử lý...' : 'Tiếp Tục'}
+            {loading ? 'Đang gửi OTP...' : 'Tiếp Tục'}
           </button>
         </form>
 

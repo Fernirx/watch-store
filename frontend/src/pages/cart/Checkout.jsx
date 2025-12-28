@@ -7,6 +7,7 @@ import paymentService from '../../services/paymentService';
 import { addressService } from '../../services';
 import guestService from '../../services/guestService';
 import couponService from '../../services/couponService';
+import guestOtpService from '../../services/guestOtpService';
 
 const Checkout = () => {
   const { cart, subtotal, fetchCart } = useCart();
@@ -32,6 +33,15 @@ const Checkout = () => {
   const [couponError, setCouponError] = useState('');
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
+  // Guest OTP states (chỉ cho guest checkout)
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
   useEffect(() => {
     fetchCart();
 
@@ -51,6 +61,16 @@ const Checkout = () => {
       navigate('/cart');
     }
   }, [cart, navigate]);
+
+  // OTP countdown timer
+  useEffect(() => {
+    if (otpCountdown > 0) {
+      const timer = setInterval(() => {
+        setOtpCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [otpCountdown]);
 
   const fetchSavedAddress = async () => {
     try {
@@ -190,9 +210,96 @@ const Checkout = () => {
     setCouponError('');
   };
 
+  // Guest OTP handlers
+  const handleSendOtp = async () => {
+    if (!formData.customer_email.trim()) {
+      setOtpError('Vui lòng nhập email trước');
+      return;
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
+      setOtpError('Email không hợp lệ');
+      return;
+    }
+
+    setSendingOtp(true);
+    setOtpError('');
+
+    try {
+      const guestToken = guestService.getGuestToken();
+      await guestOtpService.sendCheckoutOtp(formData.customer_email, guestToken);
+
+      setOtpSent(true);
+      setOtpCountdown(600); // 10 phút countdown
+      setOtpError('');
+    } catch (err) {
+      console.error('Send OTP error:', err);
+      setOtpError(err.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError('Vui lòng nhập mã OTP 6 chữ số');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError('');
+
+    try {
+      const guestToken = guestService.getGuestToken();
+      const response = await guestOtpService.verifyCheckoutOtp(
+        formData.customer_email,
+        otp,
+        guestToken
+      );
+
+      if (response.success) {
+        setOtpVerified(true);
+        setOtpError('');
+      }
+    } catch (err) {
+      console.error('Verify OTP error:', err);
+      setOtpError(err.response?.data?.message || 'Mã OTP không đúng. Vui lòng thử lại.');
+      setOtpVerified(false);
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setSendingOtp(true);
+    setOtpError('');
+    setOtp('');
+
+    try {
+      const guestToken = guestService.getGuestToken();
+      await guestOtpService.resendCheckoutOtp(formData.customer_email, guestToken);
+
+      setOtpCountdown(600); // Reset countdown
+      setOtpError('');
+    } catch (err) {
+      console.error('Resend OTP error:', err);
+      setOtpError(err.response?.data?.message || 'Không thể gửi lại OTP. Vui lòng thử lại.');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Kiểm tra OTP verification cho GUEST users
+    if (!isAuthenticated && !otpVerified) {
+      setError('Vui lòng xác thực email trước khi đặt hàng');
+      setOtpError('Email chưa được xác thực');
+      return;
+    }
 
     // Validate form trước khi submit
     const validationErrors = validateForm();
@@ -268,9 +375,15 @@ const Checkout = () => {
     } catch (err) {
       console.error('Order creation error:', err.response?.data);
       const errorMessage = err.response?.data?.message || 'Đặt hàng thất bại';
+      const errorCode = err.response?.data?.error_code;
       const validationErrors = err.response?.data?.errors;
 
-      if (validationErrors) {
+      // Xử lý lỗi EMAIL_NOT_VERIFIED
+      if (errorCode === 'EMAIL_NOT_VERIFIED') {
+        setError('Email chưa được xác thực. Vui lòng xác thực email trước khi đặt hàng.');
+        setOtpError('Email chưa được xác thực');
+        setOtpVerified(false);
+      } else if (validationErrors) {
         const errorList = Object.values(validationErrors).flat().join(', ');
         setError(`${errorMessage}: ${errorList}. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng thử lại.`);
       } else {
@@ -340,15 +453,136 @@ const Checkout = () => {
 
               <div className="form-group">
                 <label>Email *</label>
-                <input
-                  type="email"
-                  name="customer_email"
-                  value={formData.customer_email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Email để nhận xác nhận đơn hàng và khuyến mãi"
-                />
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                  <input
+                    type="email"
+                    name="customer_email"
+                    value={formData.customer_email}
+                    onChange={handleChange}
+                    required
+                    placeholder="Email để nhận xác nhận đơn hàng"
+                    style={{ flex: 1 }}
+                    disabled={isAuthenticated || otpVerified}
+                  />
+                  {!isAuthenticated && !otpVerified && (
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={sendingOtp || otpSent}
+                      style={{
+                        padding: '0.625rem 1rem',
+                        background: otpSent ? '#9ca3af' : '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: otpSent ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {sendingOtp ? 'Đang gửi...' : otpSent ? 'Đã gửi OTP' : 'Gửi OTP'}
+                    </button>
+                  )}
+                  {!isAuthenticated && otpVerified && (
+                    <span style={{
+                      padding: '0.625rem 1rem',
+                      background: '#10b981',
+                      color: 'white',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      ✓ Đã xác thực
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Guest OTP Section */}
+              {!isAuthenticated && otpSent && !otpVerified && (
+                <div className="form-group" style={{
+                  background: '#f3f4f6',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <label>Mã OTP (6 chữ số) *</label>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                    Mã OTP đã được gửi đến email: <strong>{formData.customer_email}</strong>
+                  </p>
+
+                  {otpCountdown > 0 && (
+                    <p style={{ fontSize: '0.875rem', color: '#667eea', marginBottom: '0.5rem' }}>
+                      Mã có hiệu lực trong: <strong>{Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}</strong>
+                    </p>
+                  )}
+
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      maxLength={6}
+                      placeholder="Nhập mã OTP"
+                      style={{
+                        flex: 1,
+                        padding: '0.625rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        fontSize: '1rem',
+                        textAlign: 'center',
+                        letterSpacing: '0.5rem',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={verifyingOtp || otp.length !== 6}
+                      style={{
+                        padding: '0.625rem 1rem',
+                        background: otp.length === 6 ? '#10b981' : '#9ca3af',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: otp.length === 6 ? 'pointer' : 'not-allowed',
+                        fontSize: '0.875rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {verifyingOtp ? 'Đang xác thực...' : 'Xác thực'}
+                    </button>
+                  </div>
+
+                  {otpError && (
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                      {otpError}
+                    </p>
+                  )}
+
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                    Không nhận được mã?{' '}
+                    {otpCountdown > 540 ? (
+                      <span>Bạn có thể gửi lại sau {otpCountdown - 540}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={sendingOtp}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#667eea',
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          padding: 0,
+                        }}
+                      >
+                        {sendingOtp ? 'Đang gửi...' : 'Gửi lại OTP'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="form-group">
                 <label>Địa chỉ giao hàng *</label>
@@ -398,9 +632,29 @@ const Checkout = () => {
                 />
               </div>
 
-              <button type="submit" className="btn-place-order" disabled={loading}>
-                {loading ? 'Đang xử lý...' : 'Đặt Hàng'}
+              <button
+                type="submit"
+                className="btn-place-order"
+                disabled={loading || (!isAuthenticated && !otpVerified)}
+              >
+                {loading
+                  ? 'Đang xử lý...'
+                  : (!isAuthenticated && !otpVerified)
+                    ? 'Xác thực email để đặt hàng'
+                    : 'Đặt Hàng'
+                }
               </button>
+
+              {!isAuthenticated && !otpVerified && (
+                <p style={{
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  fontSize: '0.875rem',
+                  marginTop: '0.5rem'
+                }}>
+                  Vui lòng xác thực email trước khi đặt hàng
+                </p>
+              )}
             </form>
           </div>
 

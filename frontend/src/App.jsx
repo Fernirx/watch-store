@@ -10,6 +10,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyOtp from './pages/auth/VerifyOtp';
+import CompleteRegistration from './pages/auth/CompleteRegistration';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import GoogleCallback from './pages/auth/GoogleCallback';
 
@@ -67,6 +68,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/complete-registration" element={<CompleteRegistration />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/google/callback" element={<GoogleCallback />} />
 

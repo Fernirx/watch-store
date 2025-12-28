@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\OrderService;
+use App\Services\GuestOtpService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -10,10 +11,12 @@ use Illuminate\Validation\ValidationException;
 class OrderController extends Controller
 {
     protected OrderService $orderService;
+    protected GuestOtpService $guestOtpService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, GuestOtpService $guestOtpService)
     {
         $this->orderService = $orderService;
+        $this->guestOtpService = $guestOtpService;
     }
 
     /**
@@ -96,6 +99,22 @@ class OrderController extends Controller
                     'success' => false,
                     'message' => 'Either user authentication or guest_token is required',
                 ], 401);
+            }
+
+            // Kiểm tra OTP verification cho GUEST checkout (chỉ guest, không áp dụng cho user đã đăng nhập)
+            if (!$userId && $guestToken) {
+                $isVerified = $this->guestOtpService->isEmailVerified(
+                    $validated['customer_email'],
+                    $guestToken
+                );
+
+                if (!$isVerified) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Email chưa được xác thực. Vui lòng xác thực email trước khi đặt hàng.',
+                        'error_code' => 'EMAIL_NOT_VERIFIED',
+                    ], 403);
+                }
             }
 
             $order = $this->orderService->createOrder($userId, $validated, $guestToken);

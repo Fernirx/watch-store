@@ -370,7 +370,17 @@ const Profile = () => {
                                 value={profileData.email}
                                 onChange={handleProfileChange}
                                 required
+                                readOnly
+                                disabled
+                                style={{
+                                    backgroundColor: '#f3f4f6',
+                                    cursor: 'not-allowed',
+                                    opacity: 0.7
+                                }}
                             />
+                            <small style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+                                Email không thể thay đổi
+                            </small>
                         </div>
 
                         <div className="form-group">

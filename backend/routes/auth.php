@@ -5,9 +5,14 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'sendRegisterOtp']);
-Route::post('/register/resend-otp', [AuthController::class, 'resendRegisterOtp']);
-Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp']);
+
+// Register flow (3 bước: email → OTP → name+password)
+Route::post('/register', [AuthController::class, 'sendRegisterOtp']); // Bước 1: Gửi OTP
+Route::post('/register/resend-otp', [AuthController::class, 'resendRegisterOtp']); // Gửi lại OTP
+Route::post('/register/verify', [AuthController::class, 'verifyRegisterOtp']); // Bước 2: Verify OTP
+Route::post('/register/complete', [AuthController::class, 'completeRegistration']); // Bước 3: Hoàn tất đăng ký
+
+// Forgot password flow
 Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp']);
 Route::post('/forgot-password/resend-otp', [AuthController::class, 'resendForgotPasswordOtp']);
 Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword']);

@@ -145,56 +145,70 @@ class AuthService
     }
 
     /**
-     * Gửi OTP đăng ký
+     * Gửi OTP đăng ký (Bước 1: Chỉ cần email)
      */
-    public function sendRegisterOtp(array $data): void
+    public function sendRegisterOtp(string $email): void
     {
-        // Xóa OTP cũ chưa sử dụng
-        Otp::where('email', $data['email'])
-            ->where('type', 'REGISTER')
-            ->where('is_used', false)
-            ->delete();
+        // Kiểm tra email đã tồn tại chưa
+        if (User::where('email', $email)->exists()) {
+            throw new \Exception('Email đã được đăng ký');
+        }
 
-        // Tạo OTP mới
-        $otpRecord = Otp::create([
-            'email' => $data['email'],
-            'name' => $data['name'],
-            'password' => Hash::make($data['password']),
-            'otp' => Otp::generateOtp(),
-            'type' => 'REGISTER',
-            'expires_at' => now()->addMinutes(5),
-        ]);
+        // Tạo OTP mới (hàm createOtp tự động xóa OTP cũ)
+        $otpRecord = Otp::createOtp($email, 'REGISTER');
 
         // Gửi email
-        Mail::to($data['email'])->send(new OtpMail($otpRecord->otp, 'REGISTER'));
+        Mail::to($email)->send(new OtpMail($otpRecord->otp, 'REGISTER'));
     }
 
     /**
-     * Xác thực OTP đăng ký
+     * Xác thực OTP đăng ký (Bước 2: Verify OTP)
      */
-    public function verifyRegisterOtp(string $email, string $otp, $request = null): array
+    public function verifyRegisterOtp(string $email, string $otp): array
     {
-        $otpRecord = Otp::where('email', $email)
-            ->where('otp', $otp)
+        $result = Otp::verifyOtp($email, $otp, 'REGISTER');
+
+        if (!$result['success']) {
+            throw new \Exception($result['message']);
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Xác thực OTP thành công. Vui lòng hoàn tất đăng ký',
+            'email' => $email,
+        ];
+    }
+
+    /**
+     * Hoàn tất đăng ký (Bước 3: Tạo User)
+     */
+    public function completeRegistration(string $email, string $name, string $password, $request = null): array
+    {
+        // Kiểm tra email đã verify OTP chưa
+        $verifiedOtp = Otp::where('email', $email)
             ->where('type', 'REGISTER')
-            ->where('is_used', false)
-            ->where('expires_at', '>', now())
+            ->where('is_used', true)
+            ->whereNotNull('verified_at')
+            ->where('verified_at', '>', now()->subMinutes(15)) // OTP verify trong 15 phút
+            ->orderBy('verified_at', 'desc')
             ->first();
 
-        if (!$otpRecord) {
-            throw new \Exception('Invalid or expired OTP');
+        if (!$verifiedOtp) {
+            throw new \Exception('OTP chưa được xác thực hoặc đã hết hạn. Vui lòng gửi lại OTP');
+        }
+
+        // Kiểm tra email đã tồn tại chưa
+        if (User::where('email', $email)->exists()) {
+            throw new \Exception('Email đã được đăng ký');
         }
 
         // Tạo user mới
         $user = User::create([
-            'name' => $otpRecord->name,
-            'email' => $otpRecord->email,
-            'password' => $otpRecord->password, // Already hashed
+            'name' => $name,
+            'email' => $email,
+            'password' => Hash::make($password),
             'email_verified_at' => now(),
         ]);
-
-        // Đánh dấu OTP đã sử dụng
-        $otpRecord->update(['is_used' => true]);
 
         // Merge guest cart if guest_token provided
         if ($request && $request->filled('guest_token')) {
@@ -202,8 +216,6 @@ class AuthService
             $cartService = app(CartService::class);
             $cartService->mergeGuestCartToUser($request->input('guest_token'), $user->id);
             \Log::info('✅ Cart merge completed for user: ' . $user->id);
-        } else {
-            \Log::info('⚠️ No guest token provided for user: ' . $user->id);
         }
 
         // Tạo tokens
@@ -251,35 +263,8 @@ class AuthService
      */
     public function resendRegisterOtp(string $email): void
     {
-        // Tìm OTP record chưa sử dụng (bao gồm cả đã hết hạn)
-        $existingOtp = Otp::where('email', $email)
-            ->where('type', 'REGISTER')
-            ->where('is_used', false)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if (!$existingOtp) {
-            throw new \Exception('No pending registration found for this email. Please register again.');
-        }
-
-        // Xóa tất cả OTP cũ của email này
-        Otp::where('email', $email)
-            ->where('type', 'REGISTER')
-            ->where('is_used', false)
-            ->delete();
-
-        // Tạo OTP mới với cùng name và password từ OTP cũ
-        $otpRecord = Otp::create([
-            'email' => $email,
-            'name' => $existingOtp->name,
-            'password' => $existingOtp->password, // Already hashed
-            'otp' => Otp::generateOtp(),
-            'type' => 'REGISTER',
-            'expires_at' => now()->addMinutes(5),
-        ]);
-
-        // Gửi email
-        Mail::to($email)->send(new OtpMail($otpRecord->otp, 'REGISTER'));
+        // Gọi lại sendRegisterOtp để tạo OTP mới (đơn giản hơn)
+        $this->sendRegisterOtp($email);
     }
 
     /**

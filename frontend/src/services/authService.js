@@ -23,23 +23,29 @@ const authService = {
     return response.data;
   },
 
-  // Đăng ký - Bước 1: Gửi thông tin và nhận OTP
-  sendRegisterOtp: async (name, email, password, password_confirmation) => {
-    const response = await axios.post('/register', {
-      name,
+  // Đăng ký - Bước 1: Gửi OTP đến email
+  sendRegisterOtp: async (email) => {
+    const response = await axios.post('/register', { email });
+    return response.data;
+  },
+
+  // Đăng ký - Bước 2: Xác thực OTP (chỉ verify, không login)
+  verifyRegisterOtp: async (email, otp) => {
+    const response = await axios.post('/register/verify', {
       email,
-      password,
-      password_confirmation,
+      otp,
     });
     return response.data;
   },
 
-  // Đăng ký - Bước 2: Xác thực OTP
-  verifyRegisterOtp: async (email, otp) => {
+  // Đăng ký - Bước 3: Hoàn tất đăng ký (nhập name + password)
+  completeRegistration: async (email, name, password, password_confirmation) => {
     const guestToken = guestService.getGuestToken();
-    const response = await axios.post('/register/verify', {
+    const response = await axios.post('/register/complete', {
       email,
-      otp,
+      name,
+      password,
+      password_confirmation,
       guest_token: guestToken // Gửi guest_token để merge cart
     });
     if (response.data.success) {

@@ -23,9 +23,11 @@ class OTPMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $subject = $this->type === 'FORGOT_PASSWORD'
-            ? 'Đặt lại mật khẩu - Mã OTP'
-            : 'Xác thực email - Mã OTP';
+        $subject = match ($this->type) {
+            'FORGOT_PASSWORD' => 'Đặt lại mật khẩu - Mã OTP',
+            'GUEST_CHECKOUT' => 'Xác thực email thanh toán - Mã OTP',
+            default => 'Xác thực email - Mã OTP',
+        };
 
         return new Envelope(
             subject: $subject,
@@ -41,10 +43,21 @@ class OTPMail extends Mailable
 
     private function buildHtml(): string
     {
-        $title = $this->type === 'FORGOT_PASSWORD' ? 'Đặt lại mật khẩu' : 'Xác thực email';
-        $message = $this->type === 'FORGOT_PASSWORD'
-            ? 'Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng sử dụng mã OTP bên dưới:'
-            : 'Chào mừng! Vui lòng xác thực email của bạn bằng mã OTP bên dưới:';
+        // Xác định tiêu đề và nội dung dựa vào loại OTP
+        $title = match ($this->type) {
+            'FORGOT_PASSWORD' => 'Đặt lại mật khẩu',
+            'GUEST_CHECKOUT' => 'Xác thực email thanh toán',
+            default => 'Xác thực email',
+        };
+
+        $message = match ($this->type) {
+            'FORGOT_PASSWORD' => 'Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng sử dụng mã OTP bên dưới:',
+            'GUEST_CHECKOUT' => 'Bạn đang thực hiện đơn hàng với tư cách khách. Vui lòng xác thực email của bạn bằng mã OTP bên dưới để hoàn tất đơn hàng:',
+            default => 'Chào mừng! Vui lòng xác thực email của bạn bằng mã OTP bên dưới:',
+        };
+
+        // Thời gian hết hạn: GUEST_CHECKOUT là 10 phút, còn lại là 5 phút
+        $expiryTime = $this->type === 'GUEST_CHECKOUT' ? '10 phút' : '5 phút';
 
         return "
             <!DOCTYPE html>
@@ -71,7 +84,7 @@ class OTPMail extends Mailable
                         <div class='otp-box'>
                             <p style='margin: 0; color: #666;'>Mã OTP của bạn:</p>
                             <div class='otp-code'>{$this->otp}</div>
-                            <p style='margin-top: 10px; color: #666; font-size: 14px;'>Có hiệu lực trong 5 phút</p>
+                            <p style='margin-top: 10px; color: #666; font-size: 14px;'>Có hiệu lực trong {$expiryTime}</p>
                         </div>
                         <p><strong>Quan trọng:</strong> Không chia sẻ mã này với bất kỳ ai.</p>
                         <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
