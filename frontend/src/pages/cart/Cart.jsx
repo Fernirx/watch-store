@@ -47,6 +47,7 @@ const Cart = () => {
 
   // cart.cart contains the actual cart with items
   const cartItems = cart?.cart?.items || [];
+  const hasOutOfStock = cart?.has_out_of_stock || false;
 
   if (cartItems.length === 0) {
     return (
@@ -78,15 +79,18 @@ const Cart = () => {
             {cartItems.map((item) => {
               const product = item.product;
               const price = product.sale_price || product.price;
+              const isAvailable = item.is_available !== false; // Backend adds this flag
 
               return (
-                <div key={item.id} className="cart-item">
+                <div key={item.id} className={`cart-item ${!isAvailable ? 'out-of-stock' : ''}`}>
                   <div className="item-image">
                     <img
                       src={product.image_url || '/placeholder.jpg'}
                       alt={product.name}
                     />
-
+                    {!isAvailable && (
+                      <div className="out-of-stock-overlay">Hết hàng</div>
+                    )}
                   </div>
 
                   <div className="item-details">
@@ -94,6 +98,11 @@ const Cart = () => {
                       <h3>{product.name}</h3>
                     </Link>
                     <p className="brand">{product.brand?.name}</p>
+                    {!isAvailable && item.stock_message && (
+                      <div className="stock-warning">
+                        ⚠️ {item.stock_message}
+                      </div>
+                    )}
                   </div>
 
                   <div className="item-price">
@@ -151,9 +160,15 @@ const Cart = () => {
               <span>{subtotal.toLocaleString('vi-VN')}đ</span>
             </div>
 
-            <Link to="/checkout" className="btn-checkout">
-              Thanh Toán
-            </Link>
+            {hasOutOfStock ? (
+              <button className="btn-checkout disabled" disabled title="Vui lòng xóa hoặc cập nhật sản phẩm hết hàng">
+                Không thể thanh toán (Có sản phẩm hết hàng)
+              </button>
+            ) : (
+              <Link to="/checkout" className="btn-checkout">
+                Thanh Toán
+              </Link>
+            )}
 
             <Link to="/products" className="btn-continue-shopping">
               Tiếp Tục Mua Sắm

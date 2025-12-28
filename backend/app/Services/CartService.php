@@ -17,6 +17,25 @@ class CartService
         $cart = Cart::with(['items.product.category', 'items.product.brand'])
             ->firstOrCreate(['user_id' => $userId]);
 
+        // Check stock availability và add thông tin vào mỗi item
+        $hasOutOfStock = false;
+        $cart->items->each(function ($item) use (&$hasOutOfStock) {
+            $product = $item->product;
+
+            // Check stock availability
+            $item->is_available = $product->stock_quantity >= $item->quantity;
+            $item->available_stock = $product->stock_quantity;
+
+            if (!$item->is_available) {
+                $hasOutOfStock = true;
+                if ($product->stock_quantity === 0) {
+                    $item->stock_message = 'Sản phẩm đã hết hàng';
+                } else {
+                    $item->stock_message = "Chỉ còn {$product->stock_quantity} sản phẩm";
+                }
+            }
+        });
+
         $subtotal = $cart->items->sum(function ($item) {
             $price = $item->product->sale_price ?? $item->product->price;
             return $price * $item->quantity;
@@ -26,6 +45,7 @@ class CartService
             'cart' => $cart,
             'subtotal' => $subtotal,
             'items_count' => $cart->items->sum('quantity'),
+            'has_out_of_stock' => $hasOutOfStock,
         ];
     }
 
@@ -146,8 +166,28 @@ class CartService
                 'cart' => null,
                 'subtotal' => 0,
                 'items_count' => 0,
+                'has_out_of_stock' => false,
             ];
         }
+
+        // Check stock availability và add thông tin vào mỗi item
+        $hasOutOfStock = false;
+        $cart->items->each(function ($item) use (&$hasOutOfStock) {
+            $product = $item->product;
+
+            // Check stock availability
+            $item->is_available = $product->stock_quantity >= $item->quantity;
+            $item->available_stock = $product->stock_quantity;
+
+            if (!$item->is_available) {
+                $hasOutOfStock = true;
+                if ($product->stock_quantity === 0) {
+                    $item->stock_message = 'Sản phẩm đã hết hàng';
+                } else {
+                    $item->stock_message = "Chỉ còn {$product->stock_quantity} sản phẩm";
+                }
+            }
+        });
 
         $subtotal = $cart->items->sum(function ($item) {
             $price = $item->product->sale_price ?? $item->product->price;
@@ -158,6 +198,7 @@ class CartService
             'cart' => $cart,
             'subtotal' => $subtotal,
             'items_count' => $cart->items->sum('quantity'),
+            'has_out_of_stock' => $hasOutOfStock,
         ];
     }
 
