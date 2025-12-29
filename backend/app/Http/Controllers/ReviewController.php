@@ -58,7 +58,14 @@ class ReviewController extends Controller
                 'rating' => 'required|integer|min:1|max:5',
                 'comment' => 'nullable|string|max:1000',
                 'guest_email' => 'nullable|email|max:255',
-                'guest_name' => 'nullable|string|max:255',
+                'guest_name' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                    'regex:/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/'
+                ],
+            ], [
+                'guest_name.regex' => 'Tên chỉ được chứa chữ cái và khoảng trắng',
             ]);
 
             // Lấy user_id nếu đã đăng nhập

@@ -106,13 +106,17 @@ const ForgotPassword = () => {
       newErrors.otp = ['Mã OTP phải là 6 chữ số'];
     }
 
-    // Validate password
+    // Validate password - Mật khẩu mạnh (chữ hoa, thường, số)
     if (!formData.password) {
       newErrors.password = ['Mật khẩu mới là bắt buộc'];
     } else if (formData.password.length < 8) {
       newErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = ['Mật khẩu phải chứa chữ hoa, chữ thường và số'];
+    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 chữ thường'];
+    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 chữ hoa'];
+    } else if (!/(?=.*\d)/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 số'];
     }
 
     // Validate password confirmation

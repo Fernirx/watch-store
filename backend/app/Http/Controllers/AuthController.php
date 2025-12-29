@@ -57,9 +57,25 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/'
+                ],
                 'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+                ],
+            ], [
+                'name.regex' => 'Họ tên chỉ được chứa chữ cái và khoảng trắng',
+                'password.regex' => 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số',
+                'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+                'password.confirmed' => 'Mật khẩu xác nhận không khớp',
             ]);
 
             $data = $this->authService->register($validated);
@@ -197,7 +213,15 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'email' => 'required|email',
-                'otp' => 'required|string|size:6',
+                'otp' => [
+                    'required',
+                    'string',
+                    'size:6',
+                    'regex:/^[0-9]{6}$/'
+                ],
+            ], [
+                'otp.regex' => 'Mã OTP phải là 6 chữ số',
+                'otp.size' => 'Mã OTP phải có đúng 6 ký tự',
             ]);
 
             $data = $this->authService->verifyRegisterOtp($validated['email'], $validated['otp']);
@@ -230,8 +254,24 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'email' => 'required|email',
-                'name' => 'required|string|max:255',
-                'password' => 'required|string|min:8|confirmed',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/'
+                ],
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+                ],
+            ], [
+                'name.regex' => 'Họ tên chỉ được chứa chữ cái và khoảng trắng',
+                'password.regex' => 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số',
+                'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+                'password.confirmed' => 'Mật khẩu xác nhận không khớp',
             ]);
 
             $data = $this->authService->completeRegistration(
@@ -302,8 +342,25 @@ class AuthController extends Controller
         try {
             $validated = $request->validate([
                 'email' => 'required|email|exists:users,email',
-                'otp' => 'required|string|size:6',
-                'password' => 'required|string|min:8|confirmed',
+                'otp' => [
+                    'required',
+                    'string',
+                    'size:6',
+                    'regex:/^[0-9]{6}$/'
+                ],
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+                ],
+            ], [
+                'otp.regex' => 'Mã OTP phải là 6 chữ số',
+                'otp.size' => 'Mã OTP phải có đúng 6 ký tự',
+                'password.regex' => 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số',
+                'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+                'password.confirmed' => 'Mật khẩu xác nhận không khớp',
             ]);
 
             $this->authService->resetPassword(

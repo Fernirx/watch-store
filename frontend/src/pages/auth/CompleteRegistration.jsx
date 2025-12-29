@@ -34,20 +34,28 @@ const CompleteRegistration = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate name
+    // Validate name - Chỉ chữ cái tiếng Việt và khoảng trắng
     if (!formData.name.trim()) {
       newErrors.name = ['Họ tên là bắt buộc'];
     } else if (formData.name.trim().length < 2) {
       newErrors.name = ['Họ tên phải có ít nhất 2 ký tự'];
     } else if (formData.name.trim().length > 100) {
       newErrors.name = ['Họ tên không được vượt quá 100 ký tự'];
+    } else if (!/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/.test(formData.name.trim())) {
+      newErrors.name = ['Họ tên chỉ được chứa chữ cái và khoảng trắng'];
     }
 
-    // Validate password
+    // Validate password - Mật khẩu mạnh (chữ hoa, thường, số)
     if (!formData.password) {
       newErrors.password = ['Mật khẩu là bắt buộc'];
     } else if (formData.password.length < 8) {
       newErrors.password = ['Mật khẩu phải có ít nhất 8 ký tự'];
+    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 chữ thường'];
+    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 chữ hoa'];
+    } else if (!/(?=.*\d)/.test(formData.password)) {
+      newErrors.password = ['Mật khẩu phải có ít nhất 1 số'];
     }
 
     // Validate password confirmation
