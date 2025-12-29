@@ -35,6 +35,8 @@ const ProductList = () => {
   const genderFilter = searchParams.get('gender');
   const minPrice = searchParams.get('min_price');
   const maxPrice = searchParams.get('max_price');
+  const sortBy = searchParams.get('sort_by');
+  const sortOrder = searchParams.get('sort_order');
 
   // Sync priceRange state with URL params
   useEffect(() => {
@@ -46,7 +48,7 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory, selectedBrand, searchQuery, stockFilter, movementFilter, genderFilter, minPrice, maxPrice]);
+  }, [selectedCategory, selectedBrand, searchQuery, stockFilter, movementFilter, genderFilter, minPrice, maxPrice, sortBy, sortOrder]);
 
   const fetchData = async () => {
     try {
@@ -62,6 +64,10 @@ const ProductList = () => {
       // Price range handling
       if (minPrice) params.min_price = minPrice;
       if (maxPrice) params.max_price = maxPrice;
+
+      // Sort handling
+      if (sortBy) params.sort_by = sortBy;
+      if (sortOrder) params.sort_order = sortOrder;
 
       const [productsData, categoriesData, brandsData] = await Promise.all([
         productService.getProducts(params),
@@ -180,6 +186,28 @@ const ProductList = () => {
     }).format(price);
   };
 
+  const handleSortChange = (value) => {
+    const params = new URLSearchParams(searchParams);
+
+    if (!value) {
+      params.delete('sort_by');
+      params.delete('sort_order');
+    } else {
+      const [sortField, order] = value.split('-');
+      params.set('sort_by', sortField);
+      params.set('sort_order', order);
+    }
+
+    setSearchParams(params);
+  };
+
+  const getCurrentSortValue = () => {
+    if (sortBy && sortOrder) {
+      return `${sortBy}-${sortOrder}`;
+    }
+    return '';
+  };
+
   const handleWishlistToggle = async (e, product) => {
     e.preventDefault();
     e.stopPropagation();
@@ -252,21 +280,45 @@ const ProductList = () => {
         <div className="product-list-header">
           <h1>Sản Phẩm</h1>
 
-          {/* Search Bar */}
-          <SearchBar
-            value={searchQuery || ''}
-            onChange={(v) => {
-              const params = new URLSearchParams(searchParams);
-              if (v.trim()) {
-                params.set('search', v);
-              } else {
-                params.delete('search');
-              }
-              setSearchParams(params);
-            }}
-            onClear={clearSearch}
-            placeholder="Tìm kiếm sản phẩm theo tên..."
-          />
+          <div className="search-sort-container">
+            {/* Search Bar */}
+            <SearchBar
+              value={searchQuery || ''}
+              onChange={(v) => {
+                const params = new URLSearchParams(searchParams);
+                if (v.trim()) {
+                  params.set('search', v);
+                } else {
+                  params.delete('search');
+                }
+                setSearchParams(params);
+              }}
+              onClear={clearSearch}
+              placeholder="Tìm kiếm sản phẩm theo tên..."
+            />
+
+            {/* Sort Dropdown */}
+            <div className="sort-container">
+              <label htmlFor="sort-select" className="sort-label">
+                Sắp xếp:
+              </label>
+              <select
+                id="sort-select"
+                className="sort-select"
+                value={getCurrentSortValue()}
+                onChange={(e) => handleSortChange(e.target.value)}
+              >
+                <option value="">Mặc định</option>
+                <option value="created_at-desc">Mới nhất</option>
+                <option value="price-asc">Giá: Thấp đến cao</option>
+                <option value="price-desc">Giá: Cao đến thấp</option>
+                <option value="sold_count-desc">Bán chạy nhất</option>
+                <option value="view_count-desc">Xem nhiều nhất</option>
+                <option value="name-asc">Tên: A-Z</option>
+                <option value="name-desc">Tên: Z-A</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="products-layout">
