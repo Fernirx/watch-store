@@ -82,12 +82,20 @@ class OrderController extends Controller
             $validated = $request->validate([
                 'customer_name' => 'required|string|max:255', // Tên khách hàng (bắt buộc)
                 'customer_email' => 'required|email|max:255', // Email (bắt buộc)
-                'shipping_address' => 'required|string',
-                'shipping_phone' => 'required|string',
+                'shipping_address' => 'required|string|min:10',
+                'shipping_phone' => [
+                    'required',
+                    'string',
+                    'max:15',
+                    'regex:/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/'
+                ],
                 'payment_method' => 'required|in:cod,vnpay',
                 'notes' => 'nullable|string',
                 'coupon_code' => 'nullable|string|max:50', // Mã giảm giá (optional)
                 'guest_token' => 'nullable|string|size:64', // Cho guest checkout
+            ], [
+                'shipping_phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
+                'shipping_address.min' => 'Địa chỉ phải có ít nhất 10 ký tự',
             ]);
 
             // Lấy user_id nếu đã đăng nhập, nếu không lấy guest_token

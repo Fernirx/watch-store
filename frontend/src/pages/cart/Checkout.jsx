@@ -105,13 +105,15 @@ const Checkout = () => {
     // Validate số điện thoại (format Việt Nam)
     if (!formData.shipping_phone.trim()) {
       newErrors.shipping_phone = 'Số điện thoại là bắt buộc';
+    } else if (formData.shipping_phone.length > 15) {
+      newErrors.shipping_phone = 'Số điện thoại không được vượt quá 15 ký tự';
     } else {
       // Remove spaces and dashes
       const phone = formData.shipping_phone.replace(/[\s-]/g, '');
 
-      // Validate Vietnamese phone number (10-11 digits, starts with 0)
-      if (!/^0\d{9,10}$/.test(phone)) {
-        newErrors.shipping_phone = 'Số điện thoại không hợp lệ (VD: 0912345678)';
+      // Validate Vietnamese phone number (10 digits: 03x, 05x, 07x, 08x, 09x)
+      if (!/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(phone)) {
+        newErrors.shipping_phone = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)';
       }
     }
 

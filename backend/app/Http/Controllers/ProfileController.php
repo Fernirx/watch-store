@@ -49,8 +49,17 @@ class ProfileController extends Controller
                 'name' => 'sometimes|required|string|max:100',
                 'email' => 'sometimes|required|email|max:100|unique:users,email,' . $user->id,
                 'shipping_name' => 'sometimes|nullable|string|max:200',
-                'shipping_phone' => 'sometimes|nullable|string|max:15',
-                'shipping_address' => 'sometimes|nullable|string',
+                'shipping_phone' => [
+                    'sometimes',
+                    'nullable',
+                    'string',
+                    'max:15',
+                    'regex:/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/'
+                ],
+                'shipping_address' => 'sometimes|nullable|string|min:10',
+            ], [
+                'shipping_phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
+                'shipping_address.min' => 'Địa chỉ phải có ít nhất 10 ký tự',
             ]);
 
             $updatedUser = $this->profileService->updateProfile($user->id, $validated);
@@ -144,7 +153,17 @@ class ProfileController extends Controller
         try {
             $validated = $request->validate([
                 'current_password' => 'required|string',
-                'new_password' => 'required|string|min:8|confirmed',
+                'new_password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
+                ],
+            ], [
+                'new_password.regex' => 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số',
+                'new_password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+                'new_password.confirmed' => 'Mật khẩu xác nhận không khớp',
             ]);
 
             $this->profileService->changePassword(

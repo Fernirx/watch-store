@@ -89,9 +89,17 @@ class UserController extends Controller
                 'avatar' => 'nullable|image|max:2048',
                 // Customer fields
                 'name' => 'required|string|max:100',
-                'shipping_phone' => 'nullable|string|max:15',
+                'shipping_phone' => [
+                    'nullable',
+                    'string',
+                    'max:15',
+                    'regex:/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/'
+                ],
                 'shipping_name' => 'nullable|string|max:200',
-                'shipping_address' => 'nullable|string',
+                'shipping_address' => 'nullable|string|min:10',
+            ], [
+                'shipping_phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
+                'shipping_address.min' => 'Địa chỉ phải có ít nhất 10 ký tự',
             ]);
 
             $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;
@@ -133,9 +141,17 @@ class UserController extends Controller
                 'avatar' => 'nullable|image|max:2048',
                 // Customer fields
                 'name' => 'string|max:100',
-                'shipping_phone' => 'nullable|string|max:15',
+                'shipping_phone' => [
+                    'nullable',
+                    'string',
+                    'max:15',
+                    'regex:/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/'
+                ],
                 'shipping_name' => 'nullable|string|max:200',
-                'shipping_address' => 'nullable|string',
+                'shipping_address' => 'nullable|string|min:10',
+            ], [
+                'shipping_phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
+                'shipping_address.min' => 'Địa chỉ phải có ít nhất 10 ký tự',
             ]);
 
             $avatarFile = $request->hasFile('avatar') ? $request->file('avatar') : null;

@@ -31,6 +31,9 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState('profile'); // profile | password
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(null);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -64,8 +67,87 @@ const Profile = () => {
         setProfileData({ ...profileData, [e.target.name]: e.target.value });
     };
 
+    const validateProfileForm = () => {
+        const newErrors = {};
+
+        // Validate name (required) - Cho phép chữ cái tiếng Việt, khoảng trắng
+        if (!profileData.name.trim()) {
+            newErrors.name = 'Họ tên là bắt buộc';
+        } else if (profileData.name.trim().length < 2) {
+            newErrors.name = 'Họ tên phải có ít nhất 2 ký tự';
+        } else if (profileData.name.trim().length > 100) {
+            newErrors.name = 'Họ tên không được vượt quá 100 ký tự';
+        } else if (!/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/.test(profileData.name.trim())) {
+            newErrors.name = 'Họ tên chỉ được chứa chữ cái và khoảng trắng';
+        }
+
+        // Validate shipping_name (optional, max 200) - Cho phép chữ cái tiếng Việt, khoảng trắng
+        if (profileData.shipping_name.trim()) {
+            if (profileData.shipping_name.trim().length > 200) {
+                newErrors.shipping_name = 'Tên người nhận không được vượt quá 200 ký tự';
+            } else if (!/^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]+$/.test(profileData.shipping_name.trim())) {
+                newErrors.shipping_name = 'Tên người nhận chỉ được chứa chữ cái và khoảng trắng';
+            }
+        }
+
+        // Validate shipping_phone (optional, max 15, regex Vietnamese phone)
+        if (profileData.shipping_phone.trim()) {
+            if (profileData.shipping_phone.length > 15) {
+                newErrors.shipping_phone = 'Số điện thoại không được vượt quá 15 ký tự';
+            } else {
+                const phone = profileData.shipping_phone.replace(/[\s-]/g, '');
+                // Validate Vietnamese phone number (10 digits: 03x, 05x, 07x, 08x, 09x)
+                if (!/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(phone)) {
+                    newErrors.shipping_phone = 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)';
+                }
+            }
+        }
+
+        // Validate shipping_address (optional, min 10 chars) - Cho phép chữ, số, dấu câu phổ biến
+        if (profileData.shipping_address.trim()) {
+            if (profileData.shipping_address.trim().length < 10) {
+                newErrors.shipping_address = 'Địa chỉ phải có ít nhất 10 ký tự';
+            } else if (!/^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s,.\-/()]+$/.test(profileData.shipping_address.trim())) {
+                newErrors.shipping_address = 'Địa chỉ chứa ký tự không hợp lệ';
+            }
+        }
+
+        return newErrors;
+    };
+
     const handlePasswordChange = (e) => {
         setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
+    };
+
+    const validatePasswordForm = () => {
+        const newErrors = {};
+
+        // Validate current password
+        if (!passwordData.current_password) {
+            newErrors.current_password = 'Mật khẩu hiện tại là bắt buộc';
+        }
+
+        // Validate new password - Yêu cầu mật khẩu mạnh
+        if (!passwordData.new_password) {
+            newErrors.new_password = 'Mật khẩu mới là bắt buộc';
+        } else if (passwordData.new_password.length < 8) {
+            newErrors.new_password = 'Mật khẩu phải có ít nhất 8 ký tự';
+        } else if (!/(?=.*[a-z])/.test(passwordData.new_password)) {
+            newErrors.new_password = 'Mật khẩu phải có ít nhất 1 chữ thường';
+        } else if (!/(?=.*[A-Z])/.test(passwordData.new_password)) {
+            newErrors.new_password = 'Mật khẩu phải có ít nhất 1 chữ hoa';
+        } else if (!/(?=.*\d)/.test(passwordData.new_password)) {
+            newErrors.new_password = 'Mật khẩu phải có ít nhất 1 số';
+        }
+
+        // Validate password confirmation
+        if (!passwordData.new_password_confirmation) {
+            newErrors.new_password_confirmation = 'Xác nhận mật khẩu là bắt buộc';
+        } else if (passwordData.new_password !== passwordData.new_password_confirmation) {
+            newErrors.new_password_confirmation = 'Mật khẩu xác nhận không khớp';
+        }
+
+        return newErrors;
     };
 
     const handleAvatarChange = async (e) => {
@@ -109,8 +191,16 @@ const Profile = () => {
 
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setMessage({ type: '', text: '' });
+
+        // Validate form trước khi submit
+        const validationErrors = validateProfileForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setMessage({ type: 'error', text: Object.values(validationErrors)[0] });
+            return;
+        }
+
+        setLoading(true);
 
         try {
             const response = await profileService.updateProfile(profileData);
@@ -120,13 +210,20 @@ const Profile = () => {
             }
         } catch (error) {
             console.error('Profile update error:', error);
-            const errorMsg = error.response?.data?.message ||
-                error.response?.data?.errors ||
-                'Cập nhật thông tin thất bại';
-            setMessage({
-                type: 'error',
-                text: typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg)
-            });
+
+            // Xử lý lỗi từ backend
+            if (error.response?.data?.errors) {
+                const backendErrors = error.response.data.errors;
+                // Hiển thị lỗi đầu tiên
+                const firstError = Object.values(backendErrors)[0];
+                setMessage({
+                    type: 'error',
+                    text: Array.isArray(firstError) ? firstError[0] : firstError
+                });
+            } else {
+                const errorMsg = error.response?.data?.message || 'Cập nhật thông tin thất bại';
+                setMessage({ type: 'error', text: errorMsg });
+            }
         } finally {
             setLoading(false);
         }
@@ -134,14 +231,16 @@ const Profile = () => {
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setMessage({ type: '', text: '' });
 
-        if (passwordData.new_password !== passwordData.new_password_confirmation) {
-            setMessage({ type: 'error', text: 'Mật khẩu mới không khớp' });
-            setLoading(false);
+        // Validate form trước khi submit
+        const validationErrors = validatePasswordForm();
+        if (Object.keys(validationErrors).length > 0) {
+            setMessage({ type: 'error', text: Object.values(validationErrors)[0] });
             return;
         }
+
+        setLoading(true);
 
         try {
             const response = await profileService.changePassword({
@@ -349,37 +448,97 @@ const Profile = () => {
 
                             <div className="form-group">
                                 <label>Mật khẩu hiện tại *</label>
-                                <input
-                                    type="password"
-                                    name="current_password"
-                                    value={passwordData.current_password}
-                                    onChange={handlePasswordChange}
-                                    required
-                                />
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        name="current_password"
+                                        value={passwordData.current_password}
+                                        onChange={handlePasswordChange}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle-btn"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        aria-label={showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                    >
+                                        {showCurrentPassword ? (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        ) : (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="form-group">
                                 <label>Mật khẩu mới *</label>
-                                <input
-                                    type="password"
-                                    name="new_password"
-                                    value={passwordData.new_password}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    minLength={8}
-                                />
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showNewPassword ? "text" : "password"}
+                                        name="new_password"
+                                        value={passwordData.new_password}
+                                        onChange={handlePasswordChange}
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle-btn"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        aria-label={showNewPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                    >
+                                        {showNewPassword ? (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        ) : (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="form-group">
                                 <label>Xác nhận mật khẩu mới *</label>
-                                <input
-                                    type="password"
-                                    name="new_password_confirmation"
-                                    value={passwordData.new_password_confirmation}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    minLength={8}
-                                />
+                                <div className="password-input-wrapper">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        name="new_password_confirmation"
+                                        value={passwordData.new_password_confirmation}
+                                        onChange={handlePasswordChange}
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle-btn"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                    >
+                                        {showConfirmPassword ? (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        ) : (
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <button type="submit" className="btn-submit" disabled={loading}>

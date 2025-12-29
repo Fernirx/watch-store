@@ -110,8 +110,16 @@ const Users = () => {
     }
 
     // Validate shipping_phone nếu có
-    if (formData.shipping_phone && !/^[0-9]{10,15}$/.test(formData.shipping_phone.replace(/\s/g, ''))) {
-      errors.push('Số điện thoại giao hàng phải có 10-15 chữ số');
+    if (formData.shipping_phone) {
+      if (formData.shipping_phone.length > 15) {
+        errors.push('Số điện thoại không được vượt quá 15 ký tự');
+      } else {
+        const phone = formData.shipping_phone.replace(/[\s-]/g, '');
+        // Validate Vietnamese phone number (10 digits: 03x, 05x, 07x, 08x, 09x)
+        if (!/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/.test(phone)) {
+          errors.push('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)');
+        }
+      }
     }
 
     return errors;
