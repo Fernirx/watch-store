@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 import productService from '../../services/productService';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,17 +19,34 @@ const ProductList = () => {
   const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
   const { isAuthenticated } = useAuth();
 
+  // Price range state for slider
+  const MIN_PRICE = 0;
+  const MAX_PRICE = 50000000; // 50 triệu VND
+  const [priceRange, setPriceRange] = useState([
+    parseInt(searchParams.get('min_price')) || MIN_PRICE,
+    parseInt(searchParams.get('max_price')) || MAX_PRICE
+  ]);
+
   const selectedCategory = searchParams.get('category');
   const selectedBrand = searchParams.get('brand');
   const searchQuery = searchParams.get('search');
   const stockFilter = searchParams.get('stock');
   const movementFilter = searchParams.get('movement');
   const genderFilter = searchParams.get('gender');
-  const priceRange = searchParams.get('price_range');
+  const minPrice = searchParams.get('min_price');
+  const maxPrice = searchParams.get('max_price');
+
+  // Sync priceRange state with URL params
+  useEffect(() => {
+    setPriceRange([
+      parseInt(minPrice) || MIN_PRICE,
+      parseInt(maxPrice) || MAX_PRICE
+    ]);
+  }, [minPrice, maxPrice]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedCategory, selectedBrand, searchQuery, stockFilter, movementFilter, genderFilter, priceRange]);
+  }, [selectedCategory, selectedBrand, searchQuery, stockFilter, movementFilter, genderFilter, minPrice, maxPrice]);
 
   const fetchData = async () => {
     try {
@@ -41,11 +60,8 @@ const ProductList = () => {
       if (genderFilter) params.gender = genderFilter;
 
       // Price range handling
-      if (priceRange) {
-        const [min, max] = priceRange.split('-');
-        if (min) params.min_price = min;
-        if (max && max !== 'up') params.max_price = max;
-      }
+      if (minPrice) params.min_price = minPrice;
+      if (maxPrice) params.max_price = maxPrice;
 
       const [productsData, categoriesData, brandsData] = await Promise.all([
         productService.getProducts(params),
@@ -131,14 +147,37 @@ const ProductList = () => {
     setSearchParams(params);
   };
 
-  const handlePriceFilter = (range) => {
+  const handlePriceRangeChange = (values) => {
+    setPriceRange(values);
+  };
+
+  const handlePriceRangeAfterChange = (values) => {
     const params = new URLSearchParams(searchParams);
-    if (range) {
-      params.set('price_range', range);
+    const [min, max] = values;
+
+    // Only set params if not at default values
+    if (min > MIN_PRICE) {
+      params.set('min_price', min);
     } else {
-      params.delete('price_range');
+      params.delete('min_price');
     }
+
+    if (max < MAX_PRICE) {
+      params.set('max_price', max);
+    } else {
+      params.delete('max_price');
+    }
+
     setSearchParams(params);
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
   };
 
   const handleWishlistToggle = async (e, product) => {
@@ -308,22 +347,32 @@ const ProductList = () => {
 
             <div className="filter-section">
               <h3>Khoảng Giá</h3>
-              <select
-                className="filter-select"
-                value={priceRange || ''}
-                onChange={(e) => handlePriceFilter(e.target.value || null)}
-              >
-                <option value="">Tất cả</option>
-                <option value="0-5000000">Dưới 5 triệu</option>
-                <option value="5000000-10000000">5 - 10 triệu</option>
-                <option value="10000000-20000000">10 - 20 triệu</option>
-                <option value="20000000-up">Trên 20 triệu</option>
-              </select>
+              <div className="price-range-container">
+                <div className="price-range-labels">
+                  <span className="price-label">{formatPrice(priceRange[0])}</span>
+                  <span className="price-label">{formatPrice(priceRange[1])}</span>
+                </div>
+                <Slider
+                  range
+                  min={MIN_PRICE}
+                  max={MAX_PRICE}
+                  step={500000}
+                  value={priceRange}
+                  onChange={handlePriceRangeChange}
+                  onChangeComplete={handlePriceRangeAfterChange}
+                  className="price-range-slider"
+                />
+                <div className="price-range-min-max">
+                  <span>{formatPrice(MIN_PRICE)}</span>
+                  <span>{formatPrice(MAX_PRICE)}</span>
+                </div>
+              </div>
             </div>
               <button
                 className="clear-filters-btn"
                 onClick={() => {
                   setSearchParams({});
+                  setPriceRange([MIN_PRICE, MAX_PRICE]);
                 }}
               >
                 Reset Bộ Lọc
