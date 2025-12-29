@@ -26,6 +26,7 @@ const Profile = () => {
 
     // UI state
     const [loading, setLoading] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [activeTab, setActiveTab] = useState('profile'); // profile | password
     const [avatarFile, setAvatarFile] = useState(null);
@@ -81,7 +82,7 @@ const Profile = () => {
         setAvatarFile(file);
 
         // Upload luôn
-        setLoading(true);
+        setUploadingAvatar(true);
         setMessage({ type: '', text: '' });
 
         try {
@@ -102,7 +103,7 @@ const Profile = () => {
             setMessage({ type: 'error', text: errorMsg });
             setAvatarPreview(user?.avatar_url || null); // Rollback preview
         } finally {
-            setLoading(false);
+            setUploadingAvatar(false);
         }
     };
 
@@ -170,7 +171,7 @@ const Profile = () => {
     const handleDeleteAvatar = async () => {
         if (!window.confirm('Bạn có chắc muốn xóa avatar?')) return;
 
-        setLoading(true);
+        setUploadingAvatar(true);
         setMessage({ type: '', text: '' });
 
         try {
@@ -188,7 +189,7 @@ const Profile = () => {
                 text: error.response?.data?.message || 'Xóa avatar thất bại'
             });
         } finally {
-            setLoading(false);
+            setUploadingAvatar(false);
         }
     };
 
@@ -226,7 +227,7 @@ const Profile = () => {
 
                             {/* Avatar */}
                             <div className="avatar-section">
-                                <div className="avatar-preview">
+                                <div className={`avatar-preview ${uploadingAvatar ? 'uploading' : ''}`}>
                                     {avatarPreview ? (
                                         <img src={avatarPreview} alt="Avatar" />
                                     ) : (
@@ -234,19 +235,29 @@ const Profile = () => {
                                             {user?.customer?.name?.charAt(0).toUpperCase() || 'U'}
                                         </div>
                                     )}
+                                    {uploadingAvatar && (
+                                        <div className="avatar-upload-overlay">
+                                            <div className="upload-spinner"></div>
+                                            <span className="upload-text">Đang upload...</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="avatar-actions">
-                                    <label htmlFor="avatar-upload" className="btn-upload">
-                                        Chọn Ảnh
+                                    <label
+                                        htmlFor="avatar-upload"
+                                        className={`btn-upload ${uploadingAvatar ? 'disabled' : ''}`}
+                                    >
+                                        {uploadingAvatar ? 'Đang upload...' : 'Chọn Ảnh'}
                                         <input
                                             id="avatar-upload"
                                             type="file"
                                             accept="image/*"
                                             onChange={handleAvatarChange}
+                                            disabled={uploadingAvatar}
                                             style={{ display: 'none' }}
                                         />
                                     </label>
-                                    {avatarPreview && (
+                                    {avatarPreview && !uploadingAvatar && (
                                         <button type="button" onClick={handleDeleteAvatar} className="btn-delete">
                                             Xóa Avatar
                                         </button>
