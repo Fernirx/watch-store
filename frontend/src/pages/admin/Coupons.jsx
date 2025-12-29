@@ -49,8 +49,15 @@ const Coupons = () => {
   const validateForm = () => {
     const errors = [];
 
+    // Validate coupon code - Chỉ chữ in hoa, số, gạch ngang và gạch dưới
     if (!formData.code.trim()) {
       errors.push('Mã coupon là bắt buộc');
+    } else if (formData.code.trim().length < 3) {
+      errors.push('Mã coupon phải có ít nhất 3 ký tự');
+    } else if (formData.code.trim().length > 50) {
+      errors.push('Mã coupon không được vượt quá 50 ký tự');
+    } else if (!/^[A-Z0-9_-]+$/.test(formData.code.trim())) {
+      errors.push('Mã coupon chỉ được chứa chữ in hoa, số, gạch ngang (-) và gạch dưới (_)');
     }
 
     if (!formData.discount_value || formData.discount_value <= 0) {

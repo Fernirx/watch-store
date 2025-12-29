@@ -72,7 +72,14 @@ class CouponController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:50|unique:coupons,code',
+                'code' => [
+                    'required',
+                    'string',
+                    'min:3',
+                    'max:50',
+                    'unique:coupons,code',
+                    'regex:/^[A-Z0-9_-]+$/'
+                ],
                 'description' => 'nullable|string',
                 'discount_type' => 'required|in:PERCENTAGE,FIXED',
                 'discount_value' => 'required|numeric|min:0',
@@ -83,6 +90,9 @@ class CouponController extends Controller
                 'valid_from' => 'nullable|date',
                 'valid_until' => 'nullable|date|after:valid_from',
                 'is_active' => 'boolean',
+            ], [
+                'code.regex' => 'Mã coupon chỉ được chứa chữ in hoa, số, gạch ngang (-) và gạch dưới (_)',
+                'code.min' => 'Mã coupon phải có ít nhất 3 ký tự',
             ]);
 
             // Validation: PERCENTAGE must be 0-100
@@ -130,7 +140,13 @@ class CouponController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'string|max:50|unique:coupons,code,' . $id,
+                'code' => [
+                    'string',
+                    'min:3',
+                    'max:50',
+                    'unique:coupons,code,' . $id,
+                    'regex:/^[A-Z0-9_-]+$/'
+                ],
                 'description' => 'nullable|string',
                 'discount_type' => 'in:PERCENTAGE,FIXED',
                 'discount_value' => 'numeric|min:0',
@@ -194,10 +210,24 @@ class CouponController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:50',
+                'code' => [
+                    'required',
+                    'string',
+                    'min:3',
+                    'max:50',
+                    'regex:/^[A-Z0-9_-]+$/'
+                ],
                 'subtotal' => 'required|numeric|min:0',
                 'email' => 'required|email',
-                'phone' => 'required|string',
+                'phone' => [
+                    'required',
+                    'string',
+                    'max:15',
+                    'regex:/^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/'
+                ],
+            ], [
+                'code.regex' => 'Mã coupon không hợp lệ',
+                'phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
             ]);
 
             $userId = $request->user() ? $request->user()->id : null;
