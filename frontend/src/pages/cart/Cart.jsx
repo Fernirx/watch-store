@@ -9,14 +9,12 @@ const Cart = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState([]);
-
-  useEffect(() => {
-    fetchCart();
-  }, [isAuthenticated]);
+  const [updatingItemId, setUpdatingItemId] = useState(null);
 
   // Auto-select all available items when cart loads
   useEffect(() => {
-    if (cart?.cart?.items) {
+    if (cart?.cart?.items && cart.cart.items.length > 0) {
+      console.log('✅ Cart items loaded, auto-selecting:', cart.cart.items.length);
       const availableItemIds = cart.cart.items
         .filter(item => item.is_available !== false)
         .map(item => item.id);
@@ -26,10 +24,13 @@ const Cart = () => {
 
   const handleQuantityChange = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
+    setUpdatingItemId(itemId);
     try {
       await updateCartItem(itemId, newQuantity);
     } catch (error) {
       alert('Không thể cập nhật số lượng: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
@@ -80,21 +81,30 @@ const Cart = () => {
       }, 0);
   };
 
-  if (loading) {
-    return <div className="loading">Đang tải giỏ hàng...</div>;
-  }
+  console.log('🛒 Cart render - loading:', loading, 'cart items:', cart?.cart?.items?.length || 0);
 
   // cart.cart contains the actual cart with items
   const cartItems = cart?.cart?.items || [];
+
+  // Show loading only on initial load
+  if (loading && cartItems.length === 0) {
+    return (
+      <div className="loading">
+        <div className="spinner-large"></div>
+        <p>Đang tải giỏ hàng...</p>
+      </div>
+    );
+  }
   const hasOutOfStock = cart?.has_out_of_stock || false;
   const availableItems = cartItems.filter(item => item.is_available !== false);
   const allAvailableSelected = availableItems.length > 0 && selectedItems.length === availableItems.length;
   const selectedTotal = calculateSelectedTotal();
 
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 && !loading) {
     return (
       <div className="empty-cart">
         <div className="container">
+          <div className="empty-cart-icon">🛒</div>
           <h2>Giỏ hàng trống</h2>
           <p>Bạn chưa có sản phẩm nào trong giỏ hàng</p>
           <Link to="/products" className="btn-primary">
@@ -141,14 +151,16 @@ const Cart = () => {
               const isAvailable = item.is_available !== false;
               const isSelected = selectedItems.includes(item.id);
 
+              const isUpdating = updatingItemId === item.id;
+
               return (
-                <div key={item.id} className={`cart-item ${!isAvailable ? 'out-of-stock' : ''} ${isSelected ? 'selected' : ''}`}>
+                <div key={item.id} className={`cart-item ${!isAvailable ? 'out-of-stock' : ''} ${isSelected ? 'selected' : ''} ${isUpdating ? 'updating' : ''}`}>
                   <label className="checkbox-container">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleSelectItem(item.id)}
-                      disabled={!isAvailable}
+                      disabled={!isAvailable || isUpdating}
                     />
                     <span className="checkmark"></span>
                   </label>
@@ -182,7 +194,7 @@ const Cart = () => {
                   <div className="item-quantity">
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
+                      disabled={item.quantity <= 1 || isUpdating}
                     >
                       -
                     </button>
@@ -192,13 +204,15 @@ const Cart = () => {
                       onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
                       min="1"
                       max={product.stock_quantity}
+                      disabled={isUpdating}
                     />
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= product.stock_quantity}
+                      disabled={item.quantity >= product.stock_quantity || isUpdating}
                     >
                       +
                     </button>
+                    {isUpdating && <span className="updating-spinner"></span>}
                   </div>
 
                   <div className="item-total">
