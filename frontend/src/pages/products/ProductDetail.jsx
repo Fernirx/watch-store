@@ -57,7 +57,7 @@ const ProductDetail = () => {
   const handleBuyNow = async () => {
     try {
       await addToCart(product.id, quantity);
-      navigate('/cart');
+      navigate('/checkout');
     } catch (error) {
       setToast({ message: 'Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
