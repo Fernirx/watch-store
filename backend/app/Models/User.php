@@ -5,12 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'email',
@@ -43,19 +42,6 @@ class User extends Authenticatable implements JWTSubject
         'role' => 'USER',
         'is_active' => true,
     ];
-
-    // Relationship với Favorites
-    public function favorites()
-    {
-        return $this->hasMany(Favorite::class);
-    }
-
-    // Relationship để lấy danh sách sản phẩm yêu thích
-    public function favoriteProducts()
-    {
-        return $this->belongsToMany(Product::class, 'favorites')
-            ->withTimestamps();
-    }
 
     // Relationship với Customer
     public function customer()

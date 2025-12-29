@@ -150,17 +150,6 @@ class Product extends Model
         return $this->hasMany(Review::class)->orderBy('created_at', 'desc');
     }
 
-    public function favorites()
-    {
-        return $this->hasMany(Favorite::class);
-    }
-
-    public function favoritedByUsers()
-    {
-        return $this->belongsToMany(User::class, 'favorites')
-            ->withTimestamps();
-    }
-
     // Accessors (Computed Attributes)
     public function getDiscountPercentageAttribute()
     {

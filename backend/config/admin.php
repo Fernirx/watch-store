@@ -5,4 +5,3 @@ return [
     'password' => env('ADMIN_PASSWORD', 'Admin@123456'),
     'name' => env('ADMIN_NAME', 'Admin User')
 ];
-?>
