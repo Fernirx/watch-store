@@ -158,17 +158,32 @@
   }
 
   .profile-avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: #3498db;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .profile-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #e1e6ee;
+    transition: border-color 0.2s;
+  }
+
+  .profile-trigger:hover .profile-avatar-img {
+    border-color: #3498db;
   }
 
   .profile-caret {

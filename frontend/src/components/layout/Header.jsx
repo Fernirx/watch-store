@@ -90,7 +90,22 @@ const Header = () => {
                   aria-expanded={isProfileOpen}
                   aria-haspopup="true"
                 >
-                  <div className="profile-avatar" aria-hidden>
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user?.customer?.name || 'User'}
+                      className="profile-avatar-img"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="profile-avatar"
+                    aria-hidden
+                    style={{ display: user?.avatar_url ? 'none' : 'flex' }}
+                  >
                     {(user?.customer?.name?.charAt(0) || 'U').toUpperCase()}
                   </div>
                   <svg
