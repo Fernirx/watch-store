@@ -51,6 +51,7 @@ const Header = () => {
             <SearchBar
               placeholder="Tìm kiếm sản phẩm..."
               compact
+              liveSearch
               onSubmit={(q) => {
                 const query = q?.trim();
                 if (query) {
