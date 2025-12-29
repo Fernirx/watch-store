@@ -22,6 +22,9 @@ Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    Route::post('/products/{id}/images', [ProductController::class, 'addImages']);
+    Route::delete('/products/{id}/images/{imageIndex}', [ProductController::class, 'deleteImage']);
+    Route::put('/products/{id}/images/primary', [ProductController::class, 'setPrimaryImage']);
     Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::put('/orders/{id}/payment-status', [OrderController::class, 'updatePaymentStatus']);
 

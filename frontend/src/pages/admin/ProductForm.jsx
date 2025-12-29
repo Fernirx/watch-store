@@ -14,7 +14,8 @@ const ProductForm = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [images, setImages] = useState([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   const [formData, setFormData] = useState({
     // Basic Information
@@ -74,9 +75,6 @@ const ProductForm = () => {
     is_on_sale: false,
     is_featured: false,
     is_active: true,
-
-    // Image
-    image: null,
   });
 
   useEffect(() => {
@@ -140,11 +138,14 @@ const ProductForm = () => {
         is_on_sale: product.is_on_sale ?? false,
         is_featured: product.is_featured ?? false,
         is_active: product.is_active ?? true,
-        image: null,
       });
 
-      if (product.image_url) {
-        setImagePreview(product.image_url);
+      // Load existing images
+      if (product.images && Array.isArray(product.images)) {
+        setImages(product.images);
+        // Find primary image index
+        const primaryIndex = product.images.findIndex(img => img.is_primary);
+        setPrimaryImageIndex(primaryIndex >= 0 ? primaryIndex : 0);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -162,12 +163,59 @@ const ProductForm = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-      setImagePreview(URL.createObjectURL(file));
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    // Validate max 6 images total
+    if (images.length + files.length > 6) {
+      alert('Tối đa 6 ảnh cho mỗi sản phẩm');
+      return;
     }
+
+    // Create preview objects for new images
+    const newImagePreviews = files.map(file => ({
+      file: file,
+      url: URL.createObjectURL(file),
+      is_new: true,
+      is_primary: false
+    }));
+
+    // If no existing images, make first one primary
+    if (images.length === 0 && newImagePreviews.length > 0) {
+      newImagePreviews[0].is_primary = true;
+      setPrimaryImageIndex(0);
+    }
+
+    setImages(prev => [...prev, ...newImagePreviews]);
+  };
+
+  const handleRemoveImage = (index) => {
+    if (images.length <= 1) {
+      alert('Sản phẩm phải có ít nhất 1 ảnh');
+      return;
+    }
+
+    const newImages = images.filter((_, i) => i !== index);
+
+    // If removed image was primary, make first image primary
+    if (index === primaryImageIndex) {
+      newImages[0].is_primary = true;
+      setPrimaryImageIndex(0);
+    } else if (index < primaryImageIndex) {
+      // Adjust primary index if removed image was before it
+      setPrimaryImageIndex(primaryImageIndex - 1);
+    }
+
+    setImages(newImages);
+  };
+
+  const handleSetPrimaryImage = (index) => {
+    const newImages = images.map((img, i) => ({
+      ...img,
+      is_primary: i === index
+    }));
+    setImages(newImages);
+    setPrimaryImageIndex(index);
   };
 
   const validateForm = () => {
@@ -210,6 +258,15 @@ const ProductForm = () => {
     // Validate thương hiệu
     if (!formData.brand_id) {
       errors.push('Vui lòng chọn thương hiệu');
+    }
+
+    // Validate images
+    if (images.length === 0) {
+      errors.push('Sản phẩm phải có ít nhất 1 ảnh');
+    }
+
+    if (images.length > 6) {
+      errors.push('Tối đa 6 ảnh cho mỗi sản phẩm');
     }
 
     return errors;
@@ -293,28 +350,31 @@ const ProductForm = () => {
       submitData.append('is_featured', formData.is_featured ? '1' : '0');
       submitData.append('is_active', formData.is_active ? '1' : '0');
 
-      // Image
-      if (formData.image) {
-        submitData.append('image', formData.image);
-      }
-
-      // Debug logging
-      console.log('Submitting product:', {
-        name: formData.name,
-        price: formData.price,
-        sale_price: formData.sale_price,
-        category_id: formData.category_id,
-        brand_id: formData.brand_id,
-        stock_quantity: formData.stock_quantity,
-        is_active: formData.is_active,
-        has_image: !!formData.image,
-      });
+      // Handle images
+      submitData.append('primary_image_index', primaryImageIndex);
 
       if (isEdit) {
+        // For update: separate existing and new images
+        const existingImages = images.filter(img => !img.is_new);
+        const newImages = images.filter(img => img.is_new);
+
+        // Send existing images as JSON
+        submitData.append('existing_images', JSON.stringify(existingImages));
+
+        // Send new images as files
+        newImages.forEach((img, index) => {
+          submitData.append(`new_images[${index}]`, img.file);
+        });
+
         submitData.append('_method', 'PUT');
         await productService.updateProduct(id, submitData);
         alert('Cập nhật sản phẩm thành công!');
       } else {
+        // For create: send all images as new
+        images.forEach((img, index) => {
+          submitData.append(`images[${index}]`, img.file);
+        });
+
         await productService.createProduct(submitData);
         alert('Tạo sản phẩm thành công!');
       }
@@ -841,29 +901,112 @@ const ProductForm = () => {
           <h2 className="form-section-title">🖼️ Hình Ảnh & Trạng Thái</h2>
 
           <div className="form-group">
-            <label htmlFor="image">Hình ảnh sản phẩm</label>
+            <label htmlFor="images">Hình ảnh sản phẩm (1-6 ảnh)</label>
             <input
               type="file"
-              id="image"
-              name="image"
-              onChange={handleImageChange}
-              accept="image/*"
+              id="images"
+              name="images"
+              onChange={handleImagesChange}
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              multiple
               className="form-control"
+              disabled={images.length >= 6}
             />
-            {imagePreview && (
-              <div style={{ marginTop: '1rem' }}>
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{
-                    width: '100%',
-                    maxWidth: '400px',
-                    height: '300px',
-                    objectFit: 'cover',
-                    borderRadius: '0.5rem',
-                    border: '2px solid #e2e8f0'
-                  }}
-                />
+            <small style={{ color: '#666', display: 'block', marginTop: '0.5rem' }}>
+              Đã có {images.length}/6 ảnh. Chọn ảnh chính bằng cách click vào nút ⭐
+            </small>
+
+            {images.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gap: '1rem',
+                marginTop: '1rem'
+              }}>
+                {images.map((image, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      position: 'relative',
+                      border: index === primaryImageIndex ? '3px solid #4CAF50' : '2px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      overflow: 'hidden',
+                      aspectRatio: '1',
+                    }}
+                  >
+                    <img
+                      src={image.url}
+                      alt={`Product ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+
+                    {/* Primary badge */}
+                    {index === primaryImageIndex && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '5px',
+                        left: '5px',
+                        background: '#4CAF50',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        ẢNH CHÍNH
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '5px',
+                      left: '5px',
+                      right: '5px',
+                      display: 'flex',
+                      gap: '5px',
+                      justifyContent: 'center'
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => handleSetPrimaryImage(index)}
+                        disabled={index === primaryImageIndex}
+                        style={{
+                          padding: '4px 8px',
+                          background: index === primaryImageIndex ? '#ccc' : '#4CAF50',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: index === primaryImageIndex ? 'not-allowed' : 'pointer',
+                          fontSize: '16px'
+                        }}
+                        title="Đặt làm ảnh chính"
+                      >
+                        ⭐
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        style={{
+                          padding: '4px 8px',
+                          background: '#f44336',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '16px'
+                        }}
+                        title="Xóa ảnh"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

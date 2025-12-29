@@ -100,6 +100,10 @@ const ProductDetail = () => {
     : product.price;
   const images = product.images || [];
 
+  // Find primary image index
+  const primaryIndex = images.findIndex(img => img.is_primary);
+  const mainImageUrl = images[selectedImage]?.url || product.primary_image || product.image_url || '/placeholder.jpg';
+
   return (
     <div className="product-detail-page">
       <div className="container">
@@ -108,20 +112,49 @@ const ProductDetail = () => {
           <div className="product-images">
             <div className="main-image">
               <img
-                src={product.primary_image || product.image_url || '/placeholder.jpg'}
+                src={mainImageUrl}
                 alt={product.name}
               />
             </div>
             {images.length > 1 && (
               <div className="thumbnail-images">
                 {images.map((image, index) => (
-                  <img
+                  <div
                     key={index}
-                    src={image.url || image}
-                    alt={`${product.name} ${index + 1}`}
-                    className={selectedImage === index ? 'active' : ''}
+                    style={{
+                      position: 'relative',
+                      cursor: 'pointer',
+                      border: selectedImage === index ? '3px solid #4CAF50' : '2px solid #ddd',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                    }}
                     onClick={() => setSelectedImage(index)}
-                  />
+                  >
+                    <img
+                      src={image.url || image}
+                      alt={`${product.name} ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    {image.is_primary && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '2px',
+                        left: '2px',
+                        background: '#4CAF50',
+                        color: 'white',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '10px',
+                        fontWeight: 'bold'
+                      }}>
+                        CHÍNH
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

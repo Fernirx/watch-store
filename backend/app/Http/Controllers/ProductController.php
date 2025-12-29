@@ -132,9 +132,9 @@ class ProductController extends Controller
 
                 // Features & Images
                 'features' => 'nullable|string',
-                'image' => 'nullable|image|max:2048',
-                'images' => 'nullable|array',
-                'images.*' => 'image|max:2048',
+                'images' => 'required|array|min:1|max:6',
+                'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+                'primary_image_index' => 'nullable|integer|min:0',
                 'specifications' => 'nullable|array',
 
                 // Status & Badges
@@ -144,12 +144,18 @@ class ProductController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
-                $validated['images'] = [$uploadedImage];
-            } elseif ($request->hasFile('images')) {
+            // Handle multiple images upload
+            if ($request->hasFile('images')) {
                 $uploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
+
+                // Determine primary image index (default to 0)
+                $primaryIndex = $request->input('primary_image_index', 0);
+
+                // Mark primary image
+                foreach ($uploadedImages as $index => $image) {
+                    $uploadedImages[$index]['is_primary'] = ($index === $primaryIndex);
+                }
+
                 $validated['images'] = $uploadedImages;
             }
 
@@ -235,9 +241,10 @@ class ProductController extends Controller
 
                 // Features & Images
                 'features' => 'nullable|string',
-                'image' => 'nullable|image|max:2048',
-                'images' => 'nullable|array',
-                'images.*' => 'image|max:2048',
+                'existing_images' => 'nullable|string',
+                'new_images' => 'nullable|array|max:6',
+                'new_images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+                'primary_image_index' => 'nullable|integer|min:0',
                 'specifications' => 'nullable|array',
 
                 // Status & Badges
@@ -247,36 +254,70 @@ class ProductController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                $product = $this->productService->getProductById((int)$id);
+            // Handle image updates
+            $product = $this->productService->getProductById((int)$id);
 
-                // Delete old images
-                if ($product && $product->images && is_array($product->images)) {
-                    foreach ($product->images as $image) {
-                        if (isset($image['public_id'])) {
-                            $this->cloudinaryService->delete($image['public_id']);
-                        }
-                    }
-                }
-
-                $uploadedImage = $this->cloudinaryService->upload($request->file('image'), 'watch-store/products');
-                $validated['images'] = [$uploadedImage];
-            } elseif ($request->hasFile('images')) {
-                $product = $this->productService->getProductById((int)$id);
-
-                // Delete old images
-                if ($product && $product->images && is_array($product->images)) {
-                    foreach ($product->images as $image) {
-                        if (isset($image['public_id'])) {
-                            $this->cloudinaryService->delete($image['public_id']);
-                        }
-                    }
-                }
-
-                $uploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
-                $validated['images'] = $uploadedImages;
+            // Parse existing images from JSON string
+            $existingImages = [];
+            if ($request->has('existing_images')) {
+                $existingImages = json_decode($request->input('existing_images'), true) ?? [];
             }
+
+            // Get old images to determine which to delete
+            $oldImages = $product && $product->images ? $product->images : [];
+
+            // Find images to delete (old images not in existing list)
+            $imagesToDelete = [];
+            foreach ($oldImages as $oldImage) {
+                $found = false;
+                foreach ($existingImages as $existingImage) {
+                    if (isset($oldImage['public_id']) && isset($existingImage['public_id']) &&
+                        $oldImage['public_id'] === $existingImage['public_id']) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found && isset($oldImage['public_id'])) {
+                    $imagesToDelete[] = $oldImage['public_id'];
+                }
+            }
+
+            // Delete removed images from Cloudinary
+            foreach ($imagesToDelete as $publicId) {
+                $this->cloudinaryService->delete($publicId);
+            }
+
+            // Upload new images
+            $newUploadedImages = [];
+            if ($request->hasFile('new_images')) {
+                $newUploadedImages = $this->cloudinaryService->uploadMultiple($request->file('new_images'), 'watch-store/products');
+            }
+
+            // Merge existing + new images
+            $allImages = array_merge($existingImages, $newUploadedImages);
+
+            // Validate total image count
+            if (count($allImages) > 6) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tối đa 6 ảnh cho mỗi sản phẩm',
+                ], 422);
+            }
+
+            if (count($allImages) < 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm phải có ít nhất 1 ảnh',
+                ], 422);
+            }
+
+            // Mark primary image
+            $primaryIndex = $request->input('primary_image_index', 0);
+            foreach ($allImages as $index => $image) {
+                $allImages[$index]['is_primary'] = ($index === (int)$primaryIndex);
+            }
+
+            $validated['images'] = $allImages;
 
             $product = $this->productService->updateProduct((int)$id, $validated);
 
@@ -400,6 +441,204 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Không thể lấy sản phẩm đang sale',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Thêm ảnh phụ cho sản phẩm
+     */
+    public function addImages(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'images' => 'required|array|min:1|max:6',
+                'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:2048',
+            ]);
+
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy sản phẩm',
+                ], 404);
+            }
+
+            // Get existing images
+            $existingImages = $product->images ?? [];
+
+            // Upload new images
+            $newUploadedImages = $this->cloudinaryService->uploadMultiple($request->file('images'), 'watch-store/products');
+
+            // Merge with existing
+            $allImages = array_merge($existingImages, $newUploadedImages);
+
+            // Validate total count
+            if (count($allImages) > 6) {
+                // Delete just uploaded images
+                foreach ($newUploadedImages as $image) {
+                    if (isset($image['public_id'])) {
+                        $this->cloudinaryService->delete($image['public_id']);
+                    }
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tối đa 6 ảnh cho mỗi sản phẩm',
+                ], 422);
+            }
+
+            // Mark new images as non-primary
+            foreach ($allImages as $index => $image) {
+                if (!isset($allImages[$index]['is_primary'])) {
+                    $allImages[$index]['is_primary'] = false;
+                }
+            }
+
+            // Update product
+            $product = $this->productService->updateProduct((int)$id, ['images' => $allImages]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Thêm ảnh thành công',
+                'data' => $product,
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể thêm ảnh',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Xóa một ảnh cụ thể của sản phẩm
+     */
+    public function deleteImage(Request $request, string $id, int $imageIndex): JsonResponse
+    {
+        try {
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy sản phẩm',
+                ], 404);
+            }
+
+            $images = $product->images ?? [];
+
+            // Check if index exists
+            if (!isset($images[$imageIndex])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy ảnh',
+                ], 404);
+            }
+
+            // Cannot delete if only 1 image left
+            if (count($images) <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm phải có ít nhất 1 ảnh',
+                ], 422);
+            }
+
+            // Delete from Cloudinary
+            if (isset($images[$imageIndex]['public_id'])) {
+                $this->cloudinaryService->delete($images[$imageIndex]['public_id']);
+            }
+
+            // Check if deleted image was primary
+            $wasPrimary = $images[$imageIndex]['is_primary'] ?? false;
+
+            // Remove from array
+            array_splice($images, $imageIndex, 1);
+
+            // If deleted image was primary, make first image primary
+            if ($wasPrimary && count($images) > 0) {
+                $images[0]['is_primary'] = true;
+            }
+
+            // Update product
+            $product = $this->productService->updateProduct((int)$id, ['images' => $images]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Xóa ảnh thành công',
+                'data' => $product,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể xóa ảnh',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Đổi ảnh chính của sản phẩm
+     */
+    public function setPrimaryImage(Request $request, string $id): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'image_index' => 'required|integer|min:0',
+            ]);
+
+            $product = $this->productService->getProductById((int)$id);
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy sản phẩm',
+                ], 404);
+            }
+
+            $images = $product->images ?? [];
+            $imageIndex = $validated['image_index'];
+
+            // Check if index exists
+            if (!isset($images[$imageIndex])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy ảnh',
+                ], 404);
+            }
+
+            // Update primary flag for all images
+            foreach ($images as $index => $image) {
+                $images[$index]['is_primary'] = ($index === $imageIndex);
+            }
+
+            // Update product
+            $product = $this->productService->updateProduct((int)$id, ['images' => $images]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đổi ảnh chính thành công',
+                'data' => $product,
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể đổi ảnh chính',
                 'error' => $e->getMessage(),
             ], 500);
         }
