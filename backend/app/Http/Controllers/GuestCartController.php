@@ -82,7 +82,7 @@ class GuestCartController extends Controller
             if (!$guestToken) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Guest token is required',
+                    'message' => 'Yêu cầu guest token',
                 ], 400);
             }
 
@@ -99,19 +99,19 @@ class GuestCartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Product added to cart',
+                'message' => 'Đã thêm sản phẩm vào giỏ hàng',
                 'data' => $cartItem,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực dữ liệu',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add product to cart',
+                'message' => $e->getMessage(),
                 'error' => $e->getMessage(),
             ], 500);
         }

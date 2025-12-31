@@ -31,7 +31,7 @@ class CartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch cart',
+                'message' => 'Không thể tải giỏ hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -56,13 +56,13 @@ class CartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item added to cart',
+                'message' => 'Đã thêm sản phẩm vào giỏ hàng',
                 'data' => $cartItem,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực dữ liệu',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -92,13 +92,13 @@ class CartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Cart item updated',
+                'message' => 'Đã cập nhật giỏ hàng',
                 'data' => $cartItem,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực dữ liệu',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -120,12 +120,12 @@ class CartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Item removed from cart',
+                'message' => 'Đã xóa sản phẩm khỏi giỏ hàng',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to remove item',
+                'message' => 'Không thể xóa sản phẩm',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -141,12 +141,12 @@ class CartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Cart cleared',
+                'message' => 'Đã xóa toàn bộ giỏ hàng',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to clear cart',
+                'message' => 'Không thể xóa giỏ hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }
