@@ -35,7 +35,7 @@ class GuestCartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create session',
+                'message' => 'Không thể tạo phiên làm việc',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -52,7 +52,7 @@ class GuestCartController extends Controller
             if (!$guestToken) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Guest token is required',
+                    'message' => 'Yêu cầu guest token',
                 ], 400);
             }
 
@@ -65,7 +65,7 @@ class GuestCartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get cart',
+                'message' => 'Không thể tải giỏ hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -128,7 +128,7 @@ class GuestCartController extends Controller
             if (!$guestToken) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Guest token is required',
+                    'message' => 'Yêu cầu guest token',
                 ], 400);
             }
 
@@ -156,7 +156,7 @@ class GuestCartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update cart item',
+                'message' => 'Không thể cập nhật giỏ hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -173,7 +173,7 @@ class GuestCartController extends Controller
             if (!$guestToken) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Guest token is required',
+                    'message' => 'Yêu cầu guest token',
                 ], 400);
             }
 
@@ -186,7 +186,7 @@ class GuestCartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to remove product',
+                'message' => 'Không thể xóa sản phẩm',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -203,7 +203,7 @@ class GuestCartController extends Controller
             if (!$guestToken) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Guest token is required',
+                    'message' => 'Yêu cầu guest token',
                 ], 400);
             }
 
@@ -216,7 +216,7 @@ class GuestCartController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to clear cart',
+                'message' => 'Không thể xóa giỏ hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }

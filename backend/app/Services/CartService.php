@@ -263,7 +263,7 @@ class CartService
         // Validate guest session
         $session = GuestSession::where('guest_token', $guestToken)->first();
         if (!$session || $session->isExpired()) {
-            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+            throw new \Exception('Phiên làm việc không tồn tại hoặc đã hết hạn. Vui lòng tải lại trang.');
         }
 
         $cart = Cart::where('guest_token', $guestToken)->firstOrFail();
@@ -291,7 +291,7 @@ class CartService
         // Validate guest session
         $session = GuestSession::where('guest_token', $guestToken)->first();
         if (!$session || $session->isExpired()) {
-            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+            throw new \Exception('Phiên làm việc không tồn tại hoặc đã hết hạn. Vui lòng tải lại trang.');
         }
 
         $cart = Cart::where('guest_token', $guestToken)->firstOrFail();
@@ -311,7 +311,7 @@ class CartService
         // Validate guest session
         $session = GuestSession::where('guest_token', $guestToken)->first();
         if (!$session || $session->isExpired()) {
-            throw new \Exception('Guest session not found or expired. Please refresh the page.');
+            throw new \Exception('Phiên làm việc không tồn tại hoặc đã hết hạn. Vui lòng tải lại trang.');
         }
 
         $cart = Cart::where('guest_token', $guestToken)->first();
