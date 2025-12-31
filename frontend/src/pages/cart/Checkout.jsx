@@ -43,11 +43,11 @@ const Checkout = () => {
     fetchCart();
 
     // Tự động điền thông tin user nếu đã đăng nhập
-    if (isAuthenticated && user && user.customer) {
-      const customer = user.customer;
+    if (isAuthenticated && user) {
+      const customer = user.customer || {};
       setFormData(prev => ({
         ...prev,
-        customer_name: customer.shipping_name || customer.name || '',
+        customer_name: customer.shipping_name || customer.name || user.name || '',
         customer_email: user.email || '',
         shipping_phone: customer.shipping_phone || '',
         shipping_address: customer.shipping_address || '',
