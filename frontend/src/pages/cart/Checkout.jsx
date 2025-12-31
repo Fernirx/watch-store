@@ -670,17 +670,31 @@ const Checkout = () => {
               <button
                 type="submit"
                 className="btn-place-order"
-                disabled={loading || (!isAuthenticated && !otpVerified)}
+                disabled={loading || (!isAuthenticated && !otpVerified) || cart?.has_out_of_stock}
               >
                 {loading
                   ? 'Đang xử lý...'
-                  : (!isAuthenticated && !otpVerified)
-                    ? 'Xác thực email để đặt hàng'
-                    : 'Đặt Hàng'
+                  : cart?.has_out_of_stock
+                    ? 'Không thể đặt hàng - Sản phẩm hết hàng'
+                    : (!isAuthenticated && !otpVerified)
+                      ? 'Xác thực email để đặt hàng'
+                      : 'Đặt Hàng'
                 }
               </button>
 
-              {!isAuthenticated && !otpVerified && (
+              {cart?.has_out_of_stock && (
+                <p style={{
+                  textAlign: 'center',
+                  color: '#ef4444',
+                  fontSize: '0.875rem',
+                  marginTop: '0.5rem',
+                  fontWeight: '500'
+                }}>
+                  ⚠️ Không thể đặt hàng vì có sản phẩm hết hàng hoặc không đủ số lượng. Vui lòng điều chỉnh giỏ hàng.
+                </p>
+              )}
+
+              {!isAuthenticated && !otpVerified && !cart?.has_out_of_stock && (
                 <p style={{
                   textAlign: 'center',
                   color: '#6b7280',
@@ -701,14 +715,37 @@ const Checkout = () => {
               {cartItems.map((item) => {
                 const product = item.product;
                 const price = product.price;
+                const isOutOfStock = item.is_available === false;
 
                 return (
-                  <div key={item.id} className="summary-item">
+                  <div
+                    key={item.id}
+                    className="summary-item"
+                    style={{
+                      backgroundColor: isOutOfStock ? '#fef2f2' : 'transparent',
+                      border: isOutOfStock ? '1px solid #fecaca' : 'none',
+                      borderRadius: isOutOfStock ? '0.375rem' : '0',
+                      padding: isOutOfStock ? '0.5rem' : '0'
+                    }}
+                  >
                     <div className="item-info">
-                      <span className="item-name">{product.name}</span>
-                      <span className="item-quantity">x{item.quantity}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span className="item-name">{product.name}</span>
+                          <span className="item-quantity">x{item.quantity}</span>
+                        </div>
+                        {isOutOfStock && (
+                          <span style={{
+                            fontSize: '0.75rem',
+                            color: '#ef4444',
+                            fontWeight: '500'
+                          }}>
+                            ⚠️ {item.stock_message || 'Sản phẩm hết hàng'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="item-price">
+                    <div className="item-price" style={{ color: isOutOfStock ? '#dc2626' : 'inherit' }}>
                       {(parseFloat(price) * item.quantity).toLocaleString('vi-VN')}đ
                     </div>
                   </div>
