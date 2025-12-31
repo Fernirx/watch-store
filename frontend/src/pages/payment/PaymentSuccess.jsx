@@ -18,6 +18,9 @@ const PaymentSuccess = () => {
   const message = location.state?.message;
 
   useEffect(() => {
+    // Xóa pending order flag vì đã thanh toán thành công
+    sessionStorage.removeItem('vnpay_pending_order');
+
     // Làm mới giỏ hàng sau khi thanh toán thành công
     fetchCart();
   }, []);

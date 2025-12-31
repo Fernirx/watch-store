@@ -39,6 +39,35 @@ const Checkout = () => {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
 
+  // Kiểm tra nếu có pending order từ VNPay (user bấm back)
+  useEffect(() => {
+    const checkPendingOrder = async () => {
+      const pendingOrderId = sessionStorage.getItem('vnpay_pending_order');
+      if (pendingOrderId) {
+        console.log('⚠️ Found pending VNPay order:', pendingOrderId);
+
+        // Xóa khỏi sessionStorage
+        sessionStorage.removeItem('vnpay_pending_order');
+
+        // Gọi API để hủy order và restore cart
+        try {
+          await orderService.cancelOrder(pendingOrderId);
+          console.log('✅ Cancelled pending order and restored cart');
+
+          // Refresh cart
+          await fetchCart();
+
+          // Hiển thị thông báo
+          setError('Đơn hàng chưa được thanh toán đã bị hủy. Giỏ hàng của bạn đã được khôi phục.');
+        } catch (err) {
+          console.error('❌ Failed to cancel pending order:', err);
+        }
+      }
+    };
+
+    checkPendingOrder();
+  }, []);
+
   useEffect(() => {
     // Tự động điền thông tin user nếu đã đăng nhập
     if (isAuthenticated && user) {
@@ -308,6 +337,9 @@ const Checkout = () => {
           const paymentResponse = await paymentService.createVNPayPayment(orderId);
 
           if (paymentResponse.success && paymentResponse.payment_url) {
+            // Lưu order_id để detect nếu user bấm back từ VNPay
+            sessionStorage.setItem('vnpay_pending_order', orderId);
+
             // Redirect đến VNPay payment gateway
             window.location.href = paymentResponse.payment_url;
           } else {

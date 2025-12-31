@@ -12,6 +12,9 @@ const PaymentFailed = () => {
   const error = searchParams.get('error');
 
   useEffect(() => {
+    // Xóa pending order flag vì payment đã thất bại (backend đã xử lý)
+    sessionStorage.removeItem('vnpay_pending_order');
+
     // Làm mới giỏ hàng khi vào trang này (cart đã được restore từ backend)
     fetchCart();
   }, []);
