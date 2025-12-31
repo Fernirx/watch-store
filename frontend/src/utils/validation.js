@@ -7,10 +7,11 @@
 
 /**
  * Số điện thoại Việt Nam
- * Format: 0xxxxxxxxx (10-11 chữ số, bắt đầu bằng 0)
+ * Format: 0xxxxxxxxx (10 chữ số, đúng đầu số VN)
+ * Đầu số hợp lệ: 032-039, 056-059, 070, 076-079, 081-089, 090-099
  * Ví dụ: 0912345678, 0987654321
  */
-export const PHONE_VN_REGEX = /^0\d{9,10}$/;
+export const PHONE_VN_REGEX = /^(0)(3[2-9]|5[689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/;
 
 /**
  * Email
@@ -26,9 +27,10 @@ export const PRODUCT_CODE_REGEX = /^[A-Z0-9_-]{3,50}$/i;
 
 /**
  * Mã giảm giá (Coupon)
- * Format: Chữ in hoa, số (3-50 ký tự)
+ * Format: Chữ in hoa, số, gạch dưới (_), gạch ngang (-) (3-50 ký tự)
+ * Ví dụ: SALE2024, SUMMER_SALE, BLACK-FRIDAY
  */
-export const COUPON_CODE_REGEX = /^[A-Z0-9]{3,50}$/;
+export const COUPON_CODE_REGEX = /^[A-Z0-9_-]{3,50}$/;
 
 /**
  * Giá tiền (VND)
@@ -160,7 +162,7 @@ export const getValidationErrorMessage = (field, value) => {
     address: 'Địa chỉ phải có ít nhất 10 ký tự',
     price: 'Giá phải là số dương',
     quantity: 'Số lượng phải là số nguyên dương',
-    couponCode: 'Mã giảm giá không đúng định dạng (chỉ chữ in hoa và số, 3-50 ký tự)',
+    couponCode: 'Mã giảm giá không đúng định dạng (chỉ chữ in hoa, số, gạch dưới và gạch ngang, 3-50 ký tự)',
   };
 
   return messages[field] || 'Giá trị không hợp lệ';
