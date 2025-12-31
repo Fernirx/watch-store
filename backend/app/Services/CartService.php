@@ -151,10 +151,10 @@ class CartService
         // Validate guest session exists and is not expired
         $session = GuestSession::where('guest_token', $guestToken)->first();
         if (!$session) {
-            throw new \Exception('Guest session not found. Please refresh the page.');
+            throw new \Exception('Phiên làm việc không tồn tại. Vui lòng tải lại trang.');
         }
         if ($session->isExpired()) {
-            throw new \Exception('Guest session expired. Please refresh the page.');
+            throw new \Exception('Phiên làm việc đã hết hạn. Vui lòng tải lại trang.');
         }
 
         $cart = Cart::with(['items.product.category', 'items.product.brand'])
@@ -210,10 +210,10 @@ class CartService
         // Validate guest session exists and is not expired
         $session = GuestSession::where('guest_token', $guestToken)->first();
         if (!$session) {
-            throw new \Exception('Guest session not found. Please refresh the page.');
+            throw new \Exception('Phiên làm việc không tồn tại. Vui lòng tải lại trang.');
         }
         if ($session->isExpired()) {
-            throw new \Exception('Guest session expired. Please refresh the page.');
+            throw new \Exception('Phiên làm việc đã hết hạn. Vui lòng tải lại trang.');
         }
 
         $product = Product::findOrFail($productId);
