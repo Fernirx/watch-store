@@ -128,11 +128,18 @@ class CouponService
         }
 
         // Check if email/phone already used this coupon
-        $hasUsed = $this->hasUserUsedCoupon($coupon->id, $email, $phone);
-        if ($hasUsed) {
+        $usageCheck = $this->hasUserUsedCoupon($coupon->id, $email, $phone);
+        if ($usageCheck['used']) {
+            $message = match($usageCheck['type']) {
+                'email' => 'Email này đã sử dụng mã giảm giá',
+                'phone' => 'Số điện thoại này đã sử dụng mã giảm giá',
+                'both' => 'Email và số điện thoại này đã sử dụng mã giảm giá',
+                default => 'Bạn đã sử dụng mã giảm giá này rồi'
+            };
+
             return [
                 'valid' => false,
-                'message' => 'Bạn đã sử dụng mã giảm giá này rồi'
+                'message' => $message
             ];
         }
 
@@ -150,15 +157,27 @@ class CouponService
     /**
      * Check if email/phone combination already used this coupon
      * Track by EITHER email OR phone to prevent reuse
+     * Returns array with 'used' boolean and 'type' (email/phone/both)
      */
-    public function hasUserUsedCoupon(int $couponId, string $email, string $phone): bool
+    public function hasUserUsedCoupon(int $couponId, string $email, string $phone): array
     {
-        return CouponUsage::where('coupon_id', $couponId)
-            ->where(function ($query) use ($email, $phone) {
-                $query->where('email', $email)
-                    ->orWhere('phone', $phone);
-            })
+        $usedByEmail = CouponUsage::where('coupon_id', $couponId)
+            ->where('email', $email)
             ->exists();
+
+        $usedByPhone = CouponUsage::where('coupon_id', $couponId)
+            ->where('phone', $phone)
+            ->exists();
+
+        if ($usedByEmail && $usedByPhone) {
+            return ['used' => true, 'type' => 'both'];
+        } elseif ($usedByEmail) {
+            return ['used' => true, 'type' => 'email'];
+        } elseif ($usedByPhone) {
+            return ['used' => true, 'type' => 'phone'];
+        }
+
+        return ['used' => false, 'type' => null];
     }
 
     /**
