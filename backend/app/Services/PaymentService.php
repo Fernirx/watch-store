@@ -142,7 +142,7 @@ class PaymentService
                     'order_id' => $order->id,
                 ];
             } else {
-                // Payment failed - restore stock
+                // Payment failed - restore stock and cart
                 Log::warning("⚠️ Payment failed for order #{$order->order_number}, code: {$vnpResponseCode}");
 
                 // Hoàn lại tồn kho
@@ -150,9 +150,9 @@ class PaymentService
                     $item->product->increment('stock_quantity', $item->quantity);
                 }
 
-                // KHÔNG cần restore cart vì cart vẫn còn (chưa bị xóa với VNPay)
-                // Cart items đã được giữ nguyên khi tạo order
-                Log::info("ℹ️ Cart items already preserved, no need to restore");
+                // Khôi phục giỏ hàng từ order (defensive: đảm bảo cart luôn có items)
+                $this->orderService->restoreCartFromOrder($order);
+                Log::info("🔄 Cart restored from failed order #{$order->order_number}");
 
                 // Cập nhật trạng thái order
                 $order->update([

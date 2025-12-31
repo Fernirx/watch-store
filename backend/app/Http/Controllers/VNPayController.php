@@ -69,6 +69,32 @@ class VNPayController extends Controller
                 return redirect($frontendUrl . '/payment/failed?order_id=' . $result['order_id'] . '&code=' . $result['code']);
             }
         } catch (\Exception $e) {
+            \Log::error('❌ VNPay return exception: ' . $e->getMessage());
+
+            // Nếu có lỗi xử lý, cố gắng restore cart nếu có order_id
+            try {
+                $responseData = $request->all();
+                if (isset($responseData['vnp_TxnRef'])) {
+                    $orderId = explode('_', $responseData['vnp_TxnRef'])[0];
+                    $order = \App\Models\Order::find($orderId);
+
+                    if ($order) {
+                        \Log::info('🔄 Attempting to restore cart from order due to exception');
+                        app(\App\Services\OrderService::class)->restoreCartFromOrder($order);
+
+                        // Hoàn lại stock nếu order chưa bị cancel
+                        if ($order->status !== 'CANCELLED') {
+                            foreach ($order->items as $item) {
+                                $item->product->increment('stock_quantity', $item->quantity);
+                            }
+                            $order->update(['status' => 'CANCELLED', 'payment_status' => 'failed']);
+                        }
+                    }
+                }
+            } catch (\Exception $restoreError) {
+                \Log::error('⚠️ Failed to restore cart on exception: ' . $restoreError->getMessage());
+            }
+
             $frontendUrl = config('app.frontend_url');
 
             $errorParam = match ($e->getMessage()) {

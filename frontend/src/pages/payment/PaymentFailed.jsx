@@ -1,12 +1,20 @@
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useCart } from '../../contexts/CartContext';
 import './Payment.css';
 
 const PaymentFailed = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { fetchCart } = useCart();
   const orderId = searchParams.get('order_id');
   const errorCode = searchParams.get('code');
   const error = searchParams.get('error');
+
+  useEffect(() => {
+    // Làm mới giỏ hàng khi vào trang này (cart đã được restore từ backend)
+    fetchCart();
+  }, []);
 
   const getErrorMessage = () => {
     if (error === 'invalid_signature') {

@@ -9,7 +9,7 @@ import couponService from '../../services/couponService';
 import guestOtpService from '../../services/guestOtpService';
 
 const Checkout = () => {
-  const { cart, subtotal, fetchCart } = useCart();
+  const { cart, subtotal, fetchCart, loading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -56,10 +56,12 @@ const Checkout = () => {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    if (cart && cart?.cart?.items?.length === 0) {
+    // Chỉ redirect khi đã load xong VÀ giỏ hàng thật sự rỗng
+    // Tránh redirect trong lúc đang load (khi refresh trang)
+    if (!cartLoading && cart && cart?.cart?.items?.length === 0) {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [cart, cartLoading, navigate]);
 
   // OTP countdown timer
   useEffect(() => {
@@ -340,22 +342,48 @@ const Checkout = () => {
       const errorCode = err.response?.data?.error_code;
       const validationErrors = err.response?.data?.errors;
 
-      // Xử lý lỗi EMAIL_NOT_VERIFIED
+      // Xử lý lỗi EMAIL_NOT_VERIFIED - giữ user ở trang checkout
       if (errorCode === 'EMAIL_NOT_VERIFIED') {
         setError('Email chưa được xác thực. Vui lòng xác thực email trước khi đặt hàng.');
         setOtpError('Email chưa được xác thực');
         setOtpVerified(false);
-      } else if (validationErrors) {
-        const errorList = Object.values(validationErrors).flat().join(', ');
-        setError(`${errorMessage}: ${errorList}. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng thử lại.`);
+        setLoading(false);
       } else {
-        setError(`${errorMessage}. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng thử lại.`);
+        // Các lỗi khác (stock, validation, v.v.) - chuyển về trang giỏ hàng
+        let finalErrorMessage = errorMessage;
+
+        if (validationErrors) {
+          const errorList = Object.values(validationErrors).flat().join(', ');
+          finalErrorMessage = `${errorMessage}: ${errorList}`;
+        }
+
+        // Làm mới giỏ hàng
+        await fetchCart();
+
+        // Chuyển về trang giỏ hàng với thông báo lỗi
+        navigate('/cart', {
+          state: {
+            error: finalErrorMessage,
+            message: 'Đã có lỗi xảy ra khi đặt hàng. Giỏ hàng của bạn vẫn được giữ nguyên, vui lòng kiểm tra và thử lại.'
+          }
+        });
       }
-      setLoading(false);
     }
   };
 
-  if (!cart || cart?.cart?.items?.length === 0) {
+  // Hiển thị loading trong khi đang tải giỏ hàng
+  if (cartLoading && (!cart || !cart?.cart)) {
+    return (
+      <div className="loading">
+        <div className="spinner-large"></div>
+        <p>Đang tải thông tin giỏ hàng...</p>
+      </div>
+    );
+  }
+
+  // Chỉ return null sau khi đã load xong và giỏ hàng rỗng
+  // (useEffect sẽ redirect về /cart)
+  if (!cartLoading && (!cart || cart?.cart?.items?.length === 0)) {
     return null;
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import '../../styles/Cart.css';
@@ -8,8 +8,30 @@ const Cart = () => {
   const { cart, loading, subtotal, updateCartItem, removeCartItem, clearCart, fetchCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedItems, setSelectedItems] = useState([]);
   const [updatingItemId, setUpdatingItemId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [infoMessage, setInfoMessage] = useState(null);
+
+  // Hiển thị thông báo lỗi từ navigation state (khi chuyển từ checkout về)
+  useEffect(() => {
+    if (location.state?.error) {
+      setErrorMessage(location.state.error);
+      setInfoMessage(location.state.message);
+
+      // Clear location state để tránh hiển thị lại khi refresh
+      window.history.replaceState({}, document.title);
+
+      // Tự động ẩn sau 10 giây
+      const timer = setTimeout(() => {
+        setErrorMessage(null);
+        setInfoMessage(null);
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   // Auto-select all available items when cart loads
   useEffect(() => {
@@ -122,6 +144,43 @@ const Cart = () => {
           <h1>Giỏ Hàng Của Tôi</h1>
           <span className="cart-count">{cartItems.length} sản phẩm</span>
         </div>
+
+        {/* Error/Info messages from checkout redirect */}
+        {errorMessage && (
+          <div style={{
+            padding: '1rem',
+            marginBottom: '1rem',
+            background: '#fee2e2',
+            border: '1px solid #ef4444',
+            borderRadius: '0.5rem',
+            color: '#991b1b'
+          }}>
+            <strong>❌ Lỗi:</strong> {errorMessage}
+            {infoMessage && (
+              <div style={{ marginTop: '0.5rem', color: '#6b7280' }}>
+                {infoMessage}
+              </div>
+            )}
+            <button
+              onClick={() => {
+                setErrorMessage(null);
+                setInfoMessage(null);
+              }}
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.25rem 0.75rem',
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.25rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}
+            >
+              Đóng
+            </button>
+          </div>
+        )}
 
         <div className="cart-layout">
           {/* Cart Items */}
