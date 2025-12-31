@@ -40,8 +40,6 @@ const Checkout = () => {
   const [otpCountdown, setOtpCountdown] = useState(0);
 
   useEffect(() => {
-    fetchCart();
-
     // Tự động điền thông tin user nếu đã đăng nhập
     if (isAuthenticated && user) {
       const customer = user.customer || {};
@@ -53,6 +51,8 @@ const Checkout = () => {
         shipping_address: customer.shipping_address || '',
       }));
     }
+    // KHÔNG gọi fetchCart() ở đây vì CartContext đã tự động fetch
+    // Gọi fetchCart() sớm quá sẽ làm fetch guest cart thay vì user cart khi F5
   }, [isAuthenticated, user]);
 
   useEffect(() => {
