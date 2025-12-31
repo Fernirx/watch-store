@@ -41,8 +41,8 @@ class ProductSeeder extends Seeder
                 'features' => ['Date Display', 'Unidirectional Rotating Bezel', 'Luminous Hands'],
                 'images' => [
                     [
-                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png",
-                        "public_id" => "watches_plug_opt-350x350_hr80tv",
+                        "url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1766192368/watch-store/products/d9scdynczgu46ub4dtep.jpg",
+                        "public_id" => "d9scdynczgu46ub4dtep",
                         "is_primary" => true
                     ]
                 ],
@@ -79,7 +79,7 @@ class ProductSeeder extends Seeder
                 'weight' => 180.00,
                 'features' => ['Date Display', 'Rotating Bezel', 'Luminous Dial', 'Screw-Down Crown'],
                 'images' => [
-                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png", "public_id" => "watches_plug_opt-350x350_hr80tv", "is_primary" => true]
+                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1766192368/watch-store/products/d9scdynczgu46ub4dtep.jpg", "public_id" => "d9scdynczgu46ub4dtep", "is_primary" => true]
                 ],
                 'is_new' => false,
                 'is_on_sale' => true,
@@ -113,7 +113,7 @@ class ProductSeeder extends Seeder
                 'weight' => 51.00,
                 'features' => ['Shock Resistant', 'World Time', 'LED Light', 'Stopwatch'],
                 'images' => [
-                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png", "public_id" => "watches_plug_opt-350x350_hr80tv", "is_primary" => true]
+                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1766192368/watch-store/products/d9scdynczgu46ub4dtep.jpg", "public_id" => "d9scdynczgu46ub4dtep", "is_primary" => true]
                 ],
                 'is_new' => true,
                 'is_on_sale' => false,
@@ -147,7 +147,7 @@ class ProductSeeder extends Seeder
                 'weight' => 120.00,
                 'features' => ['Solar Powered', 'Date Display', 'Water Resistant'],
                 'images' => [
-                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1764761580/watches_plug_opt-350x350_hr80tv.png", "public_id" => "watches_plug_opt-350x350_hr80tv", "is_primary" => true]
+                    ["url" => "https://res.cloudinary.com/dmfyu0ce8/image/upload/v1766192368/watch-store/products/d9scdynczgu46ub4dtep.jpg", "public_id" => "d9scdynczgu46ub4dtep", "is_primary" => true]
                 ],
                 'is_new' => false,
                 'is_on_sale' => true,
