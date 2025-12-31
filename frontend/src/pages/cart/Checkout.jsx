@@ -7,6 +7,7 @@ import paymentService from '../../services/paymentService';
 import guestService from '../../services/guestService';
 import couponService from '../../services/couponService';
 import guestOtpService from '../../services/guestOtpService';
+import configService from '../../services/configService';
 import { PHONE_VN_REGEX } from '../../utils/validation';
 
 const Checkout = () => {
@@ -40,6 +41,9 @@ const Checkout = () => {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
 
+  // Shipping fee state
+  const [shippingFee, setShippingFee] = useState(0);
+
   // Kiểm tra nếu có pending order từ VNPay (user bấm back)
   useEffect(() => {
     const checkPendingOrder = async () => {
@@ -67,6 +71,24 @@ const Checkout = () => {
     };
 
     checkPendingOrder();
+  }, []);
+
+  // Fetch shipping fee khi component mount
+  useEffect(() => {
+    const fetchShippingFee = async () => {
+      try {
+        const response = await configService.getShippingFee();
+        if (response.success) {
+          setShippingFee(response.data.shipping_fee);
+        }
+      } catch (error) {
+        console.error('Failed to fetch shipping fee:', error);
+        // Fallback to default if API fails
+        setShippingFee(30000);
+      }
+    };
+
+    fetchShippingFee();
   }, []);
 
   useEffect(() => {
@@ -421,7 +443,6 @@ const Checkout = () => {
   }
 
   const cartItems = cart?.cart?.items || [];
-  const shippingFee = 30000; // 30,000 VND
   const discountAmount = appliedCoupon?.discount_amount || 0;
   const total = subtotal + shippingFee - discountAmount;
 

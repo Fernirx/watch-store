@@ -86,7 +86,7 @@ class OrderService
                 return $item->price * $item->quantity;
             });
 
-            $shipping_fee = 30000; // 30k cố định
+            $shipping_fee = (int) env('SHIPPING_FEE', 30000);
             $discount_amount = 0;
             $couponId = null;
             $couponCode = null;

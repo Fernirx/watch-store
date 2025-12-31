@@ -14,4 +14,5 @@ require __DIR__ . '/guest.php';
 require __DIR__ . '/coupon.php';
 require __DIR__ . '/notification.php';
 require __DIR__ . '/review.php';
+require __DIR__ . '/config.php';
 ?>
