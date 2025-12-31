@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import userService from '../../services/userService';
+import { EMAIL_REGEX } from '../../utils/validation';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -97,7 +98,7 @@ const Users = () => {
     // Validate email
     if (!formData.email.trim()) {
       errors.push('Email là bắt buộc');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!EMAIL_REGEX.test(formData.email)) {
       errors.push('Email không hợp lệ');
     }
 

@@ -8,7 +8,7 @@ import guestService from '../../services/guestService';
 import couponService from '../../services/couponService';
 import guestOtpService from '../../services/guestOtpService';
 import configService from '../../services/configService';
-import { PHONE_VN_REGEX } from '../../utils/validation';
+import { PHONE_VN_REGEX, EMAIL_REGEX } from '../../utils/validation';
 
 const Checkout = () => {
   const { cart, subtotal, fetchCart, loading: cartLoading } = useCart();
@@ -145,7 +145,7 @@ const Checkout = () => {
     // Validate email
     if (!formData.customer_email.trim()) {
       newErrors.customer_email = 'Email là bắt buộc';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
+    } else if (!EMAIL_REGEX.test(formData.customer_email)) {
       newErrors.customer_email = 'Email không hợp lệ';
     }
 
@@ -234,7 +234,7 @@ const Checkout = () => {
     }
 
     // Validate email format
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customer_email)) {
+    if (!EMAIL_REGEX.test(formData.customer_email)) {
       setOtpError('Email không hợp lệ');
       return;
     }

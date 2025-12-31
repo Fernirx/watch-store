@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
+import { EMAIL_REGEX } from '../../utils/validation';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1: Nhập email, 2: Nhập OTP và mật khẩu mới
@@ -55,7 +56,7 @@ const ForgotPassword = () => {
     // Validate email
     if (!formData.email.trim()) {
       newErrors.email = ['Email là bắt buộc'];
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!EMAIL_REGEX.test(formData.email)) {
       newErrors.email = ['Email không hợp lệ'];
     }
 

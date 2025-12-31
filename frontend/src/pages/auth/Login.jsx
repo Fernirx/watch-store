@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../services/authService';
 import { API_BASE_URL } from '../../api/axiosConfig';
+import { EMAIL_REGEX } from '../../utils/validation';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ const Login = () => {
     // Validate email
     if (!formData.email.trim()) {
       newErrors.email = ['Email là bắt buộc'];
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!EMAIL_REGEX.test(formData.email)) {
       newErrors.email = ['Email không hợp lệ'];
     }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
+import { EMAIL_REGEX } from '../../utils/validation';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ const Register = () => {
     if (!email.trim()) {
       return 'Email là bắt buộc';
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!EMAIL_REGEX.test(email)) {
       return 'Email không hợp lệ';
     }
     return null;
