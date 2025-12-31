@@ -147,7 +147,7 @@ class OrderService
 
                 // Check stock AFTER locking để đảm bảo atomic check-and-decrement
                 if ($product->stock_quantity < $cartItem->quantity) {
-                    throw new \Exception("Insufficient stock for {$product->name}. Available: {$product->stock_quantity}, Requested: {$cartItem->quantity}");
+                    throw new \Exception("Sản phẩm '{$product->name}' không đủ hàng. Chỉ còn {$product->stock_quantity} sản phẩm, bạn đang đặt {$cartItem->quantity}. Vui lòng giảm số lượng trong giỏ hàng và thử lại.");
                 }
 
                 // Tạo order item

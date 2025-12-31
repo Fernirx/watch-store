@@ -618,7 +618,7 @@ const Checkout = () => {
             <div className="summary-items">
               {cartItems.map((item) => {
                 const product = item.product;
-                const price = product.sale_price || product.price;
+                const price = product.price;
 
                 return (
                   <div key={item.id} className="summary-item">

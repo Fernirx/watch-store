@@ -99,7 +99,7 @@ class StockService
                 $quantity = (int) $item['quantity'];
 
                 if ($product->stock_quantity < $quantity) {
-                    throw new \Exception("Insufficient stock for product '{$product->name}'. Available: {$product->stock_quantity}, Requested: {$quantity}");
+                    throw new \Exception("Sản phẩm '{$product->name}' không đủ hàng. Chỉ còn {$product->stock_quantity} sản phẩm, yêu cầu {$quantity}. Vui lòng giảm số lượng.");
                 }
             }
 
