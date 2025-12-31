@@ -58,7 +58,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($product->stock_quantity < $quantity) {
-            throw new \Exception('Insufficient stock');
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
         }
 
         // Lấy hoặc tạo giỏ hàng
@@ -74,7 +74,7 @@ class CartService
             $newQuantity = $cartItem->quantity + $quantity;
 
             if ($product->stock_quantity < $newQuantity) {
-                throw new \Exception('Insufficient stock');
+                throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
             }
 
             $cartItem->quantity = $newQuantity;
@@ -106,7 +106,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($cartItem->product->stock_quantity < $quantity) {
-            throw new \Exception('Insufficient stock');
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
         }
 
         $cartItem->quantity = $quantity;
@@ -220,7 +220,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($product->stock_quantity < $quantity) {
-            throw new \Exception('Insufficient stock');
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
         }
 
         // Lấy hoặc tạo giỏ hàng guest
@@ -236,7 +236,7 @@ class CartService
             $newQuantity = $cartItem->quantity + $quantity;
 
             if ($product->stock_quantity < $newQuantity) {
-                throw new \Exception('Insufficient stock');
+                throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
             }
 
             $cartItem->quantity = $newQuantity;
@@ -274,7 +274,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($cartItem->product->stock_quantity < $quantity) {
-            throw new \Exception('Insufficient stock');
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
         }
 
         $cartItem->quantity = $quantity;

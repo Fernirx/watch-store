@@ -18,6 +18,7 @@ const ProductDetail = () => {
   const [error, setError] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [toast, setToast] = useState(null);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
@@ -46,20 +47,76 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
+    // Validate quantity trước khi gọi API
+    if (quantity > product.stock_quantity) {
+      setToast({
+        message: `Chỉ còn ${product.stock_quantity} sản phẩm trong kho`,
+        type: 'error'
+      });
+      return;
+    }
+
+    // Tránh spam click
+    if (addingToCart) return;
+
     try {
+      setAddingToCart(true);
       await addToCart(product.id, quantity);
       setToast({ message: 'Đã thêm sản phẩm vào giỏ hàng!', type: 'success' });
     } catch (error) {
-      setToast({ message: 'Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
+      console.error('❌ Add to cart error:', error);
+
+      // Extract error message từ response
+      let errorMessage = 'Không thể thêm vào giỏ hàng';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setAddingToCart(false);
     }
   };
 
   const handleBuyNow = async () => {
+    // Validate quantity trước khi gọi API
+    if (quantity > product.stock_quantity) {
+      setToast({
+        message: `Chỉ còn ${product.stock_quantity} sản phẩm trong kho`,
+        type: 'error'
+      });
+      return;
+    }
+
+    // Tránh spam click
+    if (addingToCart) return;
+
     try {
+      setAddingToCart(true);
       await addToCart(product.id, quantity);
       navigate('/checkout');
     } catch (error) {
-      setToast({ message: 'Không thể thêm vào giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
+      console.error('❌ Buy now error:', error);
+
+      // Extract error message từ response
+      let errorMessage = 'Không thể mua ngay';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -261,16 +318,24 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="action-buttons">
-                  <button onClick={handleAddToCart} className="btn-add-to-cart">
+                  <button
+                    onClick={handleAddToCart}
+                    className="btn-add-to-cart"
+                    disabled={addingToCart}
+                  >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="9" cy="21" r="1" />
                       <circle cx="20" cy="21" r="1" />
                       <path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.99-1.72L23 6H6" />
                     </svg>
-                    Thêm Vào Giỏ
+                    {addingToCart ? 'Đang thêm...' : 'Thêm Vào Giỏ'}
                   </button>
-                  <button onClick={handleBuyNow} className="btn-buy-now">
-                    Mua Ngay
+                  <button
+                    onClick={handleBuyNow}
+                    className="btn-buy-now"
+                    disabled={addingToCart}
+                  >
+                    {addingToCart ? 'Đang xử lý...' : 'Mua Ngay'}
                   </button>
                 </div>
               </div>
