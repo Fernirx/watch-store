@@ -42,19 +42,24 @@ export const parsePrice = (formattedPrice) => {
 /**
  * Format price input for form fields
  * Converts user input to formatted display value
- * @param {string} value - Input value
+ * @param {string|number} value - Input value
  * @returns {string} Formatted value for display
  *
  * Example:
  * formatPriceInput("41240000") => "41.240.000"
+ * formatPriceInput(41240000) => "41.240.000"
  */
 export const formatPriceInput = (value) => {
-  if (!value) return '';
+  if (!value && value !== 0) return '';
 
-  const numericValue = value.replace(/\D/g, '');
+  // Convert to string first to handle both string and number inputs
+  const stringValue = String(value);
+
+  // Remove all non-digit characters
+  const numericValue = stringValue.replace(/\D/g, '');
   if (!numericValue) return '';
 
-  return parseInt(numericValue).toLocaleString('vi-VN');
+  return parseInt(numericValue, 10).toLocaleString('vi-VN');
 };
 
 /**

@@ -76,7 +76,7 @@ const Cart = () => {
     return cartItems
       .filter(item => selectedItems.includes(item.id))
       .reduce((total, item) => {
-        const price = item.product.sale_price || item.product.price;
+        const price = item.product.price;
         return total + (parseFloat(price) * item.quantity);
       }, 0);
   };
@@ -147,7 +147,7 @@ const Cart = () => {
 
             {cartItems.map((item) => {
               const product = item.product;
-              const price = product.sale_price || product.price;
+              const price = product.price;
               const isAvailable = item.is_available !== false;
               const isSelected = selectedItems.includes(item.id);
 

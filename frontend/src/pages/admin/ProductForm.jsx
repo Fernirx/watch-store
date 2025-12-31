@@ -103,13 +103,25 @@ const ProductForm = () => {
       const response = await productService.getProduct(id);
       const product = response.data;
 
+      // Convert prices to clean string format (strip any decimals if backend sends float)
+      const cleanPrice = product.price ? Math.round(product.price).toString() : '';
+      const cleanOriginalPrice = product.original_price ? Math.round(product.original_price).toString() : '';
+      const cleanCostPrice = product.cost_price ? Math.round(product.cost_price).toString() : '';
+
+      console.log('📦 Loading product prices:', {
+        price: product.price,
+        original_price: product.original_price,
+        cost_price: product.cost_price
+      });
+      console.log('✅ Cleaned to:', { cleanPrice, cleanOriginalPrice, cleanCostPrice });
+
       setFormData({
         code: product.code || '',
         name: product.name || '',
         description: product.description || '',
-        price: product.price || '',
-        original_price: product.original_price || '',
-        cost_price: product.cost_price || '',
+        price: cleanPrice,
+        original_price: cleanOriginalPrice,
+        cost_price: cleanCostPrice,
         stock_quantity: product.stock_quantity || '',
         min_stock_level: product.min_stock_level || '10',
         reorder_point: product.reorder_point || '5',
@@ -161,6 +173,16 @@ const ProductForm = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  // Helper: Handle price input change - strips non-digits
+  const handlePriceChange = (fieldName) => (e) => {
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/\D/g, '');
+
+    console.log(`[${fieldName}] Input:`, inputValue, '→ Numeric:', numericValue);
+
+    setFormData(prev => ({ ...prev, [fieldName]: numericValue }));
   };
 
   const handleImagesChange = (e) => {
@@ -230,19 +252,7 @@ const ProductForm = () => {
 
     // Validate giá
     if (!formData.price || formData.price <= 0) {
-      errors.push('Giá gốc phải lớn hơn 0');
-    }
-
-    // Validate giá khuyến mãi
-    if (formData.sale_price) {
-      const salePrice = parseFloat(formData.sale_price);
-      const price = parseFloat(formData.price);
-
-      if (salePrice <= 0) {
-        errors.push('Giá khuyến mãi phải lớn hơn 0');
-      } else if (salePrice >= price) {
-        errors.push('Giá khuyến mãi phải nhỏ hơn giá gốc');
-      }
+      errors.push('Giá bán phải lớn hơn 0');
     }
 
     // Validate số lượng tồn kho
@@ -292,10 +302,10 @@ const ProductForm = () => {
       submitData.append('name', formData.name);
       if (formData.description) submitData.append('description', formData.description);
 
-      // Pricing
-      submitData.append('price', formData.price);
-      if (formData.original_price) submitData.append('original_price', formData.original_price);
-      if (formData.cost_price) submitData.append('cost_price', formData.cost_price);
+      // Pricing - ensure clean numeric values (strip any formatting)
+      submitData.append('price', formData.price.toString().replace(/\D/g, ''));
+      if (formData.original_price) submitData.append('original_price', formData.original_price.toString().replace(/\D/g, ''));
+      if (formData.cost_price) submitData.append('cost_price', formData.cost_price.toString().replace(/\D/g, ''));
 
       // Inventory
       submitData.append('stock_quantity', formData.stock_quantity);
@@ -561,16 +571,13 @@ const ProductForm = () => {
                 type="text"
                 id="price"
                 name="price"
-                value={formData.price ? formatPriceInput(formData.price.toString()) : ''}
-                onChange={(e) => {
-                  const numericValue = e.target.value.replace(/\D/g, '');
-                  setFormData(prev => ({ ...prev, price: numericValue }));
-                }}
+                value={formData.price ? formatPriceInput(formData.price) : ''}
+                onChange={handlePriceChange('price')}
                 required
                 className="form-control"
                 placeholder="VD: 15.000.000"
               />
-              <small>{formData.price ? formatPriceInput(formData.price.toString()) + ' ₫' : 'Giá hiện tại'}</small>
+              <small>{formData.price ? formatPriceInput(formData.price) + ' ₫' : 'Giá hiện tại'}</small>
             </div>
 
             <div className="form-group">
@@ -579,15 +586,12 @@ const ProductForm = () => {
                 type="text"
                 id="original_price"
                 name="original_price"
-                value={formData.original_price ? formatPriceInput(formData.original_price.toString()) : ''}
-                onChange={(e) => {
-                  const numericValue = e.target.value.replace(/\D/g, '');
-                  setFormData(prev => ({ ...prev, original_price: numericValue }));
-                }}
+                value={formData.original_price ? formatPriceInput(formData.original_price) : ''}
+                onChange={handlePriceChange('original_price')}
                 className="form-control"
                 placeholder="VD: 17.000.000"
               />
-              <small>{formData.original_price ? formatPriceInput(formData.original_price.toString()) + ' ₫' : 'Giá trước giảm'}</small>
+              <small>{formData.original_price ? formatPriceInput(formData.original_price) + ' ₫' : 'Giá trước giảm'}</small>
             </div>
 
             <div className="form-group">
@@ -596,15 +600,12 @@ const ProductForm = () => {
                 type="text"
                 id="cost_price"
                 name="cost_price"
-                value={formData.cost_price ? formatPriceInput(formData.cost_price.toString()) : ''}
-                onChange={(e) => {
-                  const numericValue = e.target.value.replace(/\D/g, '');
-                  setFormData(prev => ({ ...prev, cost_price: numericValue }));
-                }}
+                value={formData.cost_price ? formatPriceInput(formData.cost_price) : ''}
+                onChange={handlePriceChange('cost_price')}
                 className="form-control"
                 placeholder="VD: 12.000.000"
               />
-              <small>{formData.cost_price ? formatPriceInput(formData.cost_price.toString()) + ' ₫' : 'Giá nhập'}</small>
+              <small>{formData.cost_price ? formatPriceInput(formData.cost_price) + ' ₫' : 'Giá nhập'}</small>
             </div>
           </div>
 

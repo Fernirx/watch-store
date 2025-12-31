@@ -37,7 +37,7 @@ class CartService
         });
 
         $subtotal = $cart->items->sum(function ($item) {
-            $price = $item->product->sale_price ?? $item->product->price;
+            $price = $item->product->price;
             return $price * $item->quantity;
         });
 
@@ -81,7 +81,7 @@ class CartService
             $cartItem->save();
         } else {
             // Tạo cart item mới
-            $price = $product->sale_price ?? $product->price;
+            $price = $product->price;
             $cartItem = CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $productId,
@@ -190,7 +190,7 @@ class CartService
         });
 
         $subtotal = $cart->items->sum(function ($item) {
-            $price = $item->product->sale_price ?? $item->product->price;
+            $price = $item->product->price;
             return $price * $item->quantity;
         });
 
@@ -243,7 +243,7 @@ class CartService
             $cartItem->save();
         } else {
             // Tạo cart item mới
-            $price = $product->sale_price ?? $product->price;
+            $price = $product->price;
             $cartItem = CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $productId,
