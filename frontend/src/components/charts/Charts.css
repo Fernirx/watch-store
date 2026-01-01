@@ -1,0 +1,150 @@
+.chart-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.chart-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-filters button {
+  padding: 6px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.chart-filters button:hover {
+  background: #f5f5f5;
+}
+
+.chart-filters button.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.chart-loading,
+.chart-error,
+.chart-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.chart-error {
+  color: #dc3545;
+}
+
+/* Custom Tooltip */
+.custom-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-date,
+.tooltip-label {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 6px 0;
+  font-size: 13px;
+}
+
+.tooltip-revenue,
+.tooltip-orders,
+.tooltip-value,
+.tooltip-percentage {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.tooltip-revenue {
+  color: #8884d8;
+  font-weight: 600;
+}
+
+.tooltip-orders {
+  color: #82ca9d;
+  font-weight: 600;
+}
+
+/* Chart Stats (for Pie Chart) */
+.chart-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.stat-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.stat-label {
+  color: #666;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+  margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chart-filters {
+    width: 100%;
+  }
+
+  .chart-filters button {
+    flex: 1;
+  }
+
+  .chart-stats {
+    grid-template-columns: 1fr;
+  }
+}

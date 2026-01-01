@@ -10,9 +10,16 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
+    // Dashboard & Analytics Routes
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+    Route::get('/charts/revenue-trend', [DashboardController::class, 'getRevenueTrend']);
+    Route::get('/charts/order-status', [DashboardController::class, 'getOrderStatusDistribution']);
+
+    // Existing routes
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);

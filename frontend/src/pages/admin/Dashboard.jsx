@@ -1,44 +1,62 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from '../../api/axiosConfig';
+import dashboardService from '../../services/dashboardService';
+import RevenueChart from '../../components/charts/RevenueChart';
+import OrderStatusChart from '../../components/charts/OrderStatusChart';
+import './Dashboard.css';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalCategories: 0,
-    totalBrands: 0,
-    totalOrders: 0,
-    totalUsers: 0,
-  });
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchStats();
+    fetchDashboardStats();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const [products, categories, brands, orders, users] = await Promise.all([
-        axios.get('/products?per_page=1'),
-        axios.get('/categories'),
-        axios.get('/brands'),
-        axios.get('/orders'),
-        axios.get('/users?per_page=1'),
-      ]);
+      setError(null);
+      const response = await dashboardService.getStats();
 
-      setStats({
-        totalProducts: products.data.data.total || 0,
-        totalCategories: categories.data.data?.length || 0,
-        totalBrands: brands.data.data?.length || 0,
-        totalOrders: orders.data.data?.length || 0,
-        totalUsers: users.data.data?.total || 0,
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+      setError('Không thể tải dữ liệu dashboard');
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(value);
+  };
+
+  const formatNumber = (value) => {
+    return new Intl.NumberFormat('vi-VN').format(value);
+  };
+
+  const getGrowthClass = (growth) => {
+    if (growth > 0) return 'growth-positive';
+    if (growth < 0) return 'growth-negative';
+    return 'growth-neutral';
+  };
+
+  const renderGrowthIndicator = (growth) => {
+    if (growth === 0) return null;
+
+    return (
+      <span className={`growth-indicator ${getGrowthClass(growth)}`}>
+        <i className={`fa fa-arrow-${growth > 0 ? 'up' : 'down'}`}></i>
+        {Math.abs(growth)}%
+      </span>
+    );
   };
 
   if (loading) {
@@ -50,102 +68,290 @@ const Dashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>{error}</p>
+        <button onClick={fetchDashboardStats} className="retry-btn">
+          Thử lại
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-dashboard">
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1> Dashboard</h1>
+          <h1>Dashboard</h1>
           <div className="admin-breadcrumb">
             <span>Tổng quan hệ thống</span>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <div className="stat-card-content">
-              <h3>Sản phẩm</h3>
-              <p>{stats.totalProducts}</p>
+      {/* Revenue Stats */}
+      <div className="revenue-section">
+        <h2 className="section-title">
+          <i className="fa fa-chart-line"></i> Doanh thu
+        </h2>
+        <div className="revenue-grid">
+          <div className="revenue-card">
+            <div className="revenue-card-header">
+              <span className="revenue-label">Hôm nay</span>
+              {renderGrowthIndicator(stats?.revenue?.growth?.today)}
             </div>
-            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)' }}>
-              <i style={{ width: '24px', height: '24px' }} className="fa fa-cube"></i>
+            <div className="revenue-value">
+              {formatCurrency(stats?.revenue?.today || 0)}
+            </div>
+            <div className="revenue-footer">
+              <small>So với hôm qua</small>
             </div>
           </div>
-          <div className="stat-card-footer">
-            <Link to="/admin/products" style={{ color: '#667eea', textDecoration: 'none' }}>
-              Xem tất cả →
-            </Link>
+
+          <div className="revenue-card">
+            <div className="revenue-card-header">
+              <span className="revenue-label">Tuần này</span>
+              {renderGrowthIndicator(stats?.revenue?.growth?.week)}
+            </div>
+            <div className="revenue-value">
+              {formatCurrency(stats?.revenue?.week || 0)}
+            </div>
+            <div className="revenue-footer">
+              <small>So với tuần trước</small>
+            </div>
+          </div>
+
+          <div className="revenue-card">
+            <div className="revenue-card-header">
+              <span className="revenue-label">Tháng này</span>
+              {renderGrowthIndicator(stats?.revenue?.growth?.month)}
+            </div>
+            <div className="revenue-value">
+              {formatCurrency(stats?.revenue?.month || 0)}
+            </div>
+            <div className="revenue-footer">
+              <small>So với tháng trước</small>
+            </div>
+          </div>
+
+          <div className="revenue-card revenue-card-total">
+            <div className="revenue-card-header">
+              <span className="revenue-label">Tổng doanh thu</span>
+            </div>
+            <div className="revenue-value">
+              {formatCurrency(stats?.revenue?.total || 0)}
+            </div>
+            <div className="revenue-footer">
+              <small>Tất cả thời gian</small>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <div className="stat-card-content">
-              <h3>Danh mục</h3>
-              <p>{stats.totalCategories}</p>
-            </div>
-            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%)' }}>
-              <i style={{ width: '24px', height: '24px' }} className="fa fa-tags"></i>
+      {/* Order Stats */}
+      <div className="orders-section">
+        <h2 className="section-title">
+          <i className="fa fa-shopping-cart"></i> Đơn hàng
+        </h2>
+        <div className="stats-grid">
+          <div className="stat-card stat-card-primary">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Tổng đơn</h3>
+                <p>{formatNumber(stats?.orders?.total || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-shopping-bag"></i>
+              </div>
             </div>
           </div>
-          <div className="stat-card-footer">
-            <Link to="/admin/categories" style={{ color: '#10b981', textDecoration: 'none' }}>
-              Quản lý danh mục →
-            </Link>
+
+          <div className="stat-card stat-card-warning">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Chờ xử lý</h3>
+                <p>{formatNumber(stats?.orders?.pending || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-clock"></i>
+              </div>
+            </div>
+            <div className="stat-card-footer">
+              <Link to="/admin/orders?status=PENDING">Xem chi tiết →</Link>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card-info">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Đang xử lý</h3>
+                <p>{formatNumber(stats?.orders?.processing || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-sync"></i>
+              </div>
+            </div>
+            <div className="stat-card-footer">
+              <Link to="/admin/orders?status=PROCESSING">Xem chi tiết →</Link>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card-success">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Hoàn thành</h3>
+                <p>{formatNumber(stats?.orders?.completed || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-check-circle"></i>
+              </div>
+            </div>
+            <div className="stat-card-footer">
+              <Link to="/admin/orders?status=COMPLETED">Xem chi tiết →</Link>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card-danger">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Đã hủy</h3>
+                <p>{formatNumber(stats?.orders?.cancelled || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-times-circle"></i>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card-purple">
+            <div className="stat-card-header">
+              <div className="stat-card-content">
+                <h3>Giá trị TB</h3>
+                <p>{formatCurrency(stats?.orders?.average_order_value || 0)}</p>
+              </div>
+              <div className="stat-card-icon">
+                <i className="fa fa-dollar-sign"></i>
+              </div>
+            </div>
+            <div className="stat-card-footer">
+              <small>Average Order Value</small>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <div className="stat-card-content">
-              <h3>Thương hiệu</h3>
-              <p>{stats.totalBrands}</p>
-            </div>
-            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)' }}>
-              <i style={{ width: '24px', height: '24px' }} className="fa fa-star"></i>
-            </div>
+      {/* Charts Section */}
+      <div className="charts-section">
+        <div className="charts-grid">
+          <div className="chart-wrapper">
+            <RevenueChart />
           </div>
-          <div className="stat-card-footer">
-            <Link to="/admin/brands" style={{ color: '#f59e0b', textDecoration: 'none' }}>
-              Quản lý thương hiệu →
-            </Link>
+          <div className="chart-wrapper">
+            <OrderStatusChart />
           </div>
         </div>
+      </div>
 
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <div className="stat-card-content">
-              <h3>Đơn hàng</h3>
-              <p>{stats.totalOrders}</p>
+      {/* Top Products & Low Stock */}
+      <div className="tables-section">
+        <div className="tables-grid">
+          {/* Top Products */}
+          <div className="table-container">
+            <div className="table-header">
+              <h3>
+                <i className="fa fa-trophy"></i> Top Sản phẩm bán chạy
+              </h3>
+              <Link to="/admin/products" className="view-all-link">
+                Xem tất cả →
+              </Link>
             </div>
-            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%)' }}>
-              <i style={{ width: '24px', height: '24px' }} className="fa fa-shopping-cart"></i>
+            <div className="table-wrapper">
+              {stats?.top_products?.length > 0 ? (
+                <table className="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Mã</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Đã bán</th>
+                      <th>Doanh thu</th>
+                      <th>Tồn kho</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.top_products.map((product, index) => (
+                      <tr key={product.id}>
+                        <td>
+                          <span className="rank-badge">{index + 1}</span>
+                          {product.code}
+                        </td>
+                        <td className="product-name">{product.name}</td>
+                        <td>{formatNumber(product.total_sold)}</td>
+                        <td className="revenue-cell">
+                          {formatCurrency(product.total_revenue)}
+                        </td>
+                        <td>
+                          <span className={product.stock_quantity < 10 ? 'stock-low' : 'stock-normal'}>
+                            {formatNumber(product.stock_quantity)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state">
+                  <i className="fa fa-inbox"></i>
+                  <p>Chưa có dữ liệu</p>
+                </div>
+              )}
             </div>
           </div>
-          <div className="stat-card-footer">
-            <Link to="/admin/orders" style={{ color: '#ef4444', textDecoration: 'none' }}>
-              Xem đơn hàng →
-            </Link>
-          </div>
-        </div>
 
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <div className="stat-card-content">
-              <h3>Người dùng</h3>
-              <p>{stats.totalUsers}</p>
+          {/* Low Stock Alerts */}
+          <div className="table-container">
+            <div className="table-header">
+              <h3>
+                <i className="fa fa-exclamation-triangle"></i> Cảnh báo tồn kho thấp
+              </h3>
+              <Link to="/admin/stock" className="view-all-link">
+                Quản lý kho →
+              </Link>
             </div>
-            <div className="stat-card-icon" style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%)' }}>
-              <i style={{ width: '24px', height: '24px' }} className="fa fa-users"></i>
+            <div className="table-wrapper">
+              {stats?.low_stock?.length > 0 ? (
+                <table className="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Mã</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Tồn kho</th>
+                      <th>Mức tối thiểu</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.low_stock.map((product) => (
+                      <tr key={product.id} className="low-stock-row">
+                        <td>{product.code}</td>
+                        <td className="product-name">{product.name}</td>
+                        <td>
+                          <span className="stock-critical">
+                            {formatNumber(product.stock_quantity)}
+                          </span>
+                        </td>
+                        <td>{formatNumber(product.min_stock_level)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state empty-state-success">
+                  <i className="fa fa-check-circle"></i>
+                  <p>Tất cả sản phẩm đều đủ hàng</p>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="stat-card-footer">
-            <Link to="/admin/users" style={{ color: '#8b5cf6', textDecoration: 'none' }}>
-              Quản lý người dùng →
-            </Link>
           </div>
         </div>
       </div>
@@ -166,18 +372,13 @@ const Dashboard = () => {
           <Link to="/admin/orders" className="quick-action-btn quick-action-orders">
             <i className="fa fa-list"></i> Xem đơn hàng
           </Link>
-          <Link to="/admin/users" className="quick-action-btn quick-action-users">
-            <i className="fa fa-user-plus"></i> Thêm người dùng
+          <Link to="/admin/stock/import" className="quick-action-btn quick-action-stock">
+            <i className="fa fa-download"></i> Nhập kho
+          </Link>
+          <Link to="/admin/coupons" className="quick-action-btn quick-action-coupons">
+            <i className="fa fa-ticket-alt"></i> Mã giảm giá
           </Link>
         </div>
-      </div>
-
-      {/* Recent Activity Section */}
-      <div style={{ marginTop: '2rem', background: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', border: '1px solid #e2e8f0' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e293b', marginBottom: '1rem' }}>
-          <i className="fa fa-history" style={{ marginRight: '0.5rem' }}></i> Hoạt động gần đây
-        </h2>
-        <p style={{ color: '#64748b' }}>Chức năng này đang được phát triển...</p>
       </div>
     </div>
   );
