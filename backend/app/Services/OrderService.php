@@ -394,6 +394,14 @@ class OrderService
             return;
         }
 
+        // BUSINESS RULE: KHÔNG restore cart nếu payment_method là VNPay
+        // Vì với VNPay, cart KHÔNG bị xóa khi tạo order (để user có thể back)
+        // Nếu restore sẽ gây duplicate items
+        if ($order->payment_method === 'vnpay') {
+            \Log::info("⏭️ Skip restore cart for VNPay order #{$order->order_number} - cart was preserved");
+            return;
+        }
+
         // Tìm hoặc tạo cart
         $cart = Cart::firstOrCreate(
             [
