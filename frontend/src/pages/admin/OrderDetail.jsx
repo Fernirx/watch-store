@@ -7,10 +7,22 @@ const AdminOrderDetail = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     fetchOrder();
   }, [id]);
+
+  // Auto-hide message after 3 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const fetchOrder = async () => {
     try {
@@ -19,31 +31,41 @@ const AdminOrderDetail = () => {
       setOrder(response.data.data);
     } catch (error) {
       console.error('Error fetching order:', error);
-      alert('Không thể tải thông tin đơn hàng');
+      setMessage({ type: 'error', text: 'Không thể tải thông tin đơn hàng' });
     } finally {
       setLoading(false);
     }
   };
 
   const updateOrderStatus = async (newStatus) => {
+    if (updating) return; // Prevent multiple clicks
+
     try {
+      setUpdating(true);
       await axios.put(`/orders/${id}/status`, { status: newStatus });
-      alert('Cập nhật trạng thái đơn hàng thành công!');
-      fetchOrder();
+      setMessage({ type: 'success', text: 'Cập nhật trạng thái đơn hàng thành công!' });
+      await fetchOrder();
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Không thể cập nhật trạng thái đơn hàng');
+      setMessage({ type: 'error', text: 'Không thể cập nhật trạng thái đơn hàng' });
+    } finally {
+      setUpdating(false);
     }
   };
 
   const updatePaymentStatus = async (newPaymentStatus) => {
+    if (updating) return; // Prevent multiple clicks
+
     try {
+      setUpdating(true);
       await axios.put(`/orders/${id}/payment-status`, { payment_status: newPaymentStatus });
-      alert('Cập nhật trạng thái thanh toán thành công!');
-      fetchOrder();
+      setMessage({ type: 'success', text: 'Cập nhật trạng thái thanh toán thành công!' });
+      await fetchOrder();
     } catch (error) {
       console.error('Error updating payment status:', error);
-      alert('Không thể cập nhật trạng thái thanh toán');
+      setMessage({ type: 'error', text: 'Không thể cập nhật trạng thái thanh toán' });
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -86,6 +108,22 @@ const AdminOrderDetail = () => {
           Quay lại
         </button>
       </div>
+
+      {/* Success/Error Message */}
+      {message && (
+        <div className={`alert alert-${message.type}`} style={{
+          padding: '12px 20px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: message.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+          fontWeight: '500',
+        }}>
+          {message.type === 'success' ? '✓ ' : '✗ '}
+          {message.text}
+        </div>
+      )}
 
       <div className="order-info-grid">
         <div className="info-card">
@@ -208,14 +246,18 @@ const AdminOrderDetail = () => {
                 <button
                   onClick={() => updateOrderStatus('PROCESSING')}
                   className="btn btn-info"
+                  disabled={updating}
+                  style={{ opacity: updating ? 0.6 : 1, cursor: updating ? 'not-allowed' : 'pointer' }}
                 >
-                  Xác nhận đơn hàng
+                  {updating ? 'Đang xử lý...' : 'Xác nhận đơn hàng'}
                 </button>
                 <button
                   onClick={() => updateOrderStatus('CANCELLED')}
                   className="btn btn-danger"
+                  disabled={updating}
+                  style={{ opacity: updating ? 0.6 : 1, cursor: updating ? 'not-allowed' : 'pointer' }}
                 >
-                  Hủy đơn hàng
+                  {updating ? 'Đang xử lý...' : 'Hủy đơn hàng'}
                 </button>
               </>
             )}
@@ -224,14 +266,18 @@ const AdminOrderDetail = () => {
                 <button
                   onClick={() => updateOrderStatus('COMPLETED')}
                   className="btn btn-success"
+                  disabled={updating}
+                  style={{ opacity: updating ? 0.6 : 1, cursor: updating ? 'not-allowed' : 'pointer' }}
                 >
-                  Đánh dấu hoàn thành
+                  {updating ? 'Đang xử lý...' : 'Đánh dấu hoàn thành'}
                 </button>
                 <button
                   onClick={() => updateOrderStatus('CANCELLED')}
                   className="btn btn-danger"
+                  disabled={updating}
+                  style={{ opacity: updating ? 0.6 : 1, cursor: updating ? 'not-allowed' : 'pointer' }}
                 >
-                  Hủy đơn hàng
+                  {updating ? 'Đang xử lý...' : 'Hủy đơn hàng'}
                 </button>
               </>
             )}
@@ -247,8 +293,10 @@ const AdminOrderDetail = () => {
             <button
               onClick={() => updatePaymentStatus('paid')}
               className="btn btn-success"
+              disabled={updating}
+              style={{ opacity: updating ? 0.6 : 1, cursor: updating ? 'not-allowed' : 'pointer' }}
             >
-              ✓ Đánh dấu đã thanh toán
+              {updating ? '⏳ Đang cập nhật...' : '✓ Đánh dấu đã thanh toán'}
             </button>
           </div>
         </div>
