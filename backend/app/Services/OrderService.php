@@ -246,6 +246,11 @@ class OrderService
         $oldStatus = $order->status;
         $newStatus = strtoupper($status);
 
+        // BUSINESS RULE: Không cho phép COMPLETED nếu chưa thanh toán
+        if ($newStatus === 'COMPLETED' && $order->payment_status !== 'paid') {
+            throw new \Exception('Không thể hoàn thành đơn hàng khi chưa thanh toán. Vui lòng đánh dấu "Đã thanh toán" trước.');
+        }
+
         $order->status = $newStatus;
         $order->save();
 
