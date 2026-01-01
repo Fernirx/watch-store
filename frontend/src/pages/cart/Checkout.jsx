@@ -380,6 +380,7 @@ const Checkout = () => {
           navigate(`/orders/${orderId}`, {
             state: { message: 'Đặt hàng thành công!' },
           });
+          await fetchCart();
         } else {
           // Guest user: chuyển đến trang payment success với order info
           navigate('/payment/success', {
@@ -389,6 +390,7 @@ const Checkout = () => {
               isGuest: true
             },
           });
+          await fetchCart();
         }
       }
     } catch (err) {

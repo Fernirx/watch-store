@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import orderService from '../../services/orderService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const { fetchCart } = useCart();
 
   const successMessage = location.state?.message;
 
@@ -40,7 +42,8 @@ const OrderDetail = () => {
 
     try {
       await orderService.cancelOrder(id);
-      fetchOrder(); // Reload order
+      await fetchOrder(); // Reload order
+      await fetchCart(); // Refresh cart để load lại items đã restore
       alert('✅ Đơn hàng đã được hủy thành công!\n\nSản phẩm đã được trả về giỏ hàng. Bạn có thể truy cập giỏ hàng để đặt hàng lại.');
     } catch (error) {
       alert('Không thể hủy đơn hàng: ' + (error.response?.data?.message || error.message));
