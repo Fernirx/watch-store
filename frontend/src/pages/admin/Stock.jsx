@@ -186,11 +186,18 @@ const Stock = () => {
                   <td><input type="number" value={item.quantity} onChange={(e) => updateImportItem(index, 'quantity', e.target.value)} min="1" className="form-control" /></td>
                   <td><input type="number" value={item.unit_price} onChange={(e) => updateImportItem(index, 'unit_price', e.target.value)} min="0" className="form-control" /></td>
                   <td>
-                    <select value={item.supplier_id} onChange={(e) => updateImportItem(index, 'supplier_id', e.target.value)} className="form-control">
+                    <select
+                      value={item.supplier_id}
+                      onChange={(e) => updateImportItem(index, 'supplier_id', e.target.value)}
+                      className="form-control"
+                    >
                       <option value="">Chọn NCC</option>
-                      {suppliers.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
+                      {suppliers
+                        .filter(s => s.is_active)  // chỉ lấy supplier active
+                        .map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))
+                      }
                     </select>
                   </td>
                   <td><button onClick={() => removeImportRow(index)} className="btn btn-danger btn-sm">Xóa</button></td>

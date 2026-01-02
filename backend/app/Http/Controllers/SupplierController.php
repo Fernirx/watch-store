@@ -30,44 +30,87 @@ class SupplierController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255|unique:suppliers,name',
+                'contact_person' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+                'address' => 'nullable|string',
+                'is_active' => 'boolean',
+            ]);
 
-        $supplier = Supplier::create($validated);
+            $supplier = Supplier::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Supplier created successfully',
-            'data' => $supplier,
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier created successfully',
+                'data' => $supplier,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['name'])) {
+                $message = 'Tên nhà cung cấp "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update brand',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $supplier = Supplier::findOrFail($id);
+        try {
+            $validated = $request->validate([
+                'name' => 'nullable|string|max:255|unique:suppliers,name,' . $id,
+                'contact_person' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+                'address' => 'nullable|string',
+                'is_active' => 'boolean',
+            ]);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'contact_person' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
+            $supplier = Supplier::findOrFail($id);
+            $supplier->update($validated);
 
-        $supplier->update($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier updated successfully',
+                'data' => $supplier,
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Supplier updated successfully',
-            'data' => $supplier,
-        ]);
+            if (isset($errors['name'])) {
+                $message = 'Tên nhà cung cấp "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update supplier',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy(int $id): JsonResponse
