@@ -2015,6 +2015,11 @@
     font-size: 0.9rem;
   }
 
+    .order-status-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
   .order-status {
     padding: 0.5rem 1rem;
     border-radius: 4px;

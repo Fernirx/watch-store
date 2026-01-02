@@ -60,6 +60,22 @@ const OrderDetail = () => {
     return statusMap[status] || status;
   };
 
+  const getPaymentStatusLabel = (paymentStatus) => {
+    const paymentStatusMap = {
+      paid: 'Đã thanh toán',
+      pending: 'Chưa thanh toán',
+    };
+    return paymentStatusMap[paymentStatus] || paymentStatus;
+  };
+
+  const getPaymentStatusClass = (status) => {
+    const classMap = {
+      pending: 'status-pending',
+      paid: 'status-completed',
+    };
+    return classMap[status] || '';
+  };
+
   const getStatusClass = (status) => {
     const classMap = {
       PENDING: 'status-pending',
@@ -94,8 +110,13 @@ const OrderDetail = () => {
               Đặt ngày: {new Date(order.created_at).toLocaleString('vi-VN')}
             </p>
           </div>
-          <div className={`order-status ${getStatusClass(order.status)}`}>
-            {getStatusLabel(order.status)}
+          <div className="order-status-group">
+            <div className={`order-status ${getStatusClass(order.status)}`}>
+              {getStatusLabel(order.status)}
+            </div>
+            <div className={`order-status ${getPaymentStatusClass(order.payment_status)}`}>
+              {getPaymentStatusLabel(order.payment_status)}
+            </div>
           </div>
         </div>
 
