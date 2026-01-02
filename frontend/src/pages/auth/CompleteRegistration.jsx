@@ -90,7 +90,7 @@ const CompleteRegistration = () => {
       );
 
       // Đăng ký thành công → redirect về home
-      navigate('/');
+      navigate('/login');
     } catch (err) {
       console.error('Complete registration error:', err);
 
