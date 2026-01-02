@@ -118,11 +118,19 @@ class CouponController extends Controller
                 'message' => 'Coupon created successfully',
                 'data' => $coupon,
             ], 201);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['code'])) {
+                $message = 'Mã coupon "' . $request->input('code') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['code']) ? 'code' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -166,11 +174,19 @@ class CouponController extends Controller
                 'message' => 'Coupon updated successfully',
                 'data' => $coupon,
             ], 200);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['code'])) {
+                $message = 'Mã coupon "' . $request->input('code') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['code']) ? 'code' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([

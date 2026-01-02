@@ -9,6 +9,7 @@ const Coupons = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     code: '',
@@ -122,11 +123,30 @@ const Coupons = () => {
       resetForm();
       fetchCoupons();
     } catch (error) {
-      console.error('Error saving coupon:', error);
-      setToast({
-        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} mã giảm giá: ${error.response?.data?.message || error.message}`,
-        type: 'error'
-      });
+      if (error.response?.status === 422) {
+        const { message, fields, errors } = error.response.data;
+
+        // Set error toast with clear message
+        setToast({ message: message || 'Dữ liệu không hợp lệ', type: 'error' });
+
+        // Set field-level errors for inline display
+        if (fields) {
+          setFieldErrors({ [fields]: message });
+        } else if (errors) {
+          // Convert errors object to fieldErrors format
+          const formattedErrors = {};
+          Object.keys(errors).forEach(key => {
+            formattedErrors[key] = errors[key][0]; // Get first error message
+          });
+          setFieldErrors(formattedErrors);
+        }
+      } else {
+        console.error('Error saving category:', error);
+        setToast({
+          message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} mã giảm giá: ${error.response?.data?.message || error.message}`,
+          type: 'error'
+        });
+      }
     }
   };
 
@@ -280,13 +300,23 @@ const Coupons = () => {
                     id="code"
                     name="code"
                     value={formData.code}
-                    onChange={handleChange}
+                    onChange={
+                      (e) => {
+                        handleChange(e);
+                        if (fieldErrors.code) {
+                          setFieldErrors(prev => ({ ...prev, code: null }));
+                        }
+                      }
+                    }
                     required
                     className="form-control"
                     placeholder="VD: SUMMER2025"
                     style={{ textTransform: 'uppercase' }}
                     maxLength="50"
                   />
+                  {fieldErrors.code ? (
+                    <small className="error-message">{fieldErrors.code}</small>
+                  ) : null}
                 </div>
 
                 {/* Description */}
