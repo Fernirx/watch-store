@@ -43,17 +43,9 @@ const categoryService = {
 
   // Cập nhật danh mục
   updateCategory: async (id, categoryData) => {
-    const formData = new FormData();
-
-    Object.keys(categoryData).forEach(key => {
-      if (categoryData[key] !== null && categoryData[key] !== undefined) {
-        formData.append(key, categoryData[key]);
-      }
-    });
-
     // Laravel không hỗ trợ PUT với multipart/form-data
     // Sử dụng POST với _method=PUT
-    const response = await axios.post(`/categories/${id}`, formData, {
+    const response = await axios.post(`/categories/${id}`, categoryData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

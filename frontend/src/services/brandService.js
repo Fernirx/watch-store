@@ -43,17 +43,9 @@ const brandService = {
 
   // Cập nhật thương hiệu
   updateBrand: async (id, brandData) => {
-    const formData = new FormData();
-
-    Object.keys(brandData).forEach(key => {
-      if (brandData[key] !== null && brandData[key] !== undefined) {
-        formData.append(key, brandData[key]);
-      }
-    });
-
     // Laravel không hỗ trợ PUT với multipart/form-data
     // Sử dụng POST với _method=PUT
-    const response = await axios.post(`/brands/${id}`, formData, {
+    const response = await axios.post(`/brands/${id}`, brandData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
