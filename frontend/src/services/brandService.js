@@ -24,16 +24,7 @@ const brandService = {
 
   // Tạo thương hiệu mới
   createBrand: async (brandData) => {
-    // brandData: { name, description, logo (File), website, is_active }
-    const formData = new FormData();
-
-    Object.keys(brandData).forEach(key => {
-      if (brandData[key] !== null && brandData[key] !== undefined) {
-        formData.append(key, brandData[key]);
-      }
-    });
-
-    const response = await axios.post('/brands', formData, {
+    const response = await axios.post('/brands', brandData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

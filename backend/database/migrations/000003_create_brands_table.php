@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('brands', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->string('logo_url')->nullable();
             $table->string('logo_public_id')->nullable();

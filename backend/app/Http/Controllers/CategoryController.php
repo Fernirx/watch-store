@@ -74,7 +74,7 @@ class CategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:100',
+                'name' => 'required|string|max:100|unique:categories,name',
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'is_active' => 'boolean',
@@ -89,11 +89,19 @@ class CategoryController extends Controller
                 'message' => 'Category created successfully',
                 'data' => $category,
             ], 201);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['name'])) {
+                $message = 'Tên danh mục "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -111,7 +119,7 @@ class CategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'string|max:100',
+                'name' => 'nullable|string|max:100|unique:categories,name,' . $id,
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'is_active' => 'boolean',
@@ -126,11 +134,19 @@ class CategoryController extends Controller
                 'message' => 'Category updated successfully',
                 'data' => $category,
             ], 200);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['name'])) {
+                $message = 'Tên danh mục "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([

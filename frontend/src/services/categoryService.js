@@ -24,16 +24,7 @@ const categoryService = {
 
   // Tạo danh mục mới
   createCategory: async (categoryData) => {
-    // categoryData: { name, description, image (File), is_active }
-    const formData = new FormData();
-
-    Object.keys(categoryData).forEach(key => {
-      if (categoryData[key] !== null && categoryData[key] !== undefined) {
-        formData.append(key, categoryData[key]);
-      }
-    });
-
-    const response = await axios.post('/categories', formData, {
+    const response = await axios.post('/categories', categoryData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

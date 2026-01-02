@@ -74,7 +74,7 @@ class BrandController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:100',
+                'name' => 'required|string|max:100|unique:brands,name',
                 'description' => 'nullable|string',
                 'logo' => 'nullable|image|max:2048',
                 'country' => 'nullable|string|max:100',
@@ -91,11 +91,19 @@ class BrandController extends Controller
                 'message' => 'Brand created successfully',
                 'data' => $brand,
             ], 201);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['name'])) {
+                $message = 'Tên thương hiệu "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -113,7 +121,7 @@ class BrandController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'string|max:100',
+                'name' => 'nullable|string|max:100|unique:brands,name,' . $id,
                 'description' => 'nullable|string',
                 'logo' => 'nullable|image|max:2048',
                 'country' => 'nullable|string|max:100',
@@ -130,11 +138,19 @@ class BrandController extends Controller
                 'message' => 'Brand updated successfully',
                 'data' => $brand,
             ], 200);
-        } catch (ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            if (isset($errors['name'])) {
+                $message = 'Tên thương hiệu "' . $request->input('name') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng tên khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'fields' => isset($errors['name']) ? 'name' : null,
             ], 422);
         } catch (\Exception $e) {
             return response()->json([

@@ -9,6 +9,7 @@ const Brands = () => {
   const [editingId, setEditingId] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [toast, setToast] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -92,11 +93,30 @@ const Brands = () => {
       resetForm();
       fetchBrands();
     } catch (error) {
-      console.error('Error saving brand:', error);
-      setToast({
-        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${error.response?.data?.message || error.message}`,
-        type: 'error'
-      });
+      if (error.response?.status === 422) {
+        const { message, fields, errors } = error.response.data;
+
+        // Set error toast with clear message
+        setToast({ message: message || 'Dữ liệu không hợp lệ', type: 'error' });
+
+        // Set field-level errors for inline display
+        if (fields) {
+          setFieldErrors({ [fields]: message });
+        } else if (errors) {
+          // Convert errors object to fieldErrors format
+          const formattedErrors = {};
+          Object.keys(errors).forEach(key => {
+            formattedErrors[key] = errors[key][0]; // Get first error message
+          });
+          setFieldErrors(formattedErrors);
+        }
+      } else {
+        console.error('Error saving category:', error);
+        setToast({
+          message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${error.response?.data?.message || error.message}`,
+          type: 'error'
+        });
+      }
     }
   };
 
@@ -191,11 +211,21 @@ const Brands = () => {
                     id="name"
                     name="name"
                     value={formData.name}
-                    onChange={handleChange}
+                    onChange={
+                      (e) => {
+                        handleChange(e);
+                        if (fieldErrors.name) {
+                          setFieldErrors(prev => ({ ...prev, name: null }));
+                        }
+                      }
+                    }
                     required
                     className="form-control"
                     placeholder="Nhập tên thương hiệu..."
                   />
+                  {fieldErrors.name ? (
+                    <small className="error-message">{fieldErrors.name}</small>
+                  ) : null}
                 </div>
 
                 <div className="form-group">
