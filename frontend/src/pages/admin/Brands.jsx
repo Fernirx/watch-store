@@ -13,6 +13,7 @@ const Brands = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    is_active: true,
     image: null,
   });
 
@@ -74,8 +75,9 @@ const Brands = () => {
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('description', formData.description || '');
+      submitData.append('is_active', formData.is_active ? 1 : 0);
       if (formData.image) {
-        submitData.append('image', formData.image);
+        submitData.append('logo', formData.image);
       }
 
       if (editingId) {
@@ -103,9 +105,10 @@ const Brands = () => {
     setFormData({
       name: brand.name,
       description: brand.description || '',
+      is_active: brand.is_active ?? true,
       image: null,
     });
-    setImagePreview(brand.image_url);
+    setImagePreview(brand.logo_url);
     setShowForm(true);
   };
 
@@ -125,7 +128,12 @@ const Brands = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', image: null });
+    setFormData({
+      name: '',
+      description: '',
+      is_active: true,
+      image: null
+    });
     setImagePreview(null);
     setEditingId(null);
     setShowForm(false);
@@ -201,6 +209,23 @@ const Brands = () => {
                     className="form-control"
                     placeholder="Nhập mô tả thương hiệu..."
                   />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      name="is_active"
+                      checked={formData.is_active}
+                      onChange={(e) =>
+                        setFormData(prev => ({
+                          ...prev,
+                          is_active: e.target.checked
+                        }))
+                      }
+                    />
+                    <span>Hiển thị thương hiệu</span>
+                  </label>
                 </div>
 
                 <div className="form-group">
@@ -283,10 +308,10 @@ const Brands = () => {
                 e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
               }}
             >
-              {brand.image_url && (
+              {brand.logo_url && (
                 <div style={{ width: '100%', height: '180px', overflow: 'hidden', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <img
-                    src={brand.image_url}
+                    src={brand.logo_url}
                     alt={brand.name}
                     style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }}
                   />

@@ -13,6 +13,7 @@ const Categories = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    is_active: true,
     image: null,
   });
 
@@ -74,6 +75,7 @@ const Categories = () => {
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('description', formData.description || '');
+      submitData.append('is_active', formData.is_active ? 1 : 0);
       if (formData.image) {
         submitData.append('image', formData.image);
       }
@@ -103,6 +105,7 @@ const Categories = () => {
     setFormData({
       name: category.name,
       description: category.description || '',
+      is_active: category.is_active ?? true,
       image: null,
     });
     setImagePreview(category.image_url);
@@ -125,7 +128,12 @@ const Categories = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', image: null });
+    setFormData({
+      name: '',
+      description: '',
+      is_active: true,
+      image: null
+    });
     setImagePreview(null);
     setEditingId(null);
     setShowForm(false);
@@ -159,7 +167,7 @@ const Categories = () => {
           }}
           className="btn btn-primary"
         >
-           Thêm Danh Mục Mới
+          Thêm Danh Mục Mới
         </button>
       </div>
 
@@ -201,6 +209,23 @@ const Categories = () => {
                     className="form-control"
                     placeholder="Nhập mô tả danh mục..."
                   />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      name="is_active"
+                      checked={formData.is_active}
+                      onChange={(e) =>
+                        setFormData(prev => ({
+                          ...prev,
+                          is_active: e.target.checked
+                        }))
+                      }
+                    />
+                    <span>Hiển thị danh mục</span>
+                  </label>
                 </div>
 
                 <div className="form-group">
@@ -259,7 +284,7 @@ const Categories = () => {
               }}
               className="btn btn-primary"
             >
-             Thêm Danh Mục
+              Thêm Danh Mục
             </button>
           </div>
         ) : (
@@ -307,14 +332,14 @@ const Categories = () => {
                     className="btn btn-secondary btn-sm"
                     style={{ flex: 1 }}
                   >
-                     Sửa
+                    Sửa
                   </button>
                   <button
                     onClick={() => handleDelete(category.id)}
                     className="btn btn-danger btn-sm"
                     style={{ flex: 1 }}
                   >
-                     Xóa
+                    Xóa
                   </button>
                 </div>
               </div>
