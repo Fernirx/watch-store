@@ -71,6 +71,7 @@ const Stock = () => {
       setImportItems([{ product_id: '', quantity: '', unit_price: '', supplier_id: '' }]);
       setNotes('');
       fetchProducts();
+      fetchLowStock();
       fetchTransactions();
     } catch (error) {
       alert('Lỗi: ' + (error.response?.data?.message || error.message));
@@ -91,6 +92,7 @@ const Stock = () => {
       setNotes('');
       fetchProducts();
       fetchTransactions();
+      fetchLowStock();
     } catch (error) {
       alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
@@ -267,7 +269,7 @@ const Stock = () => {
                 <th>Loại</th>
                 <th>Sản phẩm</th>
                 <th>Số lượng</th>
-                <th>Người thực hiện</th>
+                <th>Nhà cung cấp</th>
                 <th>Ghi chú</th>
               </tr>
             </thead>
@@ -278,7 +280,7 @@ const Stock = () => {
                   <td><span className={`badge ${tx.type === 'IMPORT' ? 'badge-success' : 'badge-warning'}`}>{tx.type === 'IMPORT' ? 'Nhập' : 'Xuất'}</span></td>
                   <td>{tx.product?.name}</td>
                   <td>{tx.quantity}</td>
-                  <td>{tx.performed_by?.name || 'N/A'}</td>
+                  <td>{tx.supplier?.name || 'N/A'}</td>
                   <td>{tx.notes || '-'}</td>
                 </tr>
               ))}
