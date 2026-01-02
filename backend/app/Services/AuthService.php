@@ -108,6 +108,13 @@ class AuthService
 
         $user = $refreshToken->user;
 
+        // CRITICAL: Check if account is active
+        if (!$user->is_active) {
+            // Xóa refresh token để user không thể refresh nữa
+            $refreshToken->delete();
+            throw new \Exception('Your account has been deactivated. Please contact support for assistance.');
+        }
+
         // Xóa refresh token cũ
         $refreshToken->delete();
 
@@ -322,6 +329,11 @@ class AuthService
                 'name' => $googleUser->getName(),
             ]);
         } else {
+            // CRITICAL: Check if account is active
+            if (!$user->is_active) {
+                throw new \Exception('Your account has been deactivated. Please contact support for assistance.');
+            }
+
             // Cập nhật thông tin Google nếu chưa có
             if (!$user->provider_id) {
                 $user->update([

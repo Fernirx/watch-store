@@ -13,7 +13,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:api', 'role:ADMIN'])->group(function () {
+Route::middleware(['auth:api', 'account.active', 'role:ADMIN'])->group(function () {
     // Dashboard & Analytics Routes
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     Route::get('/charts/revenue-trend', [DashboardController::class, 'getRevenueTrend']);

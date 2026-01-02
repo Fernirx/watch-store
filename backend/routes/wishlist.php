@@ -3,7 +3,7 @@
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'account.active'])->group(function () {
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/wishlist/items', [WishlistController::class, 'store']);
     Route::delete('/wishlist/items/{id}', [WishlistController::class, 'destroy']);

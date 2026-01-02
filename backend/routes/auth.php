@@ -27,7 +27,7 @@ Route::middleware(['web'])->group(function () {
 Route::post('/refresh', [AuthController::class, 'refresh']);
 
 // Protected routes - JWT auth
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'account.active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/user', fn (\Illuminate\Http\Request $request) => $request->user());
