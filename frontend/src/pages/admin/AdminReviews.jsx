@@ -18,11 +18,6 @@ const AdminReviews = () => {
     per_page: 20,
   });
 
-  // Edit modal states
-  const [editingReview, setEditingReview] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ rating: 5, comment: '' });
-
   useEffect(() => {
     fetchReviews();
     fetchProducts();
@@ -52,29 +47,6 @@ const AdminReviews = () => {
       setProducts(response.data.data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
-    }
-  };
-
-  const handleEdit = (review) => {
-    setEditingReview(review);
-    setEditForm({
-      rating: review.rating,
-      comment: review.comment || '',
-    });
-    setShowEditModal(true);
-  };
-
-  const handleUpdateReview = async (e) => {
-    e.preventDefault();
-
-    try {
-      await reviewService.updateReview(editingReview.id, editForm);
-      alert('Cập nhật đánh giá thành công!');
-      setShowEditModal(false);
-      setEditingReview(null);
-      fetchReviews();
-    } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -179,20 +151,6 @@ const AdminReviews = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="filter-verified">Trạng thái</label>
-            <select
-              id="filter-verified"
-              value={filters.verified}
-              onChange={(e) => setFilters({ ...filters, verified: e.target.value })}
-              className="form-control"
-            >
-              <option value="">Tất cả</option>
-              <option value="1">Đã mua hàng</option>
-              <option value="0">Chưa xác thực</option>
-            </select>
-          </div>
-
-          <div className="form-group">
             <label htmlFor="filter-search">Tìm kiếm</label>
             <input
               type="text"
@@ -216,7 +174,6 @@ const AdminReviews = () => {
               <th>Người đánh giá</th>
               <th>Số sao</th>
               <th>Nhận xét</th>
-              <th>Trạng thái</th>
               <th>Ngày</th>
               <th>Hành động</th>
             </tr>
@@ -259,20 +216,10 @@ const AdminReviews = () => {
                     </div>
                   </td>
                   <td>
-                    {review.is_verified_purchase ? (
-                      <span className="badge badge-success">Đã mua</span>
-                    ) : (
-                      <span className="badge badge-secondary">Chưa xác thực</span>
-                    )}
-                  </td>
-                  <td>
                     {new Date(review.created_at).toLocaleDateString('vi-VN')}
                   </td>
                   <td>
                     <div className="table-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => handleEdit(review)} className="btn-icon edit">
-                        <i className="fas fa-edit"></i>
-                      </button>
                       <button onClick={() => handleDelete(review.id)} className="btn-icon delete">
                         <i className="fas fa-trash-alt"></i>
                       </button>
@@ -291,63 +238,6 @@ const AdminReviews = () => {
           </div>
         )}
       </div>
-
-      {/* Edit Modal */}
-      {showEditModal && editingReview && (
-        <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && setShowEditModal(false)}>
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Chỉnh Sửa Đánh Giá</h2>
-              <button onClick={() => setShowEditModal(false)} className="modal-close">✕</button>
-            </div>
-            <form onSubmit={handleUpdateReview}>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label>Sản phẩm</label>
-                  <p style={{ fontWeight: '500' }}>{editingReview.product?.name}</p>
-                </div>
-
-                <div className="form-group">
-                  <label>Người đánh giá</label>
-                  <p>{editingReview.reviewer_name}</p>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="edit-rating">Số sao *</label>
-                  <select
-                    id="edit-rating"
-                    value={editForm.rating}
-                    onChange={(e) => setEditForm({ ...editForm, rating: parseInt(e.target.value) })}
-                    className="form-control"
-                    required
-                  >
-                    <option value="5">5 sao</option>
-                    <option value="4">4 sao</option>
-                    <option value="3">3 sao</option>
-                    <option value="2">2 sao</option>
-                    <option value="1">1 sao</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="edit-comment">Nhận xét</label>
-                  <textarea
-                    id="edit-comment"
-                    value={editForm.comment}
-                    onChange={(e) => setEditForm({ ...editForm, comment: e.target.value })}
-                    rows="4"
-                    className="form-control"
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" onClick={() => setShowEditModal(false)} className="btn btn-secondary">Hủy</button>
-                <button type="submit" className="btn btn-primary">Cập nhật</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
