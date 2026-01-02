@@ -20,18 +20,24 @@ Route::middleware(['auth:api', 'account.active', 'role:ADMIN'])->group(function 
     Route::get('/charts/order-status', [DashboardController::class, 'getOrderStatusDistribution']);
 
     // Existing routes
+    Route::get('/admin/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
+    Route::get('/admin/brands', [BrandController::class, 'index']);
     Route::post('/brands', [BrandController::class, 'store']);
     Route::put('/brands/{id}', [BrandController::class, 'update']);
     Route::delete('/brands/{id}', [BrandController::class, 'destroy']);
+
+    Route::get('/admin/products', [ProductController::class, 'index']);
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     Route::post('/products/{id}/images', [ProductController::class, 'addImages']);
     Route::delete('/products/{id}/images/{imageIndex}', [ProductController::class, 'deleteImage']);
     Route::put('/products/{id}/images/primary', [ProductController::class, 'setPrimaryImage']);
+
     Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::put('/orders/{id}/payment-status', [OrderController::class, 'updatePaymentStatus']);
 

@@ -9,6 +9,11 @@ const categoryService = {
     return response.data;
   },
 
+  getAdminCategories: async () => {
+    const response = await axios.get('/admin/categories');
+    return response.data;
+  },
+
   // Lấy chi tiết danh mục
   getCategory: async (id) => {
     const response = await axios.get(`/categories/${id}`);

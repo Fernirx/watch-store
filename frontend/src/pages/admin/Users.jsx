@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import userService from '../../services/userService';
 import { EMAIL_REGEX } from '../../utils/validation';
+import Toast from '../../components/Toast';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -8,6 +9,7 @@ const Users = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [toast, setToast] = useState(null);
   const [filters, setFilters] = useState({
     role: '',
     is_active: '',
@@ -132,7 +134,7 @@ const Users = () => {
     // Validate form trước khi submit
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      setToast({ message: validationErrors.join(', '), type: 'error' });
       return;
     }
 
@@ -157,10 +159,10 @@ const Users = () => {
 
       if (editingId) {
         await userService.updateUser(editingId, submitData);
-        alert('Cập nhật người dùng thành công!');
+        setToast({ message: 'Cập nhật người dùng thành công!', type: 'success' });
       } else {
         await userService.createUser(submitData);
-        alert('Tạo người dùng thành công!');
+        setToast({ message: 'Tạo người dùng thành công!', type: 'success' });
       }
 
       resetForm();
@@ -169,9 +171,12 @@ const Users = () => {
       console.error('Error saving user:', error);
       const errorMessage = error.response?.data?.message || error.message;
       const errorDetails = error.response?.data?.errors
-        ? '\n' + Object.values(error.response.data.errors).flat().join('\n')
+        ? ', ' + Object.values(error.response.data.errors).flat().join(', ')
         : '';
-      alert(`Không thể ${editingId ? 'cập nhật' : 'tạo'} người dùng: ${errorMessage}${errorDetails}`);
+      setToast({
+        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} người dùng: ${errorMessage}${errorDetails}`,
+        type: 'error'
+      });
     }
   };
 
@@ -198,10 +203,10 @@ const Users = () => {
     try {
       await userService.deleteUser(id);
       fetchUsers();
-      alert('Xóa người dùng thành công!');
+      setToast({ message: 'Xóa người dùng thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert(error.response?.data?.message || 'Không thể xóa người dùng');
+      setToast({ message: error.response?.data?.message || 'Không thể xóa người dùng', type: 'error' });
     }
   };
 
@@ -209,10 +214,10 @@ const Users = () => {
     try {
       await userService.toggleUserStatus(id);
       fetchUsers();
-      alert('Cập nhật trạng thái thành công!');
+      setToast({ message: 'Cập nhật trạng thái thành công!', type: 'success' });
     } catch (error) {
       console.error('Error toggling user status:', error);
-      alert(error.response?.data?.message || 'Không thể cập nhật trạng thái');
+      setToast({ message: error.response?.data?.message || 'Không thể cập nhật trạng thái', type: 'error' });
     }
   };
 
@@ -592,6 +597,15 @@ const Users = () => {
           </table>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

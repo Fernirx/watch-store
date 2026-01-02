@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import supplierService from '../../services/supplierService';
+import Toast from '../../components/Toast';
 
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,22 +44,22 @@ const Suppliers = () => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
-      alert('Vui lòng nhập tên nhà cung cấp');
+      setToast({ message: 'Vui lòng nhập tên nhà cung cấp', type: 'error' });
       return;
     }
 
     try {
       if (editingId) {
         await supplierService.updateSupplier(editingId, formData);
-        alert('Cập nhật nhà cung cấp thành công!');
+        setToast({ message: 'Cập nhật nhà cung cấp thành công!', type: 'success' });
       } else {
         await supplierService.createSupplier(formData);
-        alert('Tạo nhà cung cấp thành công!');
+        setToast({ message: 'Tạo nhà cung cấp thành công!', type: 'success' });
       }
       resetForm();
       fetchSuppliers();
     } catch (error) {
-      alert(`Lỗi: ${error.response?.data?.message || error.message}`);
+      setToast({ message: `Lỗi: ${error.response?.data?.message || error.message}`, type: 'error' });
     }
   };
 
@@ -80,9 +82,9 @@ const Suppliers = () => {
     try {
       await supplierService.deleteSupplier(id);
       fetchSuppliers();
-      alert('Xóa nhà cung cấp thành công!');
+      setToast({ message: 'Xóa nhà cung cấp thành công!', type: 'success' });
     } catch (error) {
-      alert('Không thể xóa: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -209,6 +211,15 @@ const Suppliers = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

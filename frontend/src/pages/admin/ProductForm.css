@@ -140,6 +140,25 @@
   opacity: 0.6;
 }
 
+/* Error State */
+.form-control.error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.form-control.error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  display: block;
+  color: #dc2626;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
 textarea.form-control {
   min-height: 100px;
   resize: vertical;

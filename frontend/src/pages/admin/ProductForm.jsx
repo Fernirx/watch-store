@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
 import { formatPriceInput, parsePrice } from '../../utils/formatPrice';
+import Toast from '../../components/Toast';
 import './ProductForm.css';
 
 const ProductForm = () => {
@@ -16,6 +17,12 @@ const ProductForm = () => {
   const [brands, setBrands] = useState([]);
   const [images, setImages] = useState([]);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
+
+  // Toast state
+  const [toast, setToast] = useState(null);
+
+  // Field errors state
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     // Basic Information
@@ -161,7 +168,7 @@ const ProductForm = () => {
       }
     } catch (error) {
       console.error('Error fetching product:', error);
-      alert('Không thể tải thông tin sản phẩm');
+      setToast({ message: 'Không thể tải thông tin sản phẩm', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -190,7 +197,7 @@ const ProductForm = () => {
 
     // Validate max 6 images total
     if (images.length + files.length > 6) {
-      alert('Tối đa 6 ảnh cho mỗi sản phẩm');
+      setToast({ message: 'Tối đa 6 ảnh cho mỗi sản phẩm', type: 'error' });
       return;
     }
 
@@ -213,7 +220,7 @@ const ProductForm = () => {
 
   const handleRemoveImage = (index) => {
     if (images.length <= 1) {
-      alert('Sản phẩm phải có ít nhất 1 ảnh');
+      setToast({ message: 'Sản phẩm phải có ít nhất 1 ảnh', type: 'error' });
       return;
     }
 
@@ -288,9 +295,12 @@ const ProductForm = () => {
     // Validate form trước khi submit
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      setToast({ message: validationErrors.join(', '), type: 'error' });
       return;
     }
+
+    // Clear field errors before submit
+    setFieldErrors({});
 
     try {
       setLoading(true);
@@ -378,7 +388,8 @@ const ProductForm = () => {
 
         submitData.append('_method', 'PUT');
         await productService.updateProduct(id, submitData);
-        alert('Cập nhật sản phẩm thành công!');
+        setToast({ message: 'Cập nhật sản phẩm thành công!', type: 'success' });
+        setTimeout(() => navigate('/admin/products'), 1500);
       } else {
         // For create: send all images as new
         images.forEach((img, index) => {
@@ -386,18 +397,38 @@ const ProductForm = () => {
         });
 
         await productService.createProduct(submitData);
-        alert('Tạo sản phẩm thành công!');
+        setToast({ message: 'Tạo sản phẩm thành công!', type: 'success' });
+        setTimeout(() => navigate('/admin/products'), 1500);
       }
-
-      navigate('/admin/products');
     } catch (error) {
       console.error('Error saving product:', error);
       console.error('Error response:', error.response?.data);
-      alert(
-        `Không thể ${isEdit ? 'cập nhật' : 'tạo'} sản phẩm: ${
-          error.response?.data?.message || error.message
-        }\n\nChi tiết: ${JSON.stringify(error.response?.data?.errors || {})}`
-      );
+
+      // Handle validation errors from backend
+      if (error.response?.status === 422) {
+        const { message, field, errors } = error.response.data;
+
+        // Set error toast with clear message
+        setToast({ message: message || 'Dữ liệu không hợp lệ', type: 'error' });
+
+        // Set field-level errors for inline display
+        if (field) {
+          setFieldErrors({ [field]: message });
+        } else if (errors) {
+          // Convert errors object to fieldErrors format
+          const formattedErrors = {};
+          Object.keys(errors).forEach(key => {
+            formattedErrors[key] = errors[key][0]; // Get first error message
+          });
+          setFieldErrors(formattedErrors);
+        }
+      } else {
+        // Generic error
+        setToast({
+          message: error.response?.data?.message || `Không thể ${isEdit ? 'cập nhật' : 'tạo'} sản phẩm`,
+          type: 'error'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -458,11 +489,21 @@ const ProductForm = () => {
                 id="code"
                 name="code"
                 value={formData.code}
-                onChange={handleChange}
-                className="form-control"
+                onChange={(e) => {
+                  handleChange(e);
+                  // Clear error when user types
+                  if (fieldErrors.code) {
+                    setFieldErrors(prev => ({ ...prev, code: undefined }));
+                  }
+                }}
+                className={`form-control ${fieldErrors.code ? 'error' : ''}`}
                 placeholder="VD: ROLEX-SUB-001"
               />
-              <small>Để trống để tự động tạo</small>
+              {fieldErrors.code ? (
+                <small className="error-message">{fieldErrors.code}</small>
+              ) : (
+                <small>Để trống để tự động tạo</small>
+              )}
             </div>
           </div>
 
@@ -1080,6 +1121,15 @@ const ProductForm = () => {
           </button>
         </div>
       </form>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

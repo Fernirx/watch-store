@@ -11,6 +11,13 @@ const productService = {
     return response.data;
   },
 
+  getAdminProducts: async (params = {}) => {
+    // params có thể bao gồm: category_id, brand_id, min_price, max_price,
+    // gender, is_featured, search, sort_by, sort_order, per_page, page
+    const response = await axios.get('/admin/products', { params });
+    return response.data;
+  },
+
   // Lấy chi tiết sản phẩm
   getProduct: async (id) => {
     const response = await axios.get(`/products/${id}`);

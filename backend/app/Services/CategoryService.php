@@ -15,11 +15,18 @@ class CategoryService
     }
 
     /**
-     * Lấy danh sách category đang active
+     * Lấy danh sách category (admin xem tất cả, user chỉ xem active)
      */
-    public function getCategories(): Collection
+    public function getCategories(bool $adminMode = false): Collection
     {
-        return Category::where('is_active', true)->get();
+        $query = Category::query();
+
+        // Nếu không phải admin mode, chỉ lấy category active
+        if (!$adminMode) {
+            $query->where('is_active', true);
+        }
+
+        return $query->get();
     }
 
     /**

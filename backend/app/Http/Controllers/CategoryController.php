@@ -19,10 +19,13 @@ class CategoryController extends Controller
     /**
      * Lấy danh sách category
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $categories = $this->categoryService->getCategories();
+            // Check if user is admin
+            $adminMode = $request->user() && $request->user()->role === 'ADMIN';
+
+            $categories = $this->categoryService->getCategories($adminMode);
 
             return response()->json([
                 'success' => true,

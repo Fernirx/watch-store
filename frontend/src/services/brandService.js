@@ -9,6 +9,11 @@ const brandService = {
     return response.data;
   },
 
+  getAdminBrands: async () => {
+    const response = await axios.get('/admin/brands');
+    return response.data;
+  },
+
   // Lấy chi tiết thương hiệu
   getBrand: async (id) => {
     const response = await axios.get(`/brands/${id}`);

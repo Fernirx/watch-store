@@ -28,7 +28,7 @@ class ProductController extends Controller
 
             // Check if user is admin
             $filters['admin_mode'] = $request->user() && $request->user()->role === 'ADMIN';
-
+            
             $products = $this->productService->getProducts($filters);
 
             return response()->json([
@@ -167,10 +167,20 @@ class ProductController extends Controller
                 'data' => $product->load(['category', 'brand']),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Translate specific error messages to Vietnamese
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            // If code duplicate error exists, provide clear message
+            if (isset($errors['code'])) {
+                $message = 'Mã sản phẩm "' . $request->input('code') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Dữ liệu không hợp lệ',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'field' => isset($errors['code']) ? 'code' : null, // Tell frontend which field has error
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -327,10 +337,20 @@ class ProductController extends Controller
                 'data' => $product,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Translate specific error messages to Vietnamese
+            $errors = $e->errors();
+            $message = 'Dữ liệu không hợp lệ';
+
+            // If code duplicate error exists, provide clear message
+            if (isset($errors['code'])) {
+                $message = 'Mã sản phẩm "' . $request->input('code') . '" đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Dữ liệu không hợp lệ',
-                'errors' => $e->errors(),
+                'message' => $message,
+                'errors' => $errors,
+                'field' => isset($errors['code']) ? 'code' : null, // Tell frontend which field has error
             ], 422);
         } catch (\Exception $e) {
             return response()->json([

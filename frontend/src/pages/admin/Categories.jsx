@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import categoryService from '../../services/categoryService';
+import Toast from '../../components/Toast';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -7,6 +8,7 @@ const Categories = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -21,7 +23,7 @@ const Categories = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await categoryService.getCategories();
+      const response = await categoryService.getAdminCategories();
       setCategories(response.data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -64,7 +66,7 @@ const Categories = () => {
     // Validate form trước khi submit
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      setToast({ message: validationErrors.join(', '), type: 'error' });
       return;
     }
 
@@ -79,20 +81,20 @@ const Categories = () => {
       if (editingId) {
         submitData.append('_method', 'PUT');
         await categoryService.updateCategory(editingId, submitData);
-        alert('Cập nhật danh mục thành công!');
+        setToast({ message: 'Cập nhật danh mục thành công!', type: 'success' });
       } else {
         await categoryService.createCategory(submitData);
-        alert('Tạo danh mục thành công!');
+        setToast({ message: 'Tạo danh mục thành công!', type: 'success' });
       }
 
       resetForm();
       fetchCategories();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert(
-        `Không thể ${editingId ? 'cập nhật' : 'tạo'} danh mục: ${error.response?.data?.message || error.message
-        }`
-      );
+      setToast({
+        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} danh mục: ${error.response?.data?.message || error.message}`,
+        type: 'error'
+      });
     }
   };
 
@@ -115,10 +117,10 @@ const Categories = () => {
     try {
       await categoryService.deleteCategory(id);
       fetchCategories();
-      alert('Xóa danh mục thành công!');
+      setToast({ message: 'Xóa danh mục thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Không thể xóa danh mục');
+      setToast({ message: 'Không thể xóa danh mục', type: 'error' });
     }
   };
 
@@ -320,6 +322,15 @@ const Categories = () => {
           ))
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

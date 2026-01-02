@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import couponService from '../../services/couponService';
+import Toast from '../../components/Toast';
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     code: '',
@@ -90,7 +92,7 @@ const Coupons = () => {
 
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      setToast({ message: validationErrors.join(', '), type: 'error' });
       return;
     }
 
@@ -111,21 +113,20 @@ const Coupons = () => {
 
       if (editingId) {
         await couponService.updateCoupon(editingId, submitData);
-        alert('Cập nhật mã giảm giá thành công!');
+        setToast({ message: 'Cập nhật mã giảm giá thành công!', type: 'success' });
       } else {
         await couponService.createCoupon(submitData);
-        alert('Tạo mã giảm giá thành công!');
+        setToast({ message: 'Tạo mã giảm giá thành công!', type: 'success' });
       }
 
       resetForm();
       fetchCoupons();
     } catch (error) {
       console.error('Error saving coupon:', error);
-      alert(
-        `Không thể ${editingId ? 'cập nhật' : 'tạo'} mã giảm giá: ${
-          error.response?.data?.message || error.message
-        }`
-      );
+      setToast({
+        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} mã giảm giá: ${error.response?.data?.message || error.message}`,
+        type: 'error'
+      });
     }
   };
 
@@ -151,13 +152,13 @@ const Coupons = () => {
       setShowForm(true);
     } catch (error) {
       console.error('Error fetching coupon:', error);
-      alert('Không thể tải thông tin mã giảm giá');
+      setToast({ message: 'Không thể tải thông tin mã giảm giá', type: 'error' });
     }
   };
 
   const handleDelete = async (id, usageCount) => {
     if (usageCount > 0) {
-      alert('Không thể xóa mã giảm giá đã được sử dụng!');
+      setToast({ message: 'Không thể xóa mã giảm giá đã được sử dụng!', type: 'error' });
       return;
     }
 
@@ -168,10 +169,10 @@ const Coupons = () => {
     try {
       await couponService.deleteCoupon(id);
       fetchCoupons();
-      alert('Xóa mã giảm giá thành công!');
+      setToast({ message: 'Xóa mã giảm giá thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting coupon:', error);
-      alert('Không thể xóa mã giảm giá: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể xóa mã giảm giá: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -610,6 +611,15 @@ const Coupons = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

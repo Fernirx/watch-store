@@ -15,11 +15,18 @@ class BrandService
     }
 
     /**
-     * Lấy danh sách brand đang active
+     * Lấy danh sách brand (admin xem tất cả, user chỉ xem active)
      */
-    public function getBrands(): Collection
+    public function getBrands(bool $adminMode = false): Collection
     {
-        return Brand::where('is_active', true)->get();
+        $query = Brand::query();
+
+        // Nếu không phải admin mode, chỉ lấy brand active
+        if (!$adminMode) {
+            $query->where('is_active', true);
+        }
+
+        return $query->get();
     }
 
     /**

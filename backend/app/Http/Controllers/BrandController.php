@@ -19,10 +19,13 @@ class BrandController extends Controller
     /**
      * Lấy danh sách brand
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $brands = $this->brandService->getBrands();
+            // Check if user is admin
+            $adminMode = $request->user() && $request->user()->role === 'ADMIN';
+
+            $brands = $this->brandService->getBrands($adminMode);
 
             return response()->json([
                 'success' => true,

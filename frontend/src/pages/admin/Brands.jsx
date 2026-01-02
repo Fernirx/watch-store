@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import brandService from '../../services/brandService';
+import Toast from '../../components/Toast';
 
 const Brands = () => {
   const [brands, setBrands] = useState([]);
@@ -7,6 +8,7 @@ const Brands = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -21,7 +23,7 @@ const Brands = () => {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      const response = await brandService.getBrands();
+      const response = await brandService.getAdminBrands();
       setBrands(response.data || []);
     } catch (error) {
       console.error('Error fetching brands:', error);
@@ -64,7 +66,7 @@ const Brands = () => {
     // Validate form trước khi submit
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      alert('Lỗi validation:\n' + validationErrors.join('\n'));
+      setToast({ message: validationErrors.join(', '), type: 'error' });
       return;
     }
 
@@ -79,20 +81,20 @@ const Brands = () => {
       if (editingId) {
         submitData.append('_method', 'PUT');
         await brandService.updateBrand(editingId, submitData);
-        alert('Cập nhật thương hiệu thành công!');
+        setToast({ message: 'Cập nhật thương hiệu thành công!', type: 'success' });
       } else {
         await brandService.createBrand(submitData);
-        alert('Tạo thương hiệu thành công!');
+        setToast({ message: 'Tạo thương hiệu thành công!', type: 'success' });
       }
 
       resetForm();
       fetchBrands();
     } catch (error) {
       console.error('Error saving brand:', error);
-      alert(
-        `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${error.response?.data?.message || error.message
-        }`
-      );
+      setToast({
+        message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} thương hiệu: ${error.response?.data?.message || error.message}`,
+        type: 'error'
+      });
     }
   };
 
@@ -115,10 +117,10 @@ const Brands = () => {
     try {
       await brandService.deleteBrand(id);
       fetchBrands();
-      alert('Xóa thương hiệu thành công!');
+      setToast({ message: 'Xóa thương hiệu thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting brand:', error);
-      alert('Không thể xóa thương hiệu');
+      setToast({ message: 'Không thể xóa thương hiệu', type: 'error' });
     }
   };
 
@@ -320,6 +322,15 @@ const Brands = () => {
           ))
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

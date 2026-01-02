@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
+import Toast from '../../components/Toast';
 import './Products.css';
 
 const Products = () => {
@@ -14,6 +15,7 @@ const Products = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // Filters state
   const [filters, setFilters] = useState({
@@ -82,7 +84,7 @@ const Products = () => {
       if (filters.is_on_sale === 'true') params.is_on_sale = true;
       if (filters.is_featured === 'true') params.is_featured = true;
 
-      const response = await productService.getProducts(params);
+      const response = await productService.getAdminProducts(params);
 
       setProducts(response.data.data || []);
       setTotalPages(response.data.last_page || 1);
@@ -101,9 +103,10 @@ const Products = () => {
     try {
       await productService.deleteProduct(id);
       fetchProducts();
+      setToast({ message: 'Xóa sản phẩm thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Không thể xóa sản phẩm');
+      setToast({ message: 'Không thể xóa sản phẩm', type: 'error' });
     }
   };
 
@@ -600,8 +603,8 @@ const Products = () => {
                           product.stock_quantity === 0
                             ? 'badge badge-danger'
                             : product.stock_quantity <= (product.min_stock_level || 10)
-                            ? 'badge badge-warning'
-                            : 'badge badge-success'
+                              ? 'badge badge-warning'
+                              : 'badge badge-success'
                         }
                         style={{ fontWeight: '700', fontSize: '0.875rem' }}
                       >
@@ -730,6 +733,15 @@ const Products = () => {
             Sau
           </button>
         </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
