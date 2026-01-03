@@ -41,7 +41,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch users',
+                'message' => 'Không thể tải danh sách người dùng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -58,7 +58,7 @@ class UserController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not found',
+                    'message' => 'Không tìm thấy người dùng',
                 ], 404);
             }
 
@@ -69,7 +69,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found',
+                'message' => 'Không tìm thấy người dùng',
             ], 404);
         }
     }
@@ -108,19 +108,19 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User created successfully',
+                'message' => 'Tạo người dùng thành công',
                 'data' => $user,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create user',
+                'message' => 'Không thể tạo người dùng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -160,19 +160,19 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User updated successfully',
+                'message' => 'Cập nhật người dùng thành công',
                 'data' => $user,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update user',
+                'message' => 'Không thể cập nhật người dùng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -188,7 +188,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User deleted successfully',
+                'message' => 'Xóa người dùng thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -209,7 +209,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User status updated successfully',
+                'message' => 'Cập nhật trạng thái người dùng thành công',
                 'data' => $user,
             ], 200);
         } catch (\Exception $e) {

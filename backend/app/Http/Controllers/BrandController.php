@@ -34,7 +34,7 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch brands',
+                'message' => 'Không thể tải danh sách thương hiệu',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -51,7 +51,7 @@ class BrandController extends Controller
             if (!$brand) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Brand not found',
+                    'message' => 'Không tìm thấy thương hiệu',
                 ], 404);
             }
 
@@ -62,7 +62,7 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Brand not found',
+                'message' => 'Không tìm thấy thương hiệu',
             ], 404);
         }
     }
@@ -88,7 +88,7 @@ class BrandController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Brand created successfully',
+                'message' => 'Tạo thương hiệu thành công',
                 'data' => $brand,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -108,7 +108,7 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create brand',
+                'message' => 'Không thể tạo thương hiệu',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -135,7 +135,7 @@ class BrandController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Brand updated successfully',
+                'message' => 'Cập nhật thương hiệu thành công',
                 'data' => $brand,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -155,7 +155,7 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update brand',
+                'message' => 'Không thể cập nhật thương hiệu',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -171,12 +171,12 @@ class BrandController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Brand deleted successfully',
+                'message' => 'Xóa thương hiệu thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete brand',
+                'message' => 'Không thể xóa thương hiệu',
                 'error' => $e->getMessage(),
             ], 500);
         }

@@ -30,7 +30,7 @@ class CheckAccountActive
 
             return response()->json([
                 'success' => false,
-                'message' => 'Your account has been deactivated. Please contact support for assistance.',
+                'message' => 'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ để được trợ giúp.',
             ], 403);
         }
 

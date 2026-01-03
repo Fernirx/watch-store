@@ -140,7 +140,7 @@ const SearchBar = ({
           className="search-input"
         />
         {(value ?? localValue)?.length > 0 && (
-          <button onClick={handleClear} className="clear-search-btn" aria-label="Clear">
+          <button onClick={handleClear} className="clear-search-btn" aria-label="Xóa">
             ✕
           </button>
         )}

@@ -32,7 +32,7 @@ class CouponController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch coupons',
+                'message' => 'Không thể tải danh sách mã giảm giá',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -49,7 +49,7 @@ class CouponController extends Controller
             if (!$coupon) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Coupon not found',
+                    'message' => 'Không tìm thấy mã giảm giá',
                 ], 404);
             }
 
@@ -60,7 +60,7 @@ class CouponController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Coupon not found',
+                'message' => 'Không tìm thấy mã giảm giá',
             ], 404);
         }
     }
@@ -115,7 +115,7 @@ class CouponController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Coupon created successfully',
+                'message' => 'Tạo mã giảm giá thành công',
                 'data' => $coupon,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -135,7 +135,7 @@ class CouponController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create coupon',
+                'message' => 'Không thể tạo mã giảm giá',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -171,7 +171,7 @@ class CouponController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Coupon updated successfully',
+                'message' => 'Cập nhật mã giảm giá thành công',
                 'data' => $coupon,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -191,7 +191,7 @@ class CouponController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update coupon',
+                'message' => 'Không thể cập nhật mã giảm giá',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -207,7 +207,7 @@ class CouponController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Coupon deleted successfully',
+                'message' => 'Xóa mã giảm giá thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -276,13 +276,13 @@ class CouponController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to validate coupon',
+                'message' => 'Không thể xác thực mã giảm giá',
                 'error' => $e->getMessage(),
             ], 500);
         }

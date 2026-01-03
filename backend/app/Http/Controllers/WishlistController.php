@@ -31,7 +31,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch wishlist',
+                'message' => 'Không thể tải danh sách yêu thích',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -60,7 +60,7 @@ class WishlistController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -87,7 +87,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to remove item',
+                'message' => 'Không thể xóa mục',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -108,7 +108,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to clear wishlist',
+                'message' => 'Không thể xóa danh sách yêu thích',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -138,7 +138,7 @@ class WishlistController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -168,7 +168,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to check wishlist',
+                'message' => 'Không thể kiểm tra danh sách yêu thích',
                 'error' => $e->getMessage(),
             ], 500);
         }

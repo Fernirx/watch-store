@@ -44,7 +44,7 @@ class SupplierController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Supplier created successfully',
+                'message' => 'Tạo nhà cung cấp thành công',
                 'data' => $supplier,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -64,7 +64,7 @@ class SupplierController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update brand',
+                'message' => 'Không thể tạo nhà cung cấp',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -87,7 +87,7 @@ class SupplierController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Supplier updated successfully',
+                'message' => 'Cập nhật nhà cung cấp thành công',
                 'data' => $supplier,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -107,7 +107,7 @@ class SupplierController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update supplier',
+                'message' => 'Không thể cập nhật nhà cung cấp',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -121,7 +121,7 @@ class SupplierController extends Controller
         if ($supplier->products()->count() > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete supplier with associated products',
+                'message' => 'Không thể xóa nhà cung cấp có sản phẩm liên quan',
             ], 400);
         }
 
@@ -129,7 +129,7 @@ class SupplierController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Supplier deleted successfully',
+            'message' => 'Xóa nhà cung cấp thành công',
         ]);
     }
 }

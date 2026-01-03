@@ -63,7 +63,7 @@ class StockService
 
             return [
                 'success' => true,
-                'message' => 'Import stock successfully',
+                'message' => 'Nhập kho thành công',
                 'transactions' => $transactions,
                 'products' => $updatedProducts,
             ];
@@ -135,7 +135,7 @@ class StockService
 
             return [
                 'success' => true,
-                'message' => 'Export stock successfully',
+                'message' => 'Xuất kho thành công',
                 'transactions' => $transactions,
                 'products' => $updatedProducts,
             ];

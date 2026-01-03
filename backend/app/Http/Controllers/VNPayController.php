@@ -39,7 +39,7 @@ class VNPayController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -98,9 +98,9 @@ class VNPayController extends Controller
             $frontendUrl = config('app.frontend_url');
 
             $errorParam = match ($e->getMessage()) {
-                'Invalid signature' => 'invalid_signature',
-                'Order not found' => 'order_not_found',
-                'Processing error' => 'processing_error',
+                'Chữ ký không hợp lệ' => 'invalid_signature',
+                'Không tìm thấy đơn hàng' => 'order_not_found',
+                'Lỗi xử lý' => 'processing_error',
                 default => 'system_error',
             };
 
@@ -122,7 +122,7 @@ class VNPayController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'RspCode' => '99',
-                'Message' => 'System error'
+                'Message' => 'Lỗi hệ thống'
             ]);
         }
     }

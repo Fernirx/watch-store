@@ -41,7 +41,7 @@ class StockController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to import stock: ' . $e->getMessage(),
+                'message' => 'Nhập kho thất bại: ' . $e->getMessage(),
             ], 400);
         }
     }
@@ -73,7 +73,7 @@ class StockController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to export stock: ' . $e->getMessage(),
+                'message' => 'Xuất kho thất bại: ' . $e->getMessage(),
             ], 400);
         }
     }

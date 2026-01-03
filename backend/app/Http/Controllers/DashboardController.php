@@ -31,7 +31,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch dashboard stats',
+                'message' => 'Không thể tải thống kê dashboard',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -50,7 +50,7 @@ class DashboardController extends Controller
             if (!in_array($days, [7, 30, 90])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid days parameter. Allowed values: 7, 30, 90',
+                    'message' => 'Tham số ngày không hợp lệ. Giá trị cho phép: 7, 30, 90',
                 ], 400);
             }
 
@@ -63,7 +63,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch revenue trend',
+                'message' => 'Không thể tải xu hướng doanh thu',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -85,7 +85,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch order status distribution',
+                'message' => 'Không thể tải phân bổ trạng thái đơn hàng',
                 'error' => $e->getMessage(),
             ], 500);
         }

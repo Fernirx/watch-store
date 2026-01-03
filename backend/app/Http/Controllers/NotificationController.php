@@ -77,7 +77,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification created successfully',
+            'message' => 'Tạo thông báo thành công',
             'data' => $notification,
         ], 201);
     }
@@ -105,7 +105,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification updated successfully',
+            'message' => 'Cập nhật thông báo thành công',
             'data' => $notification,
         ]);
     }
@@ -120,7 +120,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification deleted successfully',
+            'message' => 'Xóa thông báo thành công',
         ]);
     }
 }

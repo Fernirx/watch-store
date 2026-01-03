@@ -32,19 +32,19 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Login successful',
+                'message' => 'Đăng nhập thành công',
                 'data' => $data,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Login failed',
+                'message' => 'Đăng nhập thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -82,19 +82,19 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User registered successfully',
+                'message' => 'Đăng ký người dùng thành công',
                 'data' => $data,
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registration failed',
+                'message' => 'Đăng ký thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -110,12 +110,12 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Logged out successfully',
+                'message' => 'Đăng xuất thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Logout failed',
+                'message' => 'Đăng xuất thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -136,7 +136,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve user',
+                'message' => 'Không thể lấy thông tin người dùng',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -156,19 +156,19 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Token refreshed successfully',
+                'message' => 'Làm mới token thành công',
                 'data' => $data,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Token refresh failed',
+                'message' => 'Làm mới token thất bại',
                 'error' => $e->getMessage(),
             ], 401);
         }
@@ -193,13 +193,13 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send OTP',
+                'message' => 'Gửi OTP thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -234,7 +234,7 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -289,7 +289,7 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -317,18 +317,18 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP sent to your email. Valid for 5 minutes.',
+                'message' => 'OTP đã được gửi đến email của bạn. Có hiệu lực trong 5 phút.',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send OTP',
+                'message' => 'Gửi OTP thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -371,12 +371,12 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password reset successful. Please login with your new password.',
+                'message' => 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -402,18 +402,18 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP resent to your email. Valid for 5 minutes.',
+                'message' => 'OTP đã được gửi lại đến email của bạn. Có hiệu lực trong 5 phút.',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to resend OTP',
+                'message' => 'Gửi lại OTP thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -435,18 +435,18 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'OTP resent to your email. Valid for 5 minutes.',
+                'message' => 'OTP đã được gửi lại đến email của bạn. Có hiệu lực trong 5 phút.',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation error',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to resend OTP',
+                'message' => 'Gửi lại OTP thất bại',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -480,7 +480,7 @@ class AuthController extends Controller
             \Log::error('Google redirect error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to redirect to Google',
+                'message' => 'Không thể chuyển hướng đến Google',
                 'error' => $e->getMessage(),
             ], 500);
         }

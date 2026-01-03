@@ -34,7 +34,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch categories',
+                'message' => 'Không thể tải danh sách danh mục',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -51,7 +51,7 @@ class CategoryController extends Controller
             if (!$category) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Category not found',
+                    'message' => 'Không tìm thấy danh mục',
                 ], 404);
             }
 
@@ -62,7 +62,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found',
+                'message' => 'Không tìm thấy danh mục',
             ], 404);
         }
     }
@@ -86,7 +86,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category created successfully',
+                'message' => 'Tạo danh mục thành công',
                 'data' => $category,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -106,7 +106,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create category',
+                'message' => 'Không thể tạo danh mục',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -131,7 +131,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category updated successfully',
+                'message' => 'Cập nhật danh mục thành công',
                 'data' => $category,
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -151,7 +151,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update category',
+                'message' => 'Không thể cập nhật danh mục',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -167,12 +167,12 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category deleted successfully',
+                'message' => 'Xóa danh mục thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete category',
+                'message' => 'Không thể xóa danh mục',
                 'error' => $e->getMessage(),
             ], 500);
         }

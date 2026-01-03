@@ -98,7 +98,7 @@ class BusinessValidator
                 'product_id' => $productId,
                 'product_name' => $productName,
                 'stock_quantity' => $stockQuantity,
-                'message' => 'Product has negative stock - data integrity issue!',
+                'message' => 'Sản phẩm có số lượng tồn kho âm - Vấn đề toàn vẹn dữ liệu!',
             ]);
         }
     }
@@ -121,8 +121,8 @@ class BusinessValidator
                 'status' => $status,
                 'payment_status' => $paymentStatus,
                 'total' => $total,
-                'message' => 'Order cancelled but already paid - REFUND NEEDED!',
-                'action_required' => 'Contact customer for refund',
+                'message' => 'Đơn hàng đã hủy nhưng đã thanh toán - CẦN HOÀN TIỀN!',
+                'action_required' => 'Liên hệ khách hàng để hoàn tiền',
             ]);
         }
 
@@ -134,8 +134,8 @@ class BusinessValidator
                 'status' => $status,
                 'payment_status' => $paymentStatus,
                 'total' => $total,
-                'message' => 'Order completed but not paid - REVENUE LOSS!',
-                'action_required' => 'Verify payment and update status',
+                'message' => 'Đơn hàng hoàn thành nhưng chưa thanh toán - MẤT DOANH THU!',
+                'action_required' => 'Xác minh thanh toán và cập nhật trạng thái',
             ]);
         }
     }
@@ -156,7 +156,7 @@ class BusinessValidator
                 'usage_limit' => $usageLimit,
                 'actual_usage' => $actualUsage,
                 'over_by' => $actualUsage - $usageLimit,
-                'message' => 'Coupon used more than limit - revenue loss!',
+                'message' => 'Mã giảm giá được sử dụng vượt quá giới hạn - mất doanh thu!',
             ]);
         }
     }
@@ -189,7 +189,7 @@ class BusinessValidator
                     'requested_quantity' => $requestedQty,
                     'available_stock' => $product->stock_quantity,
                     'shortage' => $requestedQty - $product->stock_quantity,
-                    'message' => 'Attempting to create order with insufficient stock',
+                    'message' => 'Cố gắng tạo đơn hàng với số lượng tồn kho không đủ',
                 ]);
                 $hasIssue = true;
             }

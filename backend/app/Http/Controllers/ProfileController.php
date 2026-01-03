@@ -31,7 +31,7 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch profile',
+                'message' => 'Không thể tải thông tin hồ sơ',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -66,19 +66,19 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profile updated successfully',
+                'message' => 'Cập nhật hồ sơ thành công',
                 'data' => $updatedUser,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update profile',
+                'message' => 'Không thể cập nhật hồ sơ',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -101,13 +101,13 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Avatar uploaded successfully',
+                'message' => 'Tải ảnh đại diện thành công',
                 'data' => $result,
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
@@ -118,7 +118,7 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload avatar',
+                'message' => 'Không thể tải ảnh đại diện',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -134,12 +134,12 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Avatar deleted successfully',
+                'message' => 'Xóa ảnh đại diện thành công',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete avatar',
+                'message' => 'Không thể xóa ảnh đại diện',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -174,12 +174,12 @@ class ProfileController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password changed successfully',
+                'message' => 'Đổi mật khẩu thành công',
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => 'Lỗi xác thực',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {

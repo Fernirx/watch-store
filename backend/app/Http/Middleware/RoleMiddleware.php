@@ -21,7 +21,7 @@ class RoleMiddleware
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthenticated',
+                'message' => 'Chưa xác thực',
             ], 401);
         }
 
@@ -29,14 +29,14 @@ class RoleMiddleware
         if (!$user->is_active) {
             return response()->json([
                 'success' => false,
-                'message' => 'Account is inactive. Access denied.',
+                'message' => 'Tài khoản không hoạt động. Truy cập bị từ chối.',
             ], 403);
         }
 
         if ($user->role !== $role) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Required role: ' . $role,
+                'message' => 'Không có quyền truy cập. Vai trò yêu cầu: ' . $role,
             ], 403);
         }
 
