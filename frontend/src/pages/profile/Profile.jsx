@@ -127,6 +127,10 @@ const Profile = () => {
             newErrors.current_password = 'Mật khẩu hiện tại là bắt buộc';
         }
 
+        if (passwordData.current_password === passwordData.new_password) {
+            newErrors.new_password = 'Mật khẩu mới phải khác mật khẩu hiện tại';
+        }
+
         // Validate new password - Yêu cầu mật khẩu mạnh
         if (!passwordData.new_password) {
             newErrors.new_password = 'Mật khẩu mới là bắt buộc';

@@ -268,12 +268,16 @@ class AuthService
      */
     public function resetPassword(string $email, string $otp, string $newPassword): void
     {
-        $result = Otp::verifyOtp($email, $otp, 'FORGOT_PASSWORD');
-        if (!$result['success']) {
-            throw new \Exception('Invalid or expired OTP');
+        $user = User::where('email', $email)->first();
+        if (Hash::check($newPassword, $user->password)) {
+            throw new \Exception('Mật khẩu mới không được trùng với mật khẩu cũ');
         }
 
-        $user = User::where('email', $email)->first();
+        $result = Otp::verifyOtp($email, $otp, 'FORGOT_PASSWORD');
+        if (!$result['success']) {
+            throw new \Exception($result['message']);
+        }
+
         $user->update([
             'password' => Hash::make($newPassword),
         ]);

@@ -154,7 +154,7 @@ const ForgotPassword = () => {
       navigate('/login', { state: { message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.' } });
     } catch (err) {
       if (err.response?.status === 400) {
-        setErrors({ general: 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.' });
+        setErrors({ general: err.response.data.message });
       } else if (err.response?.data?.errors) {
         const backendErrors = err.response.data.errors;
         const friendlyErrors = {};

@@ -65,6 +65,8 @@ class Otp extends Model
             ->orderBy('created_at', 'desc')
             ->first();
 
+        \Log::info("Email:" . $email . ", OTP:" . $otp . ", Type:" . $type . ", Record:" . ($otpRecord ? $otpRecord->otp : 'null'));
+
         // Không tìm thấy OTP hoặc đã hết hạn
         if (!$otpRecord) {
             return [
