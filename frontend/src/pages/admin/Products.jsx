@@ -15,6 +15,8 @@ const Products = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
   const [toast, setToast] = useState(null);
 
   // Filters state
@@ -95,13 +97,16 @@ const Products = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-      return;
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
     try {
-      await productService.deleteProduct(id);
+      await productService.deleteProduct(deleteId);
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
       fetchProducts();
       setToast({ message: 'Xóa sản phẩm thành công!', type: 'success' });
     } catch (error) {
@@ -188,7 +193,7 @@ const Products = () => {
                 onClick={clearAllFilters}
                 className="btn btn-danger toolbar-btn"
               >
-                ✕ Xóa bộ lọc
+                Xóa bộ lọc
               </button>
             )}
             <button
@@ -742,6 +747,57 @@ const Products = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+
+            <div className="modal-header">
+              <h3>⚠️ Xác nhận xóa sản phẩm</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn <strong>xóa sản phẩm</strong> này không?
+              </p>
+              <p style={{ color: '#991b1b', fontWeight: 600 }}>
+                Hành động này không thể hoàn tác!
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={() => {
+                  confirmDelete();
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   );

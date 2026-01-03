@@ -16,6 +16,7 @@ const ProductForm = () => {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [images, setImages] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   // Toast state
@@ -448,7 +449,7 @@ const ProductForm = () => {
       {/* Page Header */}
       <div className="admin-page-header">
         <div>
-          <h1>{isEdit ? '✏️ Sửa Sản Phẩm' : '➕ Thêm Sản Phẩm Mới'}</h1>
+          <h1>{isEdit ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}</h1>
           <div className="admin-breadcrumb">
             <a href="/admin">Dashboard</a>
             <span>/</span>
@@ -462,7 +463,13 @@ const ProductForm = () => {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="admin-form">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setShowConfirm(true);
+        }}
+        className="admin-form"
+      >
         {/* SECTION 1: THÔNG TIN CƠ BẢN */}
         <div className="form-section">
           <h2 className="form-section-title">📝 Thông Tin Cơ Bản</h2>
@@ -1063,7 +1070,7 @@ const ProductForm = () => {
                   onChange={handleChange}
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
-                <span>Hiển thị sản phẩm</span>
+                <span>Trạng thái hiển thị</span>
               </label>
             </div>
 
@@ -1109,15 +1116,8 @@ const ProductForm = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #e2e8f0' }}>
-          <button
-            type="button"
-            onClick={() => navigate('/admin/products')}
-            className="btn btn-secondary"
-          >
-            ✕ Hủy
-          </button>
           <button type="submit" disabled={loading} className="btn btn-primary">
-            {loading ? '⏳ Đang xử lý...' : isEdit ? '💾 Cập nhật' : '✓ Tạo mới'}
+            {loading ? 'Đang xử lý...' : isEdit ? 'Cập nhật' : 'Tạo mới'}
           </button>
         </div>
       </form>
@@ -1129,6 +1129,61 @@ const ProductForm = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+
+            {/* HEADER */}
+            <div className="modal-header">
+              <h3>
+                {isEdit ? 'Xác nhận cập nhật sản phẩm' : 'Xác nhận tạo sản phẩm'}
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* BODY */}
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn{' '}
+                <strong>{isEdit ? 'cập nhật' : 'tạo mới'}</strong> sản phẩm:
+              </p>
+
+              <p style={{ fontWeight: 600, marginTop: 8 }}>
+                {formData.name || '(Chưa có tên)'}
+              </p>
+            </div>
+
+            {/* FOOTER */}
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowConfirm(false);
+                  navigate('/admin/products');
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={async () => {
+                  setShowConfirm(false);
+                  await handleSubmit(new Event('submit'));
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   );

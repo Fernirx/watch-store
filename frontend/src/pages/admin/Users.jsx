@@ -578,15 +578,17 @@ const Users = () => {
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
                         onClick={() => handleEdit(user)}
-                        className="btn btn-secondary btn-sm"
+                        className="btn-icon edit"
+                        aria-label="Chỉnh sửa sản phẩm"
                       >
-                        Sửa
+                        <i className="fas fa-edit"></i>
                       </button>
                       <button
                         onClick={() => handleDelete(user.id)}
-                        className="btn btn-danger btn-sm"
+                        className="btn-icon delete"
+                        aria-label="Xóa sản phẩm"
                       >
-                        Xóa
+                        <i className="fas fa-trash-alt"></i>
                       </button>
                     </div>
                   </td>
