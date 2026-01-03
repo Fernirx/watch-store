@@ -15,6 +15,9 @@ const Cart = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
   const [toast, setToast] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Hiển thị thông báo lỗi từ navigation state (khi chuyển từ checkout về)
   useEffect(() => {
@@ -71,23 +74,35 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (itemId) => {
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-      try {
-        await removeCartItem(itemId);
-      } catch (error) {
-        setToast({ message: 'Không thể xóa sản phẩm: ' + (error.response?.data?.message || error.message), type: 'error' });
-      }
+    setItemToDelete(itemId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmRemoveItem = async () => {
+    if (!itemToDelete) return;
+    try {
+      await removeCartItem(itemToDelete);
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
+    } catch (error) {
+      setToast({ message: 'Không thể xóa sản phẩm: ' + (error.response?.data?.message || error.message), type: 'error' });
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     }
   };
 
   const handleClearCart = async () => {
-    if (confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
-      try {
-        await clearCart();
-        setSelectedItems([]);
-      } catch (error) {
-        setToast({ message: 'Không thể xóa giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
-      }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearCart = async () => {
+    try {
+      await clearCart();
+      setSelectedItems([]);
+      setShowClearConfirm(false);
+    } catch (error) {
+      setToast({ message: 'Không thể xóa giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
+      setShowClearConfirm(false);
     }
   };
 
@@ -347,6 +362,86 @@ const Cart = () => {
         </div>
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Delete Item Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa sản phẩm</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmRemoveItem}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Cart Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa giỏ hàng</h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng không?</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmClearCart}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
