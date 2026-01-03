@@ -10,6 +10,7 @@ const Users = () => {
   const [editingId, setEditingId] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [toast, setToast] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [filters, setFilters] = useState({
     role: '',
     is_active: '',
@@ -129,12 +130,14 @@ const Users = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (editingId && !showConfirm) {
+      const validationErrors = validateForm();
+      if (validationErrors.length > 0) {
+        setToast({ message: validationErrors.join(', '), type: 'error' });
+        return;
+      }
 
-    // Validate form trước khi submit
-    const validationErrors = validateForm();
-    if (validationErrors.length > 0) {
-      setToast({ message: validationErrors.join(', '), type: 'error' });
+      setShowConfirm(true);
       return;
     }
 
@@ -177,6 +180,8 @@ const Users = () => {
         message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} người dùng: ${errorMessage}${errorDetails}`,
         type: 'error'
       });
+    } finally {
+      setShowConfirm(false);
     }
   };
 
@@ -335,7 +340,12 @@ const Users = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+            >
               <div className="modal-body">
                 <div className="form-group">
                   <label htmlFor="name" className="required">Tên</label>
@@ -605,6 +615,49 @@ const Users = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: '420px' }}>
+            <div className="modal-header">
+              <h3>⚠️ Xác nhận cập nhật</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowConfirm(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn <strong>cập nhật thông tin người dùng</strong> này không?
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowConfirm(false);
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={(e) => {
+                  setShowConfirm(false);
+                  handleSubmit();
+                }}
+              >
+                ✓ Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
