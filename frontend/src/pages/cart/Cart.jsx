@@ -46,6 +46,18 @@ const Cart = () => {
     }
   }, [cart?.cart?.items]);
 
+  // Auto-adjust quantities that exceed available stock
+  useEffect(() => {
+    if (cart?.cart?.items && cart.cart.items.length > 0) {
+      cart.cart.items.forEach(item => {
+        if (item.quantity > item.available_stock) {
+          console.log(`⚠️ Auto-adjusting item ${item.id} from ${item.quantity} to ${item.available_stock}`);
+          handleQuantityChange(item.id, item.available_stock);
+        }
+      });
+    }
+  }, [cart?.cart?.items]);
+
   const handleQuantityChange = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
     setUpdatingItemId(itemId);

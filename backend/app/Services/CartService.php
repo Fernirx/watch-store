@@ -106,7 +106,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($cartItem->product->stock_quantity < $quantity) {
-            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$cartItem->product->stock_quantity} sản phẩm");
         }
 
         $cartItem->quantity = $quantity;
@@ -274,7 +274,7 @@ class CartService
 
         // Kiểm tra tồn kho
         if ($cartItem->product->stock_quantity < $quantity) {
-            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$product->stock_quantity} sản phẩm");
+            throw new \Exception("Không đủ hàng trong kho. Chỉ còn {$cartItem->product->stock_quantity} sản phẩm");
         }
 
         $cartItem->quantity = $quantity;
