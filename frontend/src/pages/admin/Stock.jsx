@@ -11,6 +11,8 @@ const Stock = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [lowStock, setLowStock] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmType, setConfirmType] = useState('');
 
   const [importItems, setImportItems] = useState([{ product_id: '', quantity: '', unit_price: '', supplier_id: '' }]);
   const [exportItems, setExportItems] = useState([{ product_id: '', quantity: '' }]);
@@ -57,6 +59,20 @@ const Stock = () => {
       setLowStock(response.data || []);
     } catch (error) {
       console.error('Error fetching low stock:', error);
+    }
+  };
+
+  const handleConfirmClick = (type) => {
+    setConfirmType(type);
+    setShowConfirm(true);
+  };
+
+  const handleConfirmAction = async () => {
+    setShowConfirm(false);
+    if (confirmType === 'import') {
+      await handleImport();
+    } else if (confirmType === 'export') {
+      await handleExport();
     }
   };
 
@@ -216,7 +232,14 @@ const Stock = () => {
             <label>Ghi chú</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="form-control" rows="3" />
           </div>
-          <button onClick={handleImport} className="btn btn-primary" style={{ marginTop: '1rem' }}>Xác Nhận Nhập Kho</button>
+          {/* Nút Nhập Kho */}
+          <button
+            onClick={() => handleConfirmClick('import')}
+            className="btn btn-primary"
+            style={{ marginTop: '1rem' }}
+          >
+            Nhập Kho
+          </button>
         </div>
       )}
 
@@ -256,7 +279,14 @@ const Stock = () => {
             <label>Ghi chú</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="form-control" rows="3" />
           </div>
-          <button onClick={handleExport} className="btn btn-primary" style={{ marginTop: '1rem' }}>✓ Xác Nhận Xuất Kho</button>
+          {/* Nút Xuất Kho */}
+          <button
+            onClick={() => handleConfirmClick('export')}
+            className="btn btn-primary"
+            style={{ marginTop: '1rem' }}
+          >
+            Xuất Kho
+          </button>
         </div>
       )}
 
@@ -318,6 +348,46 @@ const Stock = () => {
         </div>
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>
+                Xác nhận {confirmType === 'import' ? 'nhập kho' : 'xuất kho'}
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn{' '}
+                <strong>{confirmType === 'import' ? 'nhập kho' : 'xuất kho'}</strong> sản phẩm này không?
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowConfirm(false)}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={handleConfirmAction}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
