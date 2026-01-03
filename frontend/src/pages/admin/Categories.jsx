@@ -401,7 +401,7 @@ const Categories = () => {
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: 420 }}>
             <div className="modal-header">
-              <h3>⚠️ Xác nhận xóa danh mục</h3>
+              <h3>Xác nhận xóa danh mục</h3>
               <button
                 className="modal-close"
                 onClick={() => {
@@ -446,7 +446,7 @@ const Categories = () => {
           <div className="modal" style={{ maxWidth: 420 }}>
             <div className="modal-header">
               <h3>
-                ⚠️ Xác nhận {editingId ? 'cập nhật' : 'tạo'} danh mục
+                Xác nhận {editingId ? 'cập nhật' : 'tạo'} danh mục
               </h3>
               <button
                 className="modal-close"
@@ -466,7 +466,12 @@ const Categories = () => {
             <div className="modal-footer">
               <button
                 className="btn btn-secondary"
-                onClick={() => setShowUpdateConfirm(false)}
+                onClick={() => {
+                  setShowUpdateConfirm(false);
+                  setShowForm(false);        // đóng form sửa/thêm
+                  setEditingId(null);        // reset trạng thái edit
+                  navigate('/admin/categories');
+                }}
               >
                 Hủy
               </button>

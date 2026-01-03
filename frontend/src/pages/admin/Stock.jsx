@@ -148,16 +148,16 @@ const Stock = () => {
       )}
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '2px solid #e2e8f0' }}>
-        <button onClick={() => setActiveTab('import')} className={`btn ${activeTab === 'import' ? 'btn-primary' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
+        <button onClick={() => setActiveTab('import')} className={`btn ${activeTab === 'import' ? 'btn-success' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
           Nhập Kho
         </button>
-        <button onClick={() => setActiveTab('export')} className={`btn ${activeTab === 'export' ? 'btn-primary' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
+        <button onClick={() => setActiveTab('export')} className={`btn ${activeTab === 'export' ? 'btn-success' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
           Xuất Kho
         </button>
-        <button onClick={() => setActiveTab('history')} className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
+        <button onClick={() => setActiveTab('history')} className={`btn ${activeTab === 'history' ? 'btn-success' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
           Lịch Sử
         </button>
-        <button onClick={() => setActiveTab('lowstock')} className={`btn ${activeTab === 'lowstock' ? 'btn-primary' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
+        <button onClick={() => setActiveTab('lowstock')} className={`btn ${activeTab === 'lowstock' ? 'btn-success' : 'btn-secondary'}`} style={{ borderRadius: '0.5rem 0.5rem 0 0' }}>
           Sắp Hết ({lowStock.length})
         </button>
       </div>
@@ -216,7 +216,7 @@ const Stock = () => {
             <label>Ghi chú</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="form-control" rows="3" />
           </div>
-          <button onClick={handleImport} className="btn btn-primary" style={{ marginTop: '1rem' }}>✓ Xác Nhận Nhập Kho</button>
+          <button onClick={handleImport} className="btn btn-primary" style={{ marginTop: '1rem' }}>Xác Nhận Nhập Kho</button>
         </div>
       )}
 
@@ -263,7 +263,7 @@ const Stock = () => {
       {/* History Tab */}
       {activeTab === 'history' && (
         <div className="admin-table-container">
-          <h2>Lịch Sử Nhập Xuất</h2>
+          <h2 style={{ marginLeft: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>Lịch Sử Nhập Xuất</h2>
           <table className="admin-table">
             <thead>
               <tr>
@@ -294,7 +294,7 @@ const Stock = () => {
       {/* Low Stock Tab */}
       {activeTab === 'lowstock' && (
         <div className="admin-table-container">
-          <h2>Sản Phẩm Sắp Hết Hàng</h2>
+          <h2 style={{ marginLeft: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>Sản Phẩm Sắp Hết Hàng</h2>
           <table className="admin-table">
             <thead>
               <tr>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import brandService from '../../services/brandService';
 import Toast from '../../components/Toast';
 
@@ -10,6 +11,9 @@ const Brands = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [toast, setToast] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -63,7 +67,6 @@ const Brands = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
 
     // Validate form trước khi submit
     const validationErrors = validateForm();
@@ -132,13 +135,16 @@ const Brands = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa thương hiệu này?')) {
-      return;
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
     try {
-      await brandService.deleteBrand(id);
+      await brandService.deleteBrand(deleteId);
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
       fetchBrands();
       setToast({ message: 'Xóa thương hiệu thành công!', type: 'success' });
     } catch (error) {
@@ -202,7 +208,12 @@ const Brands = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setShowUpdateConfirm(true);
+              }}
+            >
               <div className="modal-body">
                 <div className="form-group">
                   <label htmlFor="name" className="required">Tên thương hiệu</label>
@@ -244,6 +255,7 @@ const Brands = () => {
                 <div className="form-group">
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <input
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       type="checkbox"
                       name="is_active"
                       checked={formData.is_active}
@@ -288,11 +300,8 @@ const Brands = () => {
               </div>
 
               <div className="modal-footer">
-                <button type="button" onClick={resetForm} className="btn btn-secondary">
-                  ✕ Hủy
-                </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingId ? ' Cập nhật' : '✓ Tạo mới'}
+                  {editingId ? ' Cập nhật' : 'Tạo mới'}
                 </button>
               </div>
             </form>
@@ -359,17 +368,17 @@ const Brands = () => {
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                   <button
                     onClick={() => handleEdit(brand)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ flex: 1 }}
+                    className="btn-icon edit"
+                    aria-label="Chỉnh sửa danh mục"
                   >
-                    Sửa
+                    <i className="fas fa-edit"></i>
                   </button>
                   <button
                     onClick={() => handleDelete(brand.id)}
-                    className="btn btn-danger btn-sm"
-                    style={{ flex: 1 }}
+                    className="btn-icon delete"
+                    aria-label="Xóa sản phẩm"
                   >
-                    Xóa
+                    <i className="fas fa-trash-alt"></i>
                   </button>
                 </div>
               </div>
@@ -385,6 +394,98 @@ const Brands = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa thương hiệu</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn <strong>xóa thương hiệu</strong> này không?</p>
+              <p style={{ color: '#991b1b', fontWeight: 600 }}>
+                Hành động này không thể hoàn tác!
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpdateConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>
+                Xác nhận {editingId ? 'cập nhật' : 'tạo'} thương hiệu
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowUpdateConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn{' '}
+                <strong>{editingId ? 'cập nhật' : 'tạo mới'}</strong> thương hiệu này không?
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowUpdateConfirm(false);
+                  setShowForm(false);        // đóng form sửa/thêm
+                  setEditingId(null);        // reset trạng thái edit
+                  navigate('/admin/brands');
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={async () => {
+                  setShowUpdateConfirm(false);
+                  await handleSubmit();
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

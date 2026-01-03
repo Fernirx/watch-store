@@ -10,6 +10,10 @@ const Coupons = () => {
   const [editingId, setEditingId] = useState(null);
   const [toast, setToast] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     code: '',
@@ -89,8 +93,6 @@ const Coupons = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       setToast({ message: validationErrors.join(', '), type: 'error' });
@@ -176,25 +178,24 @@ const Coupons = () => {
     }
   };
 
-  const handleDelete = async (id, usageCount) => {
-    if (usageCount > 0) {
-      setToast({ message: 'Không thể xóa mã giảm giá đã được sử dụng!', type: 'error' });
-      return;
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
 
-    if (!window.confirm('Bạn có chắc muốn xóa mã giảm giá này?')) {
-      return;
-    }
-
+  const confirmDelete = async () => {
     try {
-      await couponService.deleteCoupon(id);
+      await couponService.deleteCoupon(deleteId);
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
       fetchCoupons();
       setToast({ message: 'Xóa mã giảm giá thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting coupon:', error);
-      setToast({ message: 'Không thể xóa mã giảm giá: ' + (error.response?.data?.message || error.message), type: 'error' });
+      setToast({ message: 'Không thể xóa mã giảm giá', type: 'error' });
     }
   };
+
 
   const resetForm = () => {
     setFormData({
@@ -273,7 +274,7 @@ const Coupons = () => {
           }}
           className="btn btn-primary"
         >
-          Thêm Mã Giảm Giá
+          Thêm Mã Giảm Giá Mới
         </button>
       </div>
 
@@ -288,7 +289,10 @@ const Coupons = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setShowUpdateConfirm(true);
+            }}>
               <div className="modal-body">
                 {/* Code */}
                 <div className="form-group">
@@ -486,9 +490,6 @@ const Coupons = () => {
               </div>
 
               <div className="modal-footer">
-                <button type="button" onClick={resetForm} className="btn btn-secondary">
-                  Hủy
-                </button>
                 <button type="submit" className="btn btn-primary">
                   {editingId ? 'Cập nhật' : 'Tạo mới'}
                 </button>
@@ -649,6 +650,97 @@ const Coupons = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa mã giảm giá</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn <strong>xóa mã giảm giá</strong> này không?</p>
+              <p style={{ color: '#991b1b', fontWeight: 600 }}>
+                Hành động này không thể hoàn tác!
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpdateConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>
+                Xác nhận {editingId ? 'cập nhật' : 'tạo'} mã giảm giá
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowUpdateConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn <strong>{editingId ? 'cập nhật' : 'tạo mới'}</strong> mã giảm giá này không?
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowUpdateConfirm(false);
+                  setShowForm(false);        // đóng form sửa/thêm
+                  setEditingId(null);        // reset trạng thái edit
+                  navigate('/admin/coupons'); // đổi path cho đúng
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={async () => {
+                  setShowUpdateConfirm(false);
+                  await handleSubmit(); // vẫn giữ logic submit cũ
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

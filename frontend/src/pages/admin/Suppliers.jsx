@@ -10,6 +10,10 @@ const Suppliers = () => {
   const [editingId, setEditingId] = useState(null);
   const [toast, setToast] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,7 +46,6 @@ const Suppliers = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
 
     if (!formData.name.trim()) {
       setToast({ message: 'Vui lòng nhập tên nhà cung cấp', type: 'error' });
@@ -100,15 +103,21 @@ const Suppliers = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) return;
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
     try {
-      await supplierService.deleteSupplier(id);
+      await supplierService.deleteSupplier(deleteId);
+      setShowDeleteConfirm(false);
+      setDeleteId(null);
       fetchSuppliers();
       setToast({ message: 'Xóa nhà cung cấp thành công!', type: 'success' });
     } catch (error) {
-      setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
+      console.error('Error deleting supplier:', error);
+      setToast({ message: 'Không thể xóa nhà cung cấp', type: 'error' });
     }
   };
 
@@ -134,7 +143,7 @@ const Suppliers = () => {
           </div>
         </div>
         <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">
-          Thêm Nhà Cung Cấp
+          Thêm Nhà Cung Cấp Mới
         </button>
       </div>
 
@@ -145,7 +154,10 @@ const Suppliers = () => {
               <h2>{editingId ? 'Sửa Nhà Cung Cấp' : 'Thêm Nhà Cung Cấp'}</h2>
               <button onClick={resetForm} className="modal-close">✕</button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setShowUpdateConfirm(true);
+            }}>
               <div className="modal-body">
                 <div className="form-group">
                   <label htmlFor="name" className="required">Tên nhà cung cấp</label>
@@ -189,12 +201,11 @@ const Suppliers = () => {
                 <div className="form-group">
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleChange} style={{ width: '18px', height: '18px' }} />
-                    <span>Kích hoạt</span>
+                    <span>Trạng thái hiển thị</span>
                   </label>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" onClick={resetForm} className="btn btn-secondary">Hủy</button>
                 <button type="submit" className="btn btn-primary">{editingId ? 'Cập nhật' : 'Tạo mới'}</button>
               </div>
             </form>
@@ -261,6 +272,98 @@ const Suppliers = () => {
           onClose={() => setToast(null)}
         />
       )}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa nhà cung cấp</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn <strong>xóa nhà cung cấp</strong> này không?</p>
+              <p style={{ color: '#991b1b', fontWeight: 600 }}>
+                Hành động này không thể hoàn tác!
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteId(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmDelete}
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUpdateConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 420 }}>
+            <div className="modal-header">
+              <h3>
+                Xác nhận {editingId ? 'cập nhật' : 'tạo'} nhà cung cấp
+              </h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowUpdateConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                Bạn có chắc chắn muốn <strong>{editingId ? 'cập nhật' : 'tạo mới'}</strong> nhà cung cấp này không?
+              </p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowUpdateConfirm(false);
+                  setShowForm(false);        // đóng form sửa/thêm
+                  setEditingId(null);        // reset trạng thái edit
+                  navigate('/admin/suppliers'); // đổi path cho đúng
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={async () => {
+                  setShowUpdateConfirm(false);
+                  await handleSubmit(); // vẫn giữ logic submit cũ
+                }}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
