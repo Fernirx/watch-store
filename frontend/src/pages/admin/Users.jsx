@@ -560,7 +560,6 @@ const Users = () => {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <button
-                      onClick={() => handleToggleStatus(user.id)}
                       style={{
                         padding: '0.25rem 0.75rem',
                         borderRadius: '9999px',
