@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import userService from '../../services/userService';
 import { EMAIL_REGEX } from '../../utils/validation';
+import { useNavigate } from 'react-router-dom';
 import Toast from '../../components/Toast';
 
 const Users = () => {
@@ -12,6 +13,7 @@ const Users = () => {
   const [toast, setToast] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     role: '',
     is_active: '',
@@ -446,15 +448,12 @@ const Users = () => {
                       onChange={handleChange}
                       style={{ width: '1.25rem', height: '1.25rem' }}
                     />
-                    <span>Tài khoản hoạt động</span>
+                    <span>Trạng thái hoạt động</span>
                   </label>
                 </div>
               </div>
 
               <div className="modal-footer">
-                <button type="button" onClick={resetForm} className="btn btn-secondary">
-                  ✕ Hủy
-                </button>
                 <button type="submit" className="btn btn-primary">
                   {editingId ? '✓ Cập nhật' : '✓ Tạo mới'}
                 </button>
@@ -650,13 +649,16 @@ const Users = () => {
                 onClick={() => {
                   setShowConfirm(false);
                   setDeleteId(null);
+                  setShowForm(false);        // đóng form sửa/thêm
+                  setEditingId(null);        // reset trạng thái edit
+                  navigate('/admin/users'); // hoặc '/admin' tùy route của bạn
                 }}
               >
                 Hủy
               </button>
 
               <button
-                className="btn btn-primary"
+                className="btn btn-success"
                 onClick={async () => {
                   setShowConfirm(false);
 
@@ -678,7 +680,7 @@ const Users = () => {
                   }
                 }}
               >
-                ✓ Xác nhận
+                Xác nhận
               </button>
             </div>
           </div>
