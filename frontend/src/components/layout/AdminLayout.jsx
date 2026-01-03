@@ -37,8 +37,7 @@ const AdminLayout = () => {
       {/* Admin Sidebar */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <h2> Watch Store</h2>
-          <p>{user?.customer?.name}</p>
+          <h2>Admin TAWATCH</h2>
         </div>
 
         <nav className="admin-nav">
@@ -52,44 +51,44 @@ const AdminLayout = () => {
             to="/admin/products"
             className={`nav-item ${isActive('/admin/products') ? 'active' : ''}`}
           >
-             Sản phẩm <span><i class="fa-solid fa-box"></i></span>
+            Quản lý sản phẩm <span><i class="fa-solid fa-box"></i></span>
           </Link>
           <Link
             to="/admin/categories"
             className={`nav-item ${isActive('/admin/categories') ? 'active' : ''}`}
           >
-            Danh mục <span><i class="fa-solid fa-list"></i></span>
+            Quản lý danh mục <span><i class="fa-solid fa-list"></i></span>
           </Link>
           <Link
             to="/admin/brands"
             className={`nav-item ${isActive('/admin/brands') ? 'active' : ''}`}
           >
-            Thương hiệu <span><i class="fa-solid fa-tag"></i></span>
+            Quản lý thương hiệu <span><i class="fa-solid fa-tag"></i></span>
 
           </Link>
           <Link
             to="/admin/orders"
             className={`nav-item ${isActive('/admin/orders') ? 'active' : ''}`}
           >
-            Đơn hàng <span><i class="fa-solid fa-receipt"></i></span>
+            Quản lý đơn hàng <span><i class="fa-solid fa-receipt"></i></span>
           </Link>
           <Link
             to="/admin/coupons"
             className={`nav-item ${isActive('/admin/coupons') ? 'active' : ''}`}
           >
-            Mã giảm giá <span><i class="fa-solid fa-ticket"></i></span>
+            Quản lý mã giảm giá <span><i class="fa-solid fa-ticket"></i></span>
           </Link>
           <Link
             to="/admin/notifications"
             className={`nav-item ${isActive('/admin/notifications') ? 'active' : ''}`}
           >
-            Thông báo <span><i class="fa-solid fa-bell"></i></span>
+            Quản lý thông báo <span><i class="fa-solid fa-bell"></i></span>
           </Link>
           <Link
             to="/admin/suppliers"
             className={`nav-item ${isActive('/admin/suppliers') ? 'active' : ''}`}
           >
-            Nhà cung cấp <span><i class="fa-solid fa-truck"></i></span>
+            Quản lý nhà cung cấp <span><i class="fa-solid fa-truck"></i></span>
           </Link>
           <Link
             to="/admin/stock"
@@ -101,20 +100,17 @@ const AdminLayout = () => {
             to="/admin/users"
             className={`nav-item ${isActive('/admin/users') ? 'active' : ''}`}
           >
-            Người dùng <span><i class="fa-solid fa-users"></i></span>
+            Quản lý người dùng <span><i class="fa-solid fa-users"></i></span>
           </Link>
           <Link
             to="/admin/reviews"
             className={`nav-item ${isActive('/admin/reviews') ? 'active' : ''}`}
           >
-            Đánh giá <span><i class="fa-solid fa-star"></i></span>
+            Quản lý đánh giá <span><i class="fa-solid fa-star"></i></span>
           </Link>
         </nav>
 
         <div className="admin-footer">
-          <Link to="/" className="nav-item">
-             Xem trang web
-          </Link>
           <button onClick={handleLogout} className="btn-logout">
              Đăng xuất
           </button>
