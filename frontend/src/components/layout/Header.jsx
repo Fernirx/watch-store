@@ -12,6 +12,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileMenuRef = useRef(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const toggleProfileMenu = () => setIsProfileOpen((prev) => !prev);
 
@@ -33,6 +34,7 @@ const Header = () => {
   }, []);
 
   return (
+    <>
     <header className="header">
       <div className="header-container">
         <div className="header-content">
@@ -140,8 +142,10 @@ const Header = () => {
                     <button
                       type="button"
                       className="profile-dropdown-link logout"
-                      role="menuitem"
-                      onClick={handleLogout}
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
                     >
                       Đăng xuất
                     </button>
@@ -159,9 +163,52 @@ const Header = () => {
               </div>
             )}
           </div>
-        </div>
+          </div>
       </div>
     </header>
+    {/* ===== LOGOUT CONFIRM MODAL ===== */ }
+  {
+    showLogoutConfirm && (
+      <div className="modal-overlay">
+        <div className="modal" style={{ maxWidth: 400 }}>
+          <div className="modal-header">
+            <h3>Xác nhận đăng xuất</h3>
+            <button
+              className="modal-close"
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="modal-body">
+            <p>Bạn có chắc chắn muốn đăng xuất không?</p>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowLogoutConfirm(false)}
+            >
+              Hủy
+            </button>
+
+            <button
+              className="btn btn-danger"
+              onClick={async () => {
+                setShowLogoutConfirm(false);
+                await logout();
+                navigate('/login');
+              }}
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+    </>
   );
 };
 

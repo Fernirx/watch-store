@@ -327,7 +327,7 @@ const Users = () => {
         <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && resetForm()}>
           <div className="modal">
             <div className="modal-header">
-              <h2>{editingId ? '✏️ Sửa Người Dùng' : '➕ Thêm Người Dùng Mới'}</h2>
+              <h2>{editingId ? 'Sửa Người Dùng' : 'Thêm Người Dùng Mới'}</h2>
               <button onClick={resetForm} className="modal-close">
                 ✕
               </button>
@@ -580,13 +580,13 @@ const Users = () => {
                         onClick={() => handleEdit(user)}
                         className="btn btn-secondary btn-sm"
                       >
-                        ✏️ Sửa
+                        Sửa
                       </button>
                       <button
                         onClick={() => handleDelete(user.id)}
                         className="btn btn-danger btn-sm"
                       >
-                        🗑️ Xóa
+                        Xóa
                       </button>
                     </div>
                   </td>
@@ -611,7 +611,7 @@ const Users = () => {
             {/* HEADER */}
             <div className="modal-header">
               <h3>
-                ⚠️ {deleteId ? 'Xác nhận xóa' : 'Xác nhận cập nhật'}
+                {deleteId ? 'Xác nhận xóa' : 'Xác nhận cập nhật'}
               </h3>
               <button
                 className="modal-close"
