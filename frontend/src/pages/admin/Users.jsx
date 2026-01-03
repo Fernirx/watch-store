@@ -11,6 +11,7 @@ const Users = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [toast, setToast] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
   const [filters, setFilters] = useState({
     role: '',
     is_active: '',
@@ -201,18 +202,8 @@ const Users = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
-      return;
-    }
-
-    try {
-      await userService.deleteUser(id);
-      fetchUsers();
-      setToast({ message: 'Xóa người dùng thành công!', type: 'success' });
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      setToast({ message: error.response?.data?.message || 'Không thể xóa người dùng', type: 'error' });
-    }
+    setDeleteId(id);
+    setShowConfirm(true);
   };
 
   const handleToggleStatus = async (id) => {
@@ -619,38 +610,72 @@ const Users = () => {
       {showConfirm && (
         <div className="modal-overlay">
           <div className="modal" style={{ maxWidth: '420px' }}>
+            {/* HEADER */}
             <div className="modal-header">
-              <h3>⚠️ Xác nhận cập nhật</h3>
+              <h3>
+                ⚠️ {deleteId ? 'Xác nhận xóa' : 'Xác nhận cập nhật'}
+              </h3>
               <button
                 className="modal-close"
                 onClick={() => {
                   setShowConfirm(false);
+                  setDeleteId(null);
                 }}
               >
                 ✕
               </button>
             </div>
 
+            {/* BODY */}
             <div className="modal-body">
-              <p>
-                Bạn có chắc chắn muốn <strong>cập nhật thông tin người dùng</strong> này không?
-              </p>
+              {deleteId ? (
+                <p>
+                  Bạn có chắc chắn muốn <strong>xóa người dùng</strong> này không?
+                  <br />
+                  <span style={{ color: '#991b1b', fontWeight: 600 }}>
+                    Hành động này không thể hoàn tác!
+                  </span>
+                </p>
+              ) : (
+                <p>
+                  Bạn có chắc chắn muốn <strong>cập nhật thông tin người dùng</strong> này không?
+                </p>
+              )}
             </div>
 
+            {/* FOOTER */}
             <div className="modal-footer">
               <button
                 className="btn btn-secondary"
                 onClick={() => {
                   setShowConfirm(false);
+                  setDeleteId(null);
                 }}
               >
                 Hủy
               </button>
+
               <button
                 className="btn btn-primary"
-                onClick={(e) => {
+                onClick={async () => {
                   setShowConfirm(false);
-                  handleSubmit();
+
+                  if (deleteId) {
+                    try {
+                      await userService.deleteUser(deleteId);
+                      setToast({ message: 'Xóa người dùng thành công!', type: 'success' });
+                      fetchUsers();
+                    } catch (error) {
+                      setToast({
+                        message: error.response?.data?.message || 'Không thể xóa người dùng',
+                        type: 'error',
+                      });
+                    } finally {
+                      setDeleteId(null);
+                    }
+                  } else {
+                    handleSubmit();
+                  }
                 }}
               >
                 ✓ Xác nhận
