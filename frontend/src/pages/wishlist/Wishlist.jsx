@@ -10,18 +10,29 @@ const Wishlist = () => {
   const { fetchCart } = useCart();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     fetchWishlist();
   }, []);
 
   const handleRemove = async (itemId) => {
-    if (window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
-      try {
-        await removeWishlistItem(itemId);
-      } catch (error) {
-        setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
-      }
+    setItemToDelete(itemId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmRemoveItem = async () => {
+    if (!itemToDelete) return;
+    try {
+      await removeWishlistItem(itemToDelete);
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
+    } catch (error) {
+      setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     }
   };
 
@@ -36,12 +47,16 @@ const Wishlist = () => {
   };
 
   const handleClearWishlist = async () => {
-    if (window.confirm('Bạn có chắc muốn xóa toàn bộ danh sách yêu thích?')) {
-      try {
-        await clearWishlist();
-      } catch (error) {
-        setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
-      }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearWishlist = async () => {
+    try {
+      await clearWishlist();
+      setShowClearConfirm(false);
+    } catch (error) {
+      setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
+      setShowClearConfirm(false);
     }
   };
 
@@ -146,6 +161,86 @@ const Wishlist = () => {
         )}
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Delete Item Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa sản phẩm</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn xóa sản phẩm này khỏi danh sách yêu thích không?</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setItemToDelete(null);
+                }}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmRemoveItem}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Wishlist Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Xác nhận xóa danh sách yêu thích</h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn xóa toàn bộ danh sách yêu thích không?</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={confirmClearWishlist}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
