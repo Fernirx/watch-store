@@ -1,10 +1,11 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import '../../styles/admin.css';
 
 const AdminLayout = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -111,7 +112,9 @@ const AdminLayout = () => {
         </nav>
 
         <div className="admin-footer">
-          <button onClick={handleLogout} className="btn-logout">
+          <button onClick={
+            () => setShowLogoutConfirm(true)
+          } className="btn-logout">
              Đăng xuất
           </button>
         </div>
@@ -121,6 +124,45 @@ const AdminLayout = () => {
       <main className="admin-content">
         <Outlet />
       </main>
+      {showLogoutConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3>Xác nhận đăng xuất</h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn đăng xuất không?</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Hủy
+              </button>
+
+              <button
+                className="btn btn-danger"
+                onClick={async () => {
+                  setShowLogoutConfirm(false);
+                  await logout();
+                  navigate('/login');
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
