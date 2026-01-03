@@ -58,7 +58,7 @@ const Users = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      alert('Không thể tải danh sách người dùng: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể tải danh sách người dùng: ' + (error.response?.data?.message || error.message), type: 'error' });
     } finally {
       setLoading(false);
     }

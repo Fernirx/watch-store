@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
+import Toast from '../../components/Toast';
 
 const AdminNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -48,7 +50,7 @@ const AdminNotifications = () => {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.content.trim()) {
-      alert('Vui lòng nhập tiêu đề và nội dung');
+      setToast({ message: 'Vui lòng nhập tiêu đề và nội dung', type: 'error' });
       return;
     }
 
@@ -64,17 +66,17 @@ const AdminNotifications = () => {
 
       if (editingId) {
         await notificationService.updateNotification(editingId, submitData);
-        alert('Cập nhật thông báo thành công!');
+        setToast({ message: 'Cập nhật thông báo thành công!', type: 'success' });
       } else {
         await notificationService.createNotification(submitData);
-        alert('Tạo thông báo thành công!');
+        setToast({ message: 'Tạo thông báo thành công!', type: 'success' });
       }
 
       resetForm();
       fetchNotifications();
     } catch (error) {
       console.error('Error saving notification:', error);
-      alert(`Không thể ${editingId ? 'cập nhật' : 'tạo'} thông báo: ${error.response?.data?.message || error.message}`);
+      setToast({ message: `Không thể ${editingId ? 'cập nhật' : 'tạo'} thông báo: ${error.response?.data?.message || error.message}`, type: 'error' });
     }
   };
 
@@ -102,10 +104,10 @@ const AdminNotifications = () => {
     try {
       await notificationService.deleteNotification(id);
       fetchNotifications();
-      alert('Xóa thông báo thành công!');
+      setToast({ message: 'Xóa thông báo thành công!', type: 'success' });
     } catch (error) {
       console.error('Error deleting notification:', error);
-      alert('Không thể xóa thông báo');
+      setToast({ message: 'Không thể xóa thông báo', type: 'error' });
     }
   };
 
@@ -391,6 +393,7 @@ const AdminNotifications = () => {
           </tbody>
         </table>
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

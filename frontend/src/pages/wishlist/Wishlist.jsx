@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useCart } from '../../contexts/CartContext';
+import Toast from '../../components/Toast';
 import './Wishlist.css';
 
 const Wishlist = () => {
   const { wishlist, loading, removeWishlistItem, moveToCart, clearWishlist, fetchWishlist } = useWishlist();
   const { fetchCart } = useCart();
   const navigate = useNavigate();
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchWishlist();
@@ -18,7 +20,7 @@ const Wishlist = () => {
       try {
         await removeWishlistItem(itemId);
       } catch (error) {
-        alert('Không thể xóa: ' + (error.response?.data?.message || error.message));
+        setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
       }
     }
   };
@@ -27,9 +29,9 @@ const Wishlist = () => {
     try {
       await moveToCart(itemId, 1);
       await fetchCart();
-      alert(`Đã thêm "${productName}" vào giỏ hàng!`);
+      setToast({ message: `Đã thêm "${productName}" vào giỏ hàng!`, type: 'success' });
     } catch (error) {
-      alert('Không thể thêm vào giỏ: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể thêm vào giỏ: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -38,7 +40,7 @@ const Wishlist = () => {
       try {
         await clearWishlist();
       } catch (error) {
-        alert('Không thể xóa: ' + (error.response?.data?.message || error.message));
+        setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
       }
     }
   };
@@ -143,6 +145,7 @@ const Wishlist = () => {
           </div>
         )}
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

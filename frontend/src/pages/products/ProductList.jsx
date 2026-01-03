@@ -7,6 +7,7 @@ import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProductCard from '../../components/ProductCard';
 import SearchBar from '../../components/SearchBar';
+import Toast from '../../components/Toast';
 import './ProductList.css';
 
 const ProductList = () => {
@@ -18,6 +19,7 @@ const ProductList = () => {
   const navigate = useNavigate();
   const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
   const { isAuthenticated } = useAuth();
+  const [toast, setToast] = useState(null);
 
   // Price range state for slider
   const MIN_PRICE = 0;
@@ -230,7 +232,7 @@ const ProductList = () => {
         await addToWishlist(product.id);
       }
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -452,6 +454,7 @@ const ProductList = () => {
           </div>
         </div>
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

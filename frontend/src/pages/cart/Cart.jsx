@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import Toast from '../../components/Toast';
 import '../../styles/Cart.css';
 
 const Cart = () => {
@@ -13,6 +14,7 @@ const Cart = () => {
   const [updatingItemId, setUpdatingItemId] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [infoMessage, setInfoMessage] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // Hiển thị thông báo lỗi từ navigation state (khi chuyển từ checkout về)
   useEffect(() => {
@@ -50,7 +52,7 @@ const Cart = () => {
     try {
       await updateCartItem(itemId, newQuantity);
     } catch (error) {
-      alert('Không thể cập nhật số lượng: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể cập nhật số lượng: ' + (error.response?.data?.message || error.message), type: 'error' });
     } finally {
       setUpdatingItemId(null);
     }
@@ -61,7 +63,7 @@ const Cart = () => {
       try {
         await removeCartItem(itemId);
       } catch (error) {
-        alert('Không thể xóa sản phẩm: ' + (error.response?.data?.message || error.message));
+        setToast({ message: 'Không thể xóa sản phẩm: ' + (error.response?.data?.message || error.message), type: 'error' });
       }
     }
   };
@@ -72,7 +74,7 @@ const Cart = () => {
         await clearCart();
         setSelectedItems([]);
       } catch (error) {
-        alert('Không thể xóa giỏ hàng: ' + (error.response?.data?.message || error.message));
+        setToast({ message: 'Không thể xóa giỏ hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
       }
     }
   };
@@ -332,6 +334,7 @@ const Cart = () => {
           </div>
         </div>
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

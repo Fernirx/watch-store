@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import reviewService from '../services/reviewService';
+import Toast from './Toast';
 import './ProductReviews.css';
 
 const ProductReviews = ({ productId }) => {
@@ -25,6 +26,7 @@ const ProductReviews = ({ productId }) => {
     guest_name: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchReviews();
@@ -51,7 +53,7 @@ const ProductReviews = ({ productId }) => {
 
     // Nếu là guest, kiểm tra đã nhập email chưa
     if (!isAuthenticated && !guestEmailInput.trim()) {
-      alert('Vui lòng nhập email trước khi đánh giá');
+      setToast({ message: 'Vui lòng nhập email trước khi đánh giá', type: 'error' });
       return;
     }
 
@@ -64,15 +66,15 @@ const ProductReviews = ({ productId }) => {
 
       if (!response.data.can_review) {
         if (!response.data.has_purchased) {
-          alert('Email này chưa mua sản phẩm này nên không thể đánh giá.');
+          setToast({ message: 'Email này chưa mua sản phẩm này nên không thể đánh giá.', type: 'error' });
         } else if (response.data.has_reviewed) {
-          alert('Email này đã đánh giá sản phẩm này rồi.');
+          setToast({ message: 'Email này đã đánh giá sản phẩm này rồi.', type: 'error' });
         }
       } else {
         setShowReviewForm(true);
       }
     } catch (error) {
-      alert('Lỗi khi kiểm tra: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi khi kiểm tra: ' + (error.response?.data?.message || error.message), type: 'error' });
     } finally {
       setCheckingEligibility(false);
     }
@@ -96,7 +98,7 @@ const ProductReviews = ({ productId }) => {
       }
 
       await reviewService.createReview(reviewData);
-      alert('Đánh giá của bạn đã được gửi thành công!');
+      setToast({ message: 'Đánh giá của bạn đã được gửi thành công!', type: 'success' });
 
       // Reset form and refresh
       setReviewForm({ rating: 5, comment: '', guest_name: '' });
@@ -105,7 +107,7 @@ const ProductReviews = ({ productId }) => {
       setCanReview(false);
       fetchReviews();
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -286,6 +288,7 @@ const ProductReviews = ({ productId }) => {
           ))
         )}
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

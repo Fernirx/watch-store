@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import stockService from '../../services/stockService';
 import productService from '../../services/productService';
 import supplierService from '../../services/supplierService';
+import Toast from '../../components/Toast';
 
 const Stock = () => {
   const [activeTab, setActiveTab] = useState('import');
@@ -14,6 +15,7 @@ const Stock = () => {
   const [importItems, setImportItems] = useState([{ product_id: '', quantity: '', unit_price: '', supplier_id: '' }]);
   const [exportItems, setExportItems] = useState([{ product_id: '', quantity: '' }]);
   const [notes, setNotes] = useState('');
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -62,19 +64,19 @@ const Stock = () => {
     try {
       const validItems = importItems.filter(item => item.product_id && item.quantity && item.unit_price);
       if (validItems.length === 0) {
-        alert('Vui lòng nhập thông tin sản phẩm');
+        setToast({ message: 'Vui lòng nhập thông tin sản phẩm', type: 'error' });
         return;
       }
 
       await stockService.importStock({ items: validItems, notes });
-      alert('Nhập kho thành công!');
+      setToast({ message: 'Nhập kho thành công!', type: 'success' });
       setImportItems([{ product_id: '', quantity: '', unit_price: '', supplier_id: '' }]);
       setNotes('');
       fetchProducts();
       fetchLowStock();
       fetchTransactions();
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -82,19 +84,19 @@ const Stock = () => {
     try {
       const validItems = exportItems.filter(item => item.product_id && item.quantity);
       if (validItems.length === 0) {
-        alert('Vui lòng nhập thông tin sản phẩm');
+        setToast({ message: 'Vui lòng nhập thông tin sản phẩm', type: 'error' });
         return;
       }
 
       await stockService.exportStock({ items: validItems, notes });
-      alert('Xuất kho thành công!');
+      setToast({ message: 'Xuất kho thành công!', type: 'success' });
       setExportItems([{ product_id: '', quantity: '' }]);
       setNotes('');
       fetchProducts();
       fetchTransactions();
       fetchLowStock();
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -315,6 +317,7 @@ const Stock = () => {
           </table>
         </div>
       )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

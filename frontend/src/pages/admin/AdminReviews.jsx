@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import reviewService from '../../services/reviewService';
 import productService from '../../services/productService';
+import Toast from '../../components/Toast';
 
 const AdminReviews = () => {
   const [reviews, setReviews] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -35,7 +37,7 @@ const AdminReviews = () => {
       });
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      alert('Lỗi khi tải đánh giá: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi khi tải đánh giá: ' + (error.response?.data?.message || error.message), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -55,10 +57,10 @@ const AdminReviews = () => {
 
     try {
       await reviewService.deleteReview(id);
-      alert('Xóa đánh giá thành công!');
+      setToast({ message: 'Xóa đánh giá thành công!', type: 'success' });
       fetchReviews();
     } catch (error) {
-      alert('Không thể xóa: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể xóa: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -81,7 +83,7 @@ const AdminReviews = () => {
       link.download = `reviews_export_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
     } catch (error) {
-      alert('Lỗi khi xuất báo cáo: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi khi xuất báo cáo: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -238,6 +240,7 @@ const AdminReviews = () => {
           </div>
         )}
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

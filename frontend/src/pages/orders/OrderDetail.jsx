@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import orderService from '../../services/orderService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import Toast from '../../components/Toast';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -12,6 +13,7 @@ const OrderDetail = () => {
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useAuth();
   const { fetchCart } = useCart();
+  const [toast, setToast] = useState(null);
 
   const successMessage = location.state?.message;
 
@@ -44,9 +46,9 @@ const OrderDetail = () => {
       await orderService.cancelOrder(id);
       await fetchOrder(); // Reload order
       await fetchCart(); // Refresh cart để load lại items đã restore
-      alert('✅ Đơn hàng đã được hủy thành công!\n\nSản phẩm đã được trả về giỏ hàng. Bạn có thể truy cập giỏ hàng để đặt hàng lại.');
+      setToast({ message: 'Đơn hàng đã được hủy thành công! Sản phẩm đã được trả về giỏ hàng. Bạn có thể truy cập giỏ hàng để đặt hàng lại.', type: 'success' });
     } catch (error) {
-      alert('Không thể hủy đơn hàng: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Không thể hủy đơn hàng: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -204,6 +206,7 @@ const OrderDetail = () => {
           )}
         </div>
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

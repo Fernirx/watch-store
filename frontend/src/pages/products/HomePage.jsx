@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProductCard from '../../components/ProductCard';
+import Toast from '../../components/Toast';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -13,6 +14,7 @@ const HomePage = () => {
   const { addToWishlist, removeWishlistItem, isInWishlist, wishlist } = useWishlist();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -60,7 +62,7 @@ const HomePage = () => {
         await addToWishlist(product.id);
       }
     } catch (error) {
-      alert('Lỗi: ' + (error.response?.data?.message || error.message));
+      setToast({ message: 'Lỗi: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 
@@ -121,6 +123,7 @@ const HomePage = () => {
           ))}
         </div>
       </section>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };
