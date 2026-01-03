@@ -268,7 +268,8 @@ class AuthService
      */
     public function resetPassword(string $email, string $otp, string $newPassword): void
     {
-        if (!Otp::verifyOtp($email, $otp, 'FORGOT_PASSWORD')) {
+        $result = Otp::verifyOtp($email, $otp, 'FORGOT_PASSWORD');
+        if (!$result['success']) {
             throw new \Exception('Invalid or expired OTP');
         }
 
