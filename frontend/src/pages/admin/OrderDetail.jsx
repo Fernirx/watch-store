@@ -207,9 +207,9 @@ const AdminOrderDetail = () => {
                     <span>{item.product_name}</span>
                   </div>
                 </td>
-                <td>{item.price.toLocaleString('vi-VN')} ₫</td>
+                <td>{Math.round(parseFloat(item.price)).toLocaleString('vi-VN')}đ</td>
                 <td>{item.quantity}</td>
-                <td>{(item.price * item.quantity).toLocaleString('vi-VN')} ₫</td>
+                <td>{Math.round(parseFloat(item.price) * item.quantity).toLocaleString('vi-VN')}đ</td>
               </tr>
             ))}
           </tbody>
@@ -218,21 +218,21 @@ const AdminOrderDetail = () => {
         <div className="order-summary">
           <div className="summary-row">
             <span>Tạm tính:</span>
-            <span>{order.subtotal.toLocaleString('vi-VN')} ₫</span>
+            <span>{Math.round(parseFloat(order.subtotal)).toLocaleString('vi-VN')}đ</span>
           </div>
           <div className="summary-row">
             <span>Phí vận chuyển:</span>
-            <span>{order.shipping_fee.toLocaleString('vi-VN')} ₫</span>
+            <span>{Math.round(parseFloat(order.shipping_fee)).toLocaleString('vi-VN')}đ</span>
           </div>
           {order.discount_amount > 0 && (
             <div className="summary-row" style={{ color: '#dc2626' }}>
               <span>Giảm giá ({order.coupon_code}):</span>
-              <span>-{order.discount_amount.toLocaleString('vi-VN')} ₫</span>
+              <span>-{Math.round(parseFloat(order.discount_amount)).toLocaleString('vi-VN')}đ</span>
             </div>
           )}
           <div className="summary-row total">
             <span>Tổng cộng:</span>
-            <span>{order.total.toLocaleString('vi-VN')} ₫</span>
+            <span>{Math.round(parseFloat(order.total)).toLocaleString('vi-VN')}đ</span>
           </div>
         </div>
       </div>

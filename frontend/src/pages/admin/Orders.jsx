@@ -106,7 +106,7 @@ const Orders = () => {
                   <td style={{ fontWeight: '600' }}>{order.customer_name || 'Khách'}</td>
                   <td>{order.shipping_phone}</td>
                   <td style={{ fontWeight: '600', color: '#1e293b' }}>
-                    {order.total.toLocaleString('vi-VN')}₫
+                    {Math.round(parseFloat(order.total)).toLocaleString('vi-VN')}đ
                   </td>
                   <td>{getStatusBadge(order.status)}</td>
                   <td>{getPaymentStatusBadge(order.payment_status)}</td>
