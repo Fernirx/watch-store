@@ -92,8 +92,8 @@ const OrderList = () => {
                   {order.items?.slice(0, 3).map((item) => (
                     <div key={item.id} className="order-item">
                       <img
-                        src={item.product?.images?.[0]?.image_url || '/placeholder.jpg'}
-                        alt={item.product?.name}
+                        src={item.product.image_url || '/placeholder.jpg'}
+                        alt={item.product.name}
                       />
                       <div className="item-details">
                         <p>{item.product?.name}</p>

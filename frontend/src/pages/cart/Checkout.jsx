@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import orderService from '../../services/orderService';
@@ -14,6 +14,10 @@ const Checkout = () => {
   const { cart, subtotal, fetchCart, loading: cartLoading } = useCart();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Lấy selectedItems từ navigation state
+  const selectedItems = location.state?.selectedItems || [];
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -327,10 +331,11 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Thêm guest_token và coupon nếu có
+      // Thêm guest_token, coupon và selected_item_ids nếu có
       const orderData = {
         ...formData,
         coupon_code: appliedCoupon?.code || null,
+        selected_item_ids: selectedItems.length > 0 ? selectedItems : null,
       };
       const guestToken = guestService.getGuestToken();
 
@@ -340,6 +345,7 @@ const Checkout = () => {
       console.log('  - localStorage token:', localStorage.getItem('token'));
       console.log('  - guest_token:', guestToken);
       console.log('  - coupon_code:', orderData.coupon_code);
+      console.log('  - selected_item_ids:', orderData.selected_item_ids);
 
       // Luôn gửi guest_token nếu có (cho cả user và guest)
       if (guestToken) {

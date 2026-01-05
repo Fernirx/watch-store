@@ -93,6 +93,8 @@ class OrderController extends Controller
                 'notes' => 'nullable|string',
                 'coupon_code' => 'nullable|string|max:50', // Mã giảm giá (optional)
                 'guest_token' => 'nullable|string|size:64', // Cho guest checkout
+                'selected_item_ids' => 'nullable|array', // Danh sách cart item IDs được chọn
+                'selected_item_ids.*' => 'integer|min:1', // Mỗi ID phải là số nguyên dương
             ], [
                 'shipping_phone.regex' => 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678)',
                 'shipping_address.min' => 'Địa chỉ phải có ít nhất 10 ký tự',
@@ -125,7 +127,10 @@ class OrderController extends Controller
                 }
             }
 
-            $order = $this->orderService->createOrder($userId, $validated, $guestToken);
+            // Lấy selected_item_ids nếu có
+            $selectedItemIds = $validated['selected_item_ids'] ?? null;
+
+            $order = $this->orderService->createOrder($userId, $validated, $guestToken, $selectedItemIds);
 
             return response()->json([
                 'success' => true,

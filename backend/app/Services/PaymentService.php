@@ -125,14 +125,19 @@ class PaymentService
                 ]);
 
                 // Xóa giỏ hàng sau khi thanh toán thành công
+                // CHỈ xóa các items có trong order (có thể là một phần của giỏ hàng)
                 $cart = \App\Models\Cart::where(function ($query) use ($order) {
                     $query->where('user_id', $order->user_id)
                           ->orWhere('guest_token', $order->guest_token);
                 })->first();
 
                 if ($cart) {
-                    $cart->items()->delete();
-                    Log::info("🗑️ Cart cleared after successful VNPay payment for order #{$order->order_number}");
+                    // Lấy danh sách product_id từ order items
+                    $orderedProductIds = $order->items->pluck('product_id')->toArray();
+
+                    // Xóa các cart items có product_id trong danh sách đã order
+                    $deletedCount = $cart->items()->whereIn('product_id', $orderedProductIds)->delete();
+                    Log::info("🗑️ Deleted {$deletedCount} items from cart after successful VNPay payment for order #{$order->order_number}");
                 }
 
                 DB::commit();

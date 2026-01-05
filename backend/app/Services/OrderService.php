@@ -52,7 +52,7 @@ class OrderService
     /**
      * Tạo đơn hàng mới từ giỏ hàng (hỗ trợ cả user và guest)
      */
-    public function createOrder(?int $userId, array $data, ?string $guestToken = null): Order
+    public function createOrder(?int $userId, array $data, ?string $guestToken = null, ?array $selectedItemIds = null): Order
     {
         // Tìm cart theo user_id hoặc guest_token
         // QUAN TRỌNG: Ưu tiên user_id nếu đã login!
@@ -76,13 +76,26 @@ class OrderService
             throw new \Exception('Cart is empty');
         }
 
+        // Lọc chỉ lấy các items được chọn (nếu có selectedItemIds)
+        $cartItems = $cart->items;
+        if ($selectedItemIds && count($selectedItemIds) > 0) {
+            $cartItems = $cartItems->whereIn('id', $selectedItemIds);
+            \Log::info('🛒 Selected items: ' . count($cartItems) . ' out of ' . $cart->items->count());
+
+            if ($cartItems->isEmpty()) {
+                throw new \Exception('Không tìm thấy sản phẩm được chọn trong giỏ hàng');
+            }
+        } else {
+            \Log::info('🛒 No selected items, using all cart items: ' . $cartItems->count());
+        }
+
         DB::beginTransaction();
         try {
             // NOTE: Stock validation sẽ được thực hiện với locking trong vòng lặp tạo order items
             // để tránh race condition
 
-            // Tính toán tổng tiền
-            $subtotal = $cart->items->sum(function ($item) {
+            // Tính toán tổng tiền (chỉ tính cho items được chọn)
+            $subtotal = $cartItems->sum(function ($item) {
                 return $item->price * $item->quantity;
             });
 
@@ -137,7 +150,8 @@ class OrderService
             ]);
 
             // Tạo order items và giảm tồn kho (WITH PESSIMISTIC LOCKING)
-            foreach ($cart->items as $cartItem) {
+            // CHỈ tạo order items cho các cart items được chọn
+            foreach ($cartItems as $cartItem) {
                 // CRITICAL: Lock product row để tránh race condition
                 $product = \App\Models\Product::lockForUpdate()->find($cartItem->product_id);
 
@@ -201,8 +215,15 @@ class OrderService
             // QUAN TRỌNG: Với VNPay, chỉ xóa cart SAU KHI thanh toán thành công
             // Với COD, xóa ngay
             if ($data['payment_method'] !== 'vnpay') {
-                $cart->items()->delete();
-                \Log::info("🗑️ Cart cleared for payment method: {$data['payment_method']}");
+                // CHỈ xóa các items đã được chọn để đặt hàng
+                if ($selectedItemIds && count($selectedItemIds) > 0) {
+                    $cart->items()->whereIn('id', $selectedItemIds)->delete();
+                    \Log::info("🗑️ Deleted " . count($selectedItemIds) . " selected items from cart for payment method: {$data['payment_method']}");
+                } else {
+                    // Nếu không có selectedItemIds (backward compatibility), xóa toàn bộ
+                    $cart->items()->delete();
+                    \Log::info("🗑️ Cart cleared (all items) for payment method: {$data['payment_method']}");
+                }
             } else {
                 \Log::info("⏳ Cart preserved for VNPay payment, will be cleared after payment success");
             }
@@ -217,7 +238,8 @@ class OrderService
                 'guest_token' => $guestToken,
                 'total' => $order->total,
                 'payment_method' => $order->payment_method,
-                'items_count' => $cart->items->count(),
+                'items_count' => $cartItems->count(),
+                'selected_items' => $selectedItemIds ? count($selectedItemIds) : 'all',
             ]);
 
             // Gửi email xác nhận đơn hàng
