@@ -39,7 +39,7 @@ const Header = () => {
       <div className="header-container">
         <div className="header-content">
           <Link to="/" className="logo">
-            <h1>Hưng Phú Store</h1>
+              <h1>TAWATCH</h1>
           </Link>
 
           <nav className="nav-menu">
